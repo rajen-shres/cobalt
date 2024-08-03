@@ -6,6 +6,14 @@ performed through common functions in this module.
 
 This is intended to provide some level of abstraction of the implementation of the
 club administration data model so that future changes can be made more easily.
+
+Key functions are:
+    get_member_details      : get the details of a single club member
+    get_club_members        : get details of a number of club members
+    can_perform_action      : validate that an action can be perormed on a member
+    get_valid_actions       : get a list of all valid actions that can be performed
+                              on a specific member
+    perform_simple_action   : perform an action on a member
 """
 
 from datetime import date, timedelta
@@ -54,6 +62,7 @@ class CobaltMemberNotFound(Exception):
 # -------------------------------------------------------------------------------------
 # Constants
 # -------------------------------------------------------------------------------------
+
 
 # membership states/statuses which end a membership
 MEMBERSHIP_STATES_TERMINAL = [
@@ -111,6 +120,8 @@ def get_member_log(club, system_number):
 
 def description_for_status(status):
     """Returns the human readable descrption of a membership status (or state)
+    Note: this is only required when using membershiop status codes outside of
+    an attribute (when <object>.get_FOO_display) can be used instead.
 
     Args:
         status (MemberClubDetails.MEMBERSHIP_STATUS): the status (or state)
@@ -123,545 +134,70 @@ def description_for_status(status):
     return membership_status_dict.get(status, "Unknown Status")
 
 
-# -------------------------------------------------------------------------------------
-# Data maniputation functions
-# -------------------------------------------------------------------------------------
+def member_details_description(member_details):
+    """A comprehensive descriptive string of the type, status and relevant dates"""
 
+    period = f"from {member_details.latest_membership.start_date:%d %b %Y}"
+    if member_details.latest_membership.end_date:
+        period += f" to {member_details.latest_membership.end_date:%d %b %Y}"
 
-def refresh_memberships_for_club(club, as_at_date=None):
-    """Ensure that the membership statuses and current memberships are correct
-    for members of a club
+    joined_and_left = (
+        f"Joined {member_details.joined_date:%d %b %Y}"
+        if member_details.joined_date
+        else None
+    )
+    if member_details.left_date:
+        if joined_and_left:
+            joined_and_left += f", left {member_details.left_date:%d %b %Y}. "
+        else:
+            joined_and_left += f"Left {member_details.left_date:%d %b %Y}. "
+    elif joined_and_left:
+        joined_and_left += ". "
 
-    Args:
-        club (Organisation): the club
-        as_at_date (Date or None): the date to use, current if None
-
-    Returns:
-        int: number of members updated
-    """
-
-    member_details = MemberClubDetails.objects.filter(club=club)
-
-    updated_count = 0
-
-    for member_detail in member_details:
-        if member_detail.refresh_status(as_at_date=as_at_date):
-            updated_count += 1
-
-    return updated_count
-
-
-def mark_player_as_deceased(system_number):
-    """Mark a user or unregistered user as deceased, and cascade the
-    change to any club memberships for that player. Note that this is a
-    support function, not performed by the clubs.
-
-    Args:
-        system_number: the players system number
-
-    Returns:
-        boolean: success
-    """
-
-    # update the user or unregistered user record
-    user = User.objects.filter(system_number=system_number).last()
-    if user:
-        user.deceased = True
-        user.is_active = False
-        user.save()
-    else:
-        unreg_user = UnregisteredUser.objects.filter(system_number=system_number).last()
-        if unreg_user:
-            unreg_user.deceased = True
-            unreg_user.save()
-
-    # update any club memberships
-    member_details = MemberClubDetails.objects.filter(system_number=system_number)
-    for member_detail in member_details:
-        mark_member_as_deceased(member_detail.club, member_detail.system_number)
-
-    return True
-
-
-def mark_member_as_deceased(club, system_number, requester=None):
-    """Mark a club member as deceased. Note that this only applies
-    at the club level. Marking a user or unregistered user as deceased
-    is a support function, achieved through mark_player_as_deceased.
-    If the member is a contact, it will be deleted.
-
-    Args:
-        club (Organisation): the club
-        system_number: member's system number
-        requester (User): the user requesting the change
-
-    Returns:
-        bool: success
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
-    """
-
-    try:
-        member_details = MemberClubDetails.objects.get(
-            club=club, system_number=system_number
-        )
-    except MemberClubDetails.DoesNotExist:
-        raise CobaltMemberNotFound(club, system_number)
-
-    # just delete deceased contacts
-    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
-        member_details.delete()
-        return True
-
-    #  if there is a current membership type association, mark it as deceased and end it
+    paid_until = None
     if (
-        member_details.latest_membership
-        and member_details.latest_membership.membership_state
-        in [
-            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
-            MemberMembershipType.MEMBERSHIP_STATE_DUE,
-        ]
+        member_details.latest_membership.paid_until_date
+        and member_details.latest_membership.paid_until_date
+        != member_details.latest_membership.end_date
     ):
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_DECEASED
+        paid_until = (
+            f"paid until {member_details.latest_membership.paid_until_date:%d %b %Y}"
         )
-        member_details.latest_membership.end_date = timezone.now().date()
-        member_details.latest_membership.save()
 
-    old_status = member_details.membership_status
-    member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
-    member_details.save()
-
-    message = f"Status changed from {description_for_status(old_status)} to Deceased"
-
-    log_member_change(
-        club,
-        system_number,
-        requester,
-        message,
-    )
-
-    return True
-
-
-def mark_member_as_lapsed(club, system_number, requester=None):
-    """Mark the member's current membership as lapsed.
-    The end date is set to yesterday. Any future dated due date is reset to yesterday.
-    Will fail if the membership status is not current.
-
-    Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-        requester (User): the user requesting the change
-
-    Returns:
-        boolean: success or failure
-        string: message or None
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
-    """
-
-    success, member_details, message = _update_member_status(
-        club,
-        system_number,
-        MemberMembershipType.MEMBERSHIP_STATE_LAPSED,
-        [MemberClubDetails.MEMBERSHIP_STATUS_DUE],
-        commit=False,
-        requester=requester,
-    )
-
-    if not success:
-        return (False, message)
-
-    if (
-        member_details.latest_membership.due_date
-        > member_details.latest_membership.end_date
-    ):
-        member_details.latest_membership.due_date = (
-            member_details.latest_membership.end_date
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
+        desc = (
+            f"{member_details.latest_membership.membership_type.name} member, {period}"
         )
-    member_details.latest_membership.save()
-    member_details.save()
-
-    return (True, None)
-
-
-def mark_member_as_resigned(club, system_number, requester=None):
-    """Mark the member as resigned.
-    The end date is set to yesterday
-    The member must be current or current or due
-
-    Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-        requester (User): the user requesting the change
-
-    Returns:
-        boolean: success or failure
-        string: message or None
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
-    """
-
-    success, _, message = _update_member_status(
-        club,
-        system_number,
-        MemberMembershipType.MEMBERSHIP_STATE_RESIGNED,
-        [
-            MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
-            MemberClubDetails.MEMBERSHIP_STATUS_DUE,
-        ],
-        requester=requester,
-    )
-
-    return (success, message)
-
-
-def mark_member_as_terminated(club, system_number):
-    """Mark the member's current membership as terminated.
-    The end date is set to yesterday. Any future dated due date is reset to yesterday.
-    Will fail if the membership status is not current or due.
-
-    Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-
-    Returns:
-        boolean: success or failure
-        string: message or None
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
-    """
-
-    success, _, message = _update_member_status(
-        club,
-        system_number,
-        MemberMembershipType.MEMBERSHIP_STATE_TERMINATED,
-        [
-            MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
-            MemberClubDetails.MEMBERSHIP_STATUS_DUE,
-        ],
-    )
-
-    return (success, message)
-
-
-def _update_member_status(
-    club, system_number, new_status, required_statuses=None, commit=True, requester=None
-):
-    """Private function to handle membership status changes.
-    The membership status and the state and end date of the latest membership type are updated
-    If a list of required statuses is provide the member must be in one of thise statuses for the
-    updates to be made. The member must not be deceased.
-
-    A log record is written if successful (even if not committing the changes)
-
-    Args:
-        club (Organisaton): the club
-        system_number (int): the member's system number
-        new_status (MemberClubDetail.MEMBERSHIP_STATUS): the status to be assigned
-        required_statuses (list): list of MemberClubDetail.MEMBERSHIP_STATUS or None
-        commit (boolean): save changes?
-        requester (User): the user requesting the change
-
-    Returns:
-        bool: success or failure
-        MemberClubDetails: the member details object (if available)
-        string: explanatory message
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
-    """
-
-    member_details = (
-        MemberClubDetails.objects.filter(
-            club=club,
-            system_number=system_number,
-        )
-        .select_related("latest_membership")
-        .last()
-    )
-
-    if not member_details:
-        raise CobaltMemberNotFound(club, system_number)
-
-    # if the member is marked as deceased at the user/unreg user level, the status cannot be changed
-    # if only marked deceased at the club level, then rely on required_statuses validation
-    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
-        if check_user_or_unreg_deceased(system_number):
-            return (False, member_details, "Member is deceased")
-
-    if required_statuses:
-        if member_details.membership_status not in required_statuses:
-            return (
-                False,
-                member_details,
-                f"Member is not in a valid status to change to {description_for_status(new_status)}",
-            )
-
-    yesterday = timezone.now().date() - timedelta(days=1)
-    member_details.latest_membership.end_date = yesterday
-    member_details.latest_membership.membership_state = new_status
-
-    old_status = member_details.membership_status
-    member_details.membership_status = new_status
-
-    if commit:
-        member_details.save()
-        member_details.latest_membership.save()
-
-    message = f"Status changed from {description_for_status(old_status)} to {description_for_status(new_status)}"
-
-    log_member_change(
-        club,
-        system_number,
-        requester,
-        message,
-    )
-
-    return (True, member_details, message)
-
-
-def renew_membership(
-    club,
-    system_number,
-    new_end_date,
-    new_fee,
-    new_due_date,
-    is_paid=False,
-    requester=None,
-):
-    """Extend the members current membership to a new end date.
-    The member must be in a status of current, due or lapsed.
-
-    Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-        new_end_date (Date): the extended end date
-        new_fee (Decimal): the fee associated with the renewal
-        new_due_date (Date): the fee payment due date
-        is_paid (bool): has the new fee been paid
-        requester (User): the user requesting the change
-
-    Returns:
-        bool: success
-        string: explanatory message or None
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
-    """
-
-    # JPG Debug
-    print(f"renew_membership to {new_end_date}")
-
-    member_details = (
-        MemberClubDetails.objects.filter(
-            club=club,
-            system_number=system_number,
-        )
-        .select_related("latest_membership")
-        .last()
-    )
-
-    if not member_details:
-        raise CobaltMemberNotFound(club, system_number)
-
-    if member_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
-        return (False, "Member must be current to be extended")
-
-    if new_end_date <= member_details.latest_membership.end_date:
-        return (False, "New end date must be later than teh current end date")
-
-    old_end_date = member_details.latest_membership.end_date
-    member_details.latest_membership.end_date = new_end_date
-    member_details.latest_membership.fee = new_fee
-    member_details.latest_membership.due_date = new_due_date
-    if is_paid:
-        member_details.latest_membership.paid_until_date = new_end_date
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+        if paid_until:
+            desc += f", {paid_until}"
+        if member_details.latest_membership.due_date:
+            desc += f", {member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
+        desc += f". {joined_and_left}"
+    elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
+        desc = f"{member_details.latest_membership.membership_type.name} member, {period}, "
+        if paid_until:
+            desc += f"{paid_until}, "
+        desc += (
+            f"{member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
+            f". {joined_and_left}"
         )
     else:
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_DUE
+        desc = (
+            f"{member_details.get_membership_status_display()}. {joined_and_left}"
+            f"{member_details.latest_membership.membership_type.name} membership {period}"
         )
-    member_details.membership_status = member_details.latest_membership.membership_state
+        if paid_until:
+            desc += f", {paid_until}"
 
-    member_details.latest_membership.save()
-    member_details.save()
-
-    log_member_change(
-        club,
-        system_number,
-        requester,
-        f"{member_details.latest_membership.membership_type.name} membership extended from "
-        + f"{old_end_date.strftime('%d-%m-%Y')} to {new_end_date.strftime('%d-%m-%Y')}",
-    )
-
-    if is_paid:
-        log_member_change(
-            club,
-            system_number,
-            requester,
-            f"Membership marked as paid to {new_end_date.strftime('%d-%m-%Y')}",
-        )
-
-    return (True, "Membership extended")
-
-
-def change_membership(
-    club,
-    system_number,
-    membership_type,
-    requester,
-    fee=None,
-    start_date=None,
-    end_date=None,
-    due_date=None,
-    is_paid=False,
-):
-    """Change the membership type for an existing club member by adding a new MemberMembershipType.
-    The member may have a current membership, or may have lapsed, resigned etc.
-    The member must not be deceased or a contact
-
-    Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-        membership_type (MembershipType): the new membership type to be linked to
-        requester (User): the user making teh change, required for the new record
-        fee (Decimal): optional fee to override the default from the membership type
-        start_date (Date): optional start date, otherwise will use today
-        end_date (Date): optional end date, otherwise will use the club default or None if perpetual
-        due_date (Date): optional due_date, otherwise use the payment type grace period if a fees is set
-        is_paid (bool): has the fee been paid, used to set the paid until date
-
-    Returns:
-        bool: success
-        string: explanatory message or None
-
-    Raises:
-        CobaltMemberNotFound : no member record found
-    """
-
-    today = timezone.now().date()
-
-    # get the member data and latest membership
-    member_details = (
-        MemberClubDetails.objects.filter(
-            club=club,
-            system_number=system_number,
-        )
-        .exclude(
-            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED,
-        )
-        .select_related("latest_membership")
-        .last()
-    )
-
-    if not member_details or not member_details.latest_membership:
-        # either not a member, or is a contact
-        raise CobaltMemberNotFound(club, system_number)
-
-    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
-        return (False, "Cannot change membership type for a deceased member")
-
-    # build the new membership record
-    new_membership = MemberMembershipType()
-    new_membership.system_number = system_number
-    new_membership.last_modified_by = requester
-    new_membership.membership_type = membership_type
-    new_membership.fee = fee if fee else membership_type.annual_fee
-    new_membership.start_date = start_date if start_date else today
-    if membership_type.does_not_renew:
-        new_membership.end_date = None
-    else:
-        new_membership.end_date = end_date if end_date else club.current_end_date
-    if is_paid or new_membership.fee == 0:
-        new_membership.due_date = None
-        new_membership.paid_until_date = new_membership.end_date
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
-    else:
-        new_membership.due_date = (
-            due_date
-            if due_date
-            else new_membership.start_date
-            + timedelta(days=membership_type.grace_period_days)
-        )
-        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
-
-    # last minute validatation
-
-    if new_membership.start_date > today:
-        return (False, "Start date cannot be in the future")
-
-    if new_membership.start_date and new_membership.end_date:
-        if new_membership.start_date > new_membership.end_date:
-            return (False, "End date must be after start date")
-
-    # update the member record and the previous membership record
-    new_membership.save()
-
-    if member_details.latest_membership.membership_state in MEMBERSHIP_STATES_ACTIVE:
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_ENDED
-        )
-        member_details.latest_membership.end_date = (
-            new_membership.start_date - timedelta(days=1)
-        )
-        member_details.latest_membership.save()
-
-    member_details.latest_membership = new_membership
-    member_details.membership_status = new_membership.membership_state
-    member_details.save()
-
-    # and log it
-    message = f"Membership changed to {membership_type.name}"
-
-    if is_paid and new_membership.paid_until_date:
-        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
-
-    log_member_change(
-        club,
-        system_number,
-        requester,
-        message,
-    )
-
-    return (True, message)
-
-
-def add_member(
-    club,
-    system_number,
-    membership_type,
-    annual_fee=None,
-    grace_period_days=None,
-    is_paid=False,
-):
-    """Add a new member and initial membership to a club.
-    The person must be an existing user or unregistered user, but not a member of this club.
-
-    Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-        membership_type (MembershipType): the membership type to be linked to
-        annual_fee (Decimal): optional fee to override the default from the membership type
-        grace_period_days (int): optional payment grace period to override the default from the membership type
-        is_paid (bool): has the fee been paid
-
-    Returns:
-        bool: success
-        string: explanatory message or None
-    """
-    pass
+    return desc
 
 
 # -------------------------------------------------------------------------------------
-# Data accessor functions
+#   Data accessor functions
+#
+#   Key functions for accessing membership data are:
+#       get_member_details : get a single member's details
+#       get_club_members : get all club members
 # -------------------------------------------------------------------------------------
 
 
@@ -716,7 +252,11 @@ def check_user_or_unreg_deceased(system_number):
 
 
 def get_club_members(
-    club, sort_option="last_desc", exclude_contacts=True, active_only=True
+    club,
+    sort_option="last_desc",
+    active_only=True,
+    exclude_contacts=True,
+    exclude_deceased=True,
 ):
     """Returns a list of member detail objects for the specified club, augmented with
     the names and types (user, unregistered, contact).
@@ -747,9 +287,12 @@ def get_club_members(
             membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
         )
 
-    members = members.exclude(
-        membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
-    ).select_related("latest_membership__membership_type")
+    if exclude_deceased:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
+        )
+
+    members = members.select_related("latest_membership__membership_type")
 
     # augment with additional details
     return _augment_member_details(members, sort_option=sort_option)
@@ -905,6 +448,854 @@ def club_email_for_member(club, system_number):
     additional_info = UserAdditionalInfo.objects.filter(user=user).last()
 
     return (user.email, additional_info.email_hard_bounce if additional_info else False)
+
+
+# -------------------------------------------------------------------------------------
+#   Status validation functions
+#
+#   Single points for implementing business logic to validate whether an action can be
+#   performed on a member. Should be used by the UI to ensure that options are being
+#   presented consistently across teh UI and consistent with the backend.
+#
+#   In general consuming code should use either:
+#       can_perform_action(<action name>, <member detail>), or
+#       get_valid_actions(<member detail>)
+#
+#   All functinos have a common structure, taking a MemberClubDetails object as returned by
+#   get_member_details and returning a tuple of:
+#       boolean : can teh action be peroformed
+#       str: an explanatory message if not valid, otherwise None
+#
+#   To add a new action:
+#       - create a validation function
+#       - add the name to MEMBER_ACTIONS
+#       - add the functon to ACTION_VALIDATORS
+#       - update the action function section below
+#
+# -------------------------------------------------------------------------------------
+
+
+def can_mark_as_lapsed(member_details):
+    """Can the member validly be marked as lapsed?"""
+
+    if member_details.is_active_status:
+        return (True, None)
+
+    return (False, "Member must be in an active status to mark as lapsed")
+
+
+def can_mark_as_resigned(member_details):
+    """Can the member validly be marked as resigned?"""
+
+    if (
+        member_details.is_active_status
+        or member_details.membership_status
+        == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+    ):
+        return (True, None)
+
+    return (False, "Member must be in an active status to mark as resigned")
+
+
+def can_mark_as_terminated(member_details):
+    """Can the member validly be marked as terminated?"""
+
+    if (
+        member_details.is_active_status
+        or member_details.membership_status
+        == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+        or member_details.membership_status
+        == MemberClubDetails.MEMBERSHIP_STATUS_RESIGNED
+    ):
+        return (True, None)
+
+    return (False, "Member is not in a valid state to mark as terminated")
+
+
+def can_mark_as_deceased(member_details):
+    """Can the member validly be marked as deceased?"""
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
+        return (False, "Member is already marked as deceased")
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+        return (False, "Contacts cannot be marked as deceased")
+
+    return (True, None)
+
+
+def can_mark_as_paid(member_details):
+    """Can the member validly be marked as paid?"""
+
+    if not (
+        member_details.is_active_status
+        or member_details.membership_status
+        == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+    ):
+        return (False, "Member must be in an active state to be marked as paid")
+
+    today = timezone.now().date()
+
+    if (
+        member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+        and member_details.end_date < today
+    ):
+        return (False, "Lapsed members cannot pay after the end date")
+
+    if member_details.latest_membership.is_paid:
+        return (False, "Membership is already paid")
+
+    return (True, None)
+
+
+def can_extend_membership(member_details):
+    """Can the member validly be extended?"""
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
+        if member_details.latest_membership.membership_type.does_not_renew:
+            return (
+                False,
+                f"{member_details.latest_membership.membership_type.name} memberships do not renew",
+            )
+        else:
+            return (True, None)
+
+    return (False, "Member must in a current member to extend")
+
+
+def can_change_membership(member_details):
+    """Can the membership type of the member validly be changed?"""
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
+        return (False, "Deceased members cannot be changed")
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+        return (False, "Contacts do not have memberships")
+
+    return (True, None)
+
+
+def can_reinstate_membership(member_details):
+    """Can the membership type of the member validly be reinstated?"""
+
+    if member_details.membership_status in [
+        MemberClubDetails.MEMBERSHIP_STATUS_LAPSED,
+        MemberClubDetails.MEMBERSHIP_STATUS_RESIGNED,
+        MemberClubDetails.MEMBERSHIP_STATUS_TERMINATED,
+        MemberClubDetails.MEMBERSHIP_STATUS_DECEASED,
+    ]:
+        if member_details.previous_membership_status:
+            return (True, None)
+        else:
+            return (False, "No previous status to reinstate")
+
+    return (False, "Member is not in a valid state to reinstate a previous state")
+
+
+def can_delete_member(member_details):
+    """Can the membership validly be deleted?"""
+
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+        return (False, "Contacts must be deleted using Delete Contact")
+
+    return (True, None)
+
+
+# The actions that can be performed on a member/membership
+MEMBER_ACTIONS = [
+    "lapsed",
+    "resigned",
+    "terminated",
+    "deceased",
+    "paid",
+    "extend",
+    "change",
+    "reinstate",
+    "delete",
+]
+
+
+# The state validation functions for each action
+ACTION_VALIDATORS = {
+    "lapsed": can_mark_as_lapsed,
+    "resigned": can_mark_as_resigned,
+    "terminated": can_mark_as_terminated,
+    "deceased": can_mark_as_deceased,
+    "paid": can_mark_as_paid,
+    "extend": can_extend_membership,
+    "change": can_change_membership,
+    "reinstate": can_reinstate_membership,
+    "delete": can_delete_member,
+}
+
+
+def can_perform_action(action, member_details):
+    """Convenience function to access the action validators"""
+    if action in ACTION_VALIDATORS:
+        return ACTION_VALIDATORS[action](member_details)
+    else:
+        return (False, "Invalid action")
+
+
+def get_valid_actions(member_details):
+    """Returns a list of valid actions for this membership
+    Used to condition the action buttons on the edit member view
+
+    Args:
+        member_details (MemberClubDetails): members details as returned by get_member_details
+
+    Returns:
+        list: list of strings of valid actions for this user
+
+    Valid actions are: lapsed, resigned, terminated, deceased, change_status (at least one of
+    the preceeding), paid, extend, change, reinstate, delete
+    """
+
+    valid_actions = []
+    for action in MEMBER_ACTIONS:
+        if can_perform_action(action, member_details)[0]:
+            valid_actions.append(action)
+
+    # check whether any status change is allowed
+    if (
+        "lapsed" in valid_actions
+        or "resigned" in valid_actions
+        or "terminated" in valid_actions
+        or "deceased" in valid_actions
+    ):
+        valid_actions.append("change_status")
+
+    return valid_actions
+
+
+# -------------------------------------------------------------------------------------
+#   General data maniputation functions
+# -------------------------------------------------------------------------------------
+
+
+def refresh_memberships_for_club(club, as_at_date=None):
+    """Ensure that the membership statuses and current memberships are correct
+    for members of a club
+
+    Args:
+        club (Organisation): the club
+        as_at_date (Date or None): the date to use, current if None
+
+    Returns:
+        int: number of members updated
+    """
+
+    member_details = MemberClubDetails.objects.filter(club=club)
+
+    updated_count = 0
+
+    for member_detail in member_details:
+        if member_detail.refresh_status(as_at_date=as_at_date):
+            updated_count += 1
+
+    return updated_count
+
+
+def mark_player_as_deceased(system_number):
+    """Mark a user or unregistered user as deceased, and cascade the
+    change to any club memberships for that player. Note that this is a
+    support function, not performed by the clubs.
+
+    Args:
+        system_number: the players system number
+
+    Returns:
+        boolean: success
+    """
+
+    # update the user or unregistered user record
+    user = User.objects.filter(system_number=system_number).last()
+    if user:
+        user.deceased = True
+        user.is_active = False
+        user.save()
+    else:
+        unreg_user = UnregisteredUser.objects.filter(system_number=system_number).last()
+        if unreg_user:
+            unreg_user.deceased = True
+            unreg_user.save()
+
+    # update any club memberships
+    member_details = MemberClubDetails.objects.filter(system_number=system_number)
+    for member_detail in member_details:
+        _mark_member_as_deceased(member_detail.club, member_detail.system_number)
+
+    return True
+
+
+def add_member(
+    club,
+    system_number,
+    membership_type,
+    annual_fee=None,
+    grace_period_days=None,
+    is_paid=False,
+):
+    """Add a new member and initial membership to a club.
+    The person must be an existing user or unregistered user, but not a member of this club.
+
+    Args:
+        club (Organisation): the club
+        system_number (int): the member's system number
+        membership_type (MembershipType): the membership type to be linked to
+        annual_fee (Decimal): optional fee to override the default from the membership type
+        grace_period_days (int): optional payment grace period to override the default from the membership type
+        is_paid (bool): has the fee been paid
+
+    Returns:
+        bool: success
+        string: explanatory message or None
+    """
+    pass
+
+
+# -------------------------------------------------------------------------------------
+#   Action functions
+#
+#   Functions to implement the actions listed in MEMBER_ACTIONS. Actions can be
+#   considered either simple or complex, where complex actions require arguements
+#   beyond the action name, club and member_details.
+#
+#   Simple actions are implemented by private functions with a standard signature:
+#
+#   Args:
+#       club (Organisation): the member's club
+#       member_details (MemberClubDetails): the members details
+#       requester (User): actioning user for logging purposes
+#   Returns:
+#       bool: success
+#       str: explanatory message or None
+#
+#   Access to these functions is through perform_simple_action(...)
+#
+#   To add a simple action:
+#       - do the updates required for a validation function (see above)
+#       - create the private action function
+#       - add the function to SIMPLE_ACTION_FUNCTIONS
+#
+#   Simple action functions can assume that the member details have already been
+#   validated for that action before being called. Where possible
+#   _update_member_function should be call to do simple actual status updates.
+#
+#   Complex actions are handled by individual public functions to cater for the
+#   additional parameters required. Such functions should call the associated validation
+#   function to validate teh members state before executing the post logic
+# -------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
+#   Simple action functions
+# -------------------------------------------------------------------------------------
+
+
+def _mark_member_as_deceased(club, member_details, requester=None):
+    """Mark a club member as deceased. Note that this only applies
+    at the club level. Marking a user or unregistered user as deceased
+    is a support function, achieved through mark_player_as_deceased.
+    If the member is a contact, it will be deleted.
+
+    Args:
+        club (Organisation): the club
+        system_number: member's system number
+        requester (User): the user requesting the change
+
+    Returns:
+        bool: success
+        str: message
+
+    Raises:
+        CobaltMemberNotFound: if no member found with this system number
+    """
+
+    # just delete deceased contacts
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+        member_details.delete()
+        return (True, "Contact deleted")
+
+    #  if there is a current membership type association, mark it as deceased and end it
+    if (
+        member_details.latest_membership
+        and member_details.latest_membership.membership_state
+        in [
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+        ]
+    ):
+        member_details.latest_membership.membership_state = (
+            MemberMembershipType.MEMBERSHIP_STATE_DECEASED
+        )
+        member_details.latest_membership.save()
+
+    member_details.previous_membership_status = member_details.membership_status
+    member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
+    member_details.save()
+
+    old_status_desc = member_details.get_previous_membership_status_display()
+    message = f"Status changed from {old_status_desc} to Deceased"
+
+    log_member_change(
+        club,
+        member_details.system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
+
+
+def _mark_member_as_lapsed(club, member_details, requester=None):
+    """Mark the member's current membership as lapsed"""
+
+    return _update_member_status(
+        club,
+        member_details,
+        MemberMembershipType.MEMBERSHIP_STATE_LAPSED,
+        "lapsed",
+        requester=requester,
+    )
+
+
+def _mark_member_as_resigned(club, member_details, requester=None):
+    """Mark the member as resigned"""
+
+    return _update_member_status(
+        club,
+        member_details,
+        MemberMembershipType.MEMBERSHIP_STATE_RESIGNED,
+        "resigned",
+        requester=requester,
+    )
+
+
+def _mark_member_as_terminated(club, member_details, requester=None):
+    """Mark the member's current membership as terminated"""
+
+    return _update_member_status(
+        club,
+        member_details,
+        MemberMembershipType.MEMBERSHIP_STATE_TERMINATED,
+        "terminated",
+        requester=requester,
+    )
+
+
+def _check_left_date(member_details):
+    """Ensure that the left date is appropriate after a status change"""
+    if member_details.membership_status in MEMBERSHIP_STATES_TERMINAL:
+        if not member_details.left_date:
+            member_details.left_date = timezone.now().date()
+    else:
+        member_details.left_date = None
+
+
+def _reinstate_previous_status(club, member_details, requester=None):
+    """Reinstate a users last membership status if possible"""
+
+    # swap previous and current statuses
+    replaced_status = member_details.membership_status
+    member_details.membership_status = member_details.previous_membership_status
+    member_details.previous_membership_status = replaced_status
+
+    # check whether was previousl a contact
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+        member_details.latest_membership.delete()
+        member_details.latest_membership = None
+        member_details.save()
+        return (True, "Member reverted to being a contact")
+
+    # check date sensitive statuses are still valid
+    today = timezone.now().date()
+    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
+        if (
+            member_details.latest_membership.end_date
+            and member_details.latest_membership.end_date < today
+        ):
+            member_details.membership_status = (
+                MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+            )
+            # JPG to do - should an auto due date be created?
+    elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
+        if member_details.latest_membership.due_date < today:
+            member_details.membership_status = (
+                MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+            )
+
+    _check_left_date(member_details)
+
+    member_details.save()
+
+    # update the membership record
+    member_details.latest_membership.membership_state = member_details.membership_status
+    member_details.latest_membership.save()
+
+    message = f"Reinstated {member_details.get_membership_status_display()} status from {member_details.get_previous_membership_status_display()}"
+
+    log_member_change(
+        club,
+        member_details.system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
+
+
+def _update_member_status(club, member_details, new_status, action, requester=None):
+    """Private function to handle membership status changes.
+    The membership status and the state and end date of the latest membership type are updated.
+    Validates state using can_perform_actiuon.
+
+    A log record is written if successful
+
+    Args:
+        club (Organisaton): the club
+        member_details (MemberClubDetails): the member's system number
+        new_status (MemberClubDetail.MEMBERSHIP_STATUS): the status to be assigned
+        action (str): the action name, to check validity of current state
+        requester (User): the user requesting the change
+
+    Returns:
+        bool: success or failure
+        string: explanatory message
+
+    Raises:
+        CobaltMemberNotFound: if no member found with this system number
+    """
+
+    yesterday = timezone.now().date() - timedelta(days=1)
+    if new_status not in MEMBERSHIP_STATES_TERMINAL:
+        member_details.latest_membership.end_date = yesterday
+    member_details.latest_membership.membership_state = new_status
+
+    member_details.previous_membership_status = member_details.membership_status
+    member_details.membership_status = new_status
+
+    _check_left_date(member_details)
+
+    member_details.save()
+    member_details.latest_membership.save()
+
+    message = f"Status changed from {member_details.get_previous_membership_status_display()} to {member_details.get_membership_status_display()}"
+
+    log_member_change(
+        club,
+        member_details.system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
+
+
+def _mark_member_as_paid(club, member_details, requester=None):
+    """Mark a member as paid. Sets the paid until to be the end date, changes the status
+    and removes the due date. Logs the update.
+    """
+
+    member_details.latest_membership.state = (
+        MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+    )
+    member_details.latest_membership.due_date = None
+    member_details.latest_membership.paid_until_date = (
+        member_details.latest_membership.end_date
+    )
+    member_details.latest_membership.save()
+
+    member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_CURRENT
+    member_details.save()
+
+    message = f"Member marked as paid ({member_details.latest_membership.fee} fee)"
+
+    log_member_change(
+        club,
+        member_details.system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
+
+
+def _delete_member(club, member_details, requester=None):
+    """Delete a member - the member will become a contact"""
+
+    # delete all associated membership records
+    member_details.latest_membership = None
+
+    MemberMembershipType.objects.filter(
+        system_number=member_details.system_number, membership_type__organisation=club
+    ).delete()
+
+    # remove other membership data from the member details
+    member_details.previous_membership_status = member_details.membership_status
+    member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+    member_details.joined_date = None
+    member_details.left_date = None
+    member_details.save()
+
+    return (True, "Membership information deleted. Deatils saved as a contact")
+
+
+SIMPLE_ACTION_FUNCTIONS = {
+    "lapsed": _mark_member_as_lapsed,
+    "resigned": _mark_member_as_resigned,
+    "terminated": _mark_member_as_terminated,
+    "deceased": _mark_member_as_deceased,
+    "paid": _mark_member_as_paid,
+    "reinstate": _reinstate_previous_status,
+    "delete": _delete_member,
+}
+
+
+def perform_simple_action(action_name, club, system_number, requester=None):
+    """Public access to perform simple actions on members
+
+    Args:
+        action_name (str): an action name in SIMPLE_ACTION_FUNCTIONS
+        club (Oragisation): the member's club
+        system_number (int): the member's system number
+        requestor (User): the actioning user for logging purposes
+
+    Returns:
+        bool: success
+        str: explanatory message
+    """
+
+    if action_name not in SIMPLE_ACTION_FUNCTIONS:
+        return (False, f"Invalid action '{action_name}'")
+
+    member_details = (
+        MemberClubDetails.objects.filter(
+            club=club,
+            system_number=system_number,
+        )
+        .select_related("latest_membership")
+        .last()
+    )
+
+    if not member_details:
+        raise CobaltMemberNotFound(club, system_number)
+
+    permitted_action, message = can_perform_action(action_name, member_details)
+
+    if not permitted_action:
+        return (False, message)
+
+    return SIMPLE_ACTION_FUNCTIONS[action_name](
+        club, member_details, requester=requester
+    )
+
+
+# -------------------------------------------------------------------------------------
+#   Complex action functions (those requiring additional arguements)
+# -------------------------------------------------------------------------------------
+
+
+def renew_membership(
+    club,
+    system_number,
+    new_end_date,
+    new_fee,
+    new_due_date,
+    is_paid=False,
+    requester=None,
+):
+    """Extend the members current membership to a new end date.
+
+    Args:
+        club (Organisation): the club
+        system_number (int): the member's system number
+        new_end_date (Date): the extended end date
+        new_fee (Decimal): the fee associated with the renewal
+        new_due_date (Date): the fee payment due date
+        is_paid (bool): has the new fee been paid
+        requester (User): the user requesting the change
+
+    Returns:
+        bool: success
+        string: explanatory message or None
+
+    Raises:
+        CobaltMemberNotFound: if no member found with this system number
+    """
+
+    member_details = (
+        MemberClubDetails.objects.filter(
+            club=club,
+            system_number=system_number,
+        )
+        .select_related("latest_membership")
+        .last()
+    )
+    if not member_details:
+        raise CobaltMemberNotFound(club, system_number)
+
+    permitted_action, message = can_perform_action("extend", member_details)
+    if not permitted_action:
+        return (False, message)
+
+    if new_end_date <= member_details.latest_membership.end_date:
+        return (False, "New end date must be later than the current end date")
+
+    old_end_date = member_details.latest_membership.end_date
+    member_details.latest_membership.end_date = new_end_date
+    member_details.latest_membership.fee = new_fee
+    member_details.latest_membership.due_date = new_due_date
+    if is_paid:
+        member_details.latest_membership.paid_until_date = new_end_date
+        member_details.latest_membership.membership_state = (
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+        )
+    else:
+        member_details.latest_membership.membership_state = (
+            MemberMembershipType.MEMBERSHIP_STATE_DUE
+        )
+    member_details.membership_status = member_details.latest_membership.membership_state
+
+    member_details.latest_membership.save()
+    member_details.save()
+
+    log_member_change(
+        club,
+        system_number,
+        requester,
+        f"{member_details.latest_membership.membership_type.name} membership extended from "
+        + f"{old_end_date.strftime('%d-%m-%Y')} to {new_end_date.strftime('%d-%m-%Y')}",
+    )
+
+    if is_paid:
+        log_member_change(
+            club,
+            system_number,
+            requester,
+            f"Membership marked as paid to {new_end_date.strftime('%d-%m-%Y')}",
+        )
+
+    return (True, "Membership extended")
+
+
+def change_membership(
+    club,
+    system_number,
+    membership_type,
+    requester,
+    fee=None,
+    start_date=None,
+    end_date=None,
+    due_date=None,
+    is_paid=False,
+):
+    """Change the membership type for an existing club member by adding a new MemberMembershipType.
+    The member may have a current membership, or may have lapsed, resigned etc.
+    The member must not be deceased or a contact
+
+    Args:
+        club (Organisation): the club
+        system_number (int): the member's system number
+        membership_type (MembershipType): the new membership type to be linked to
+        requester (User): the user making teh change, required for the new record
+        fee (Decimal): optional fee to override the default from the membership type
+        start_date (Date): optional start date, otherwise will use today
+        end_date (Date): optional end date, otherwise will use the club default or None if perpetual
+        due_date (Date): optional due_date, otherwise use the payment type grace period if a fees is set
+        is_paid (bool): has the fee been paid, used to set the paid until date
+
+    Returns:
+        bool: success
+        string: explanatory message or None
+
+    Raises:
+        CobaltMemberNotFound : no member record found
+    """
+
+    today = timezone.now().date()
+
+    # get the member data and latest membership
+    member_details = (
+        MemberClubDetails.objects.filter(
+            club=club,
+            system_number=system_number,
+        )
+        .select_related("latest_membership")
+        .last()
+    )
+
+    if not member_details:
+        raise CobaltMemberNotFound(club, system_number)
+
+    permitted_action, message = can_perform_action("change", member_details)
+
+    if not permitted_action:
+        return (False, message)
+
+    # build the new membership record
+    new_membership = MemberMembershipType()
+    new_membership.system_number = system_number
+    new_membership.last_modified_by = requester
+    new_membership.membership_type = membership_type
+    new_membership.fee = fee if fee else membership_type.annual_fee
+    new_membership.start_date = start_date if start_date else today
+    if membership_type.does_not_renew:
+        new_membership.end_date = None
+    else:
+        new_membership.end_date = end_date if end_date else club.current_end_date
+    if is_paid or new_membership.fee == 0:
+        new_membership.due_date = None
+        new_membership.paid_until_date = new_membership.end_date
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+    else:
+        new_membership.due_date = (
+            due_date
+            if due_date
+            else new_membership.start_date
+            + timedelta(days=membership_type.grace_period_days)
+        )
+        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+
+    # last minute validatation
+
+    if new_membership.start_date > today:
+        return (False, "Start date cannot be in the future")
+
+    if new_membership.start_date and new_membership.end_date:
+        if new_membership.start_date > new_membership.end_date:
+            return (False, "End date must be after start date")
+
+    # update the member record and the previous membership record
+    new_membership.save()
+
+    if member_details.latest_membership.membership_state in MEMBERSHIP_STATES_ACTIVE:
+        member_details.latest_membership.membership_state = (
+            MemberMembershipType.MEMBERSHIP_STATE_ENDED
+        )
+        member_details.latest_membership.end_date = (
+            new_membership.start_date - timedelta(days=1)
+        )
+        member_details.latest_membership.save()
+
+    member_details.latest_membership = new_membership
+    member_details.membership_status = new_membership.membership_state
+    member_details.save()
+
+    # and log it
+    message = f"Membership changed to {membership_type.name}"
+
+    if is_paid and new_membership.paid_until_date:
+        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+
+    log_member_change(
+        club,
+        system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
 
 
 # -------------------------------------------------------------------------------------

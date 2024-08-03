@@ -16,6 +16,29 @@
     {# These are used by the image cropper for template banners #}
     <link href="{% static 'assets/css/cropper.min.css' %}" rel="stylesheet">
     <script src="{% static 'assets/js/cropper.min.js' %}"></script>
+    <script src="{% static "assets/js/plugins/sweetalert2.js" %}"></script>
+
+    <script>
+        const clubs = [
+            {% for other_club in other_clubs %}
+                {
+                    name: "{{ other_club }}",
+                    url: "{% url 'organisations:club_menu' club_id=other_club.id %}"
+                },
+            {% endfor %}
+        ];
+
+        function showClubSelection() {
+
+            console.log("*** showClubSelection ***")
+
+            Swal.fire({
+                title: 'Select a Club',
+                html: clubs.map(club => `<button class="swal2-confirm swal2-styled" style="margin: 5px;" onclick="window.location.href='${club.url}'">${club.name}</button>`).join(''),
+                showConfirmButton: false,
+            });
+        }
+    </script>
 
 {% endblock header %}
 {% block content %}
@@ -28,218 +51,230 @@
 
     {% include "utils/summernote_heading.html" %}
 
-    <!-- SHOW OTHER ADMIN LINKS IF THEY EXISTS -->
-
-    {% if other_clubs %}
-        <h4>You have access to multiple clubs, change club:</h4>
-        {% for other_club in other_clubs %}
-            <a href="{% url "organisations:club_menu" club_id=other_club.id %}" class="btn btn-sm btn-{% cobalt_random_colour %}">{{ other_club }}</a>
-        {% endfor %}
-    {% endif %}
-
     <!-- HEADING -->
 
-    <!-- BIG SCREEN HEADING -->
-    <span class="d-none d-md-block">
-        <h1 class="text-center pt-4"><span id="t_club_name">{{ club }}</span> - {{ club.state }}</h1>
-        <h2 class="text-center"><span class="text-primary" style="font-size: 50px;">&clubs;</span> Club Menu <span class="text-danger" style="font-size: 50px;">&clubs;</span></h2>
-    </span>
-
-    <!-- SMALL SCREEN - SIMPLE HEADING -->
-    <span class="d-md-none">
-        <h2 class="text-center pt-4"><span id="t_club_name">{{ club }}</span></h2>
-    </span>
-
-    <!-- NAV CARD -->
-
-    <div>
-        <div class="card">
-
-            <!-- NAVIGATION TOP PARTS (ICONS AND WORDS) -->
-
-            <div class="card-header card-header-secondary">
-                <ul id="id_menu" class="nav nav-pills nav-pills-icons" role="tablist">
-
-                    <li class="nav-item">
-                        <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#dashboard" role="tab" data-toggle="tab">
-                            <span class="d-none d-md-block">
-                                <i class="material-icons d-none d-md-block">space_dashboard</i>
-                                Club
-                            </span>
-                            <span class="d-md-none">
-                                Club
-                            </span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a id="id_tab_members" class="nav-link auto-refresh" href="#members" role="tab" data-toggle="tab">
-                            <span class="d-none d-md-block">
-                                <i class="material-icons d-none d-md-block">manage_accounts</i>
-                                Members
-                            </span>
-                            <span class="d-md-none">
-                                Members
-                            </span>
-                        </a>
-                    </li>
-
-                    {% if show_sessions %}
-
-                        <li class="nav-item">
-                            <a id="id_tab_sessions" class="nav-link auto-refresh" href="#sessions" role="tab" data-toggle="tab">
-                                <span class="d-none d-md-block">
-                                    <i class="material-icons d-none d-md-block">games</i>
-                                    Sessions
-                                </span>
-                                <span class="d-md-none">
-                                    Sessions
-                                </span>
-                            </a>
-                        </li>
-
-                    {% endif %}
-
-                    {% if show_congress %}
-
-                        <li class="nav-item">
-                            <a id="id_tab_congress" class="nav-link auto-refresh" href="#congress" role="tab" data-toggle="tab">
-                                <span class="d-none d-md-block">
-                                    <i class="material-icons d-none d-md-block">event_note</i>
-                                    Calendar
-                                </span>
-                                <span class="d-md-none">
-                                    Calendar
-                                </span>
-                            </a>
-                        </li>
-
-                    {% endif %}
-
-                    {#                                                            <li class="nav-item">#}
-                    {#                                                                <a id="id_tab_forums" class="nav-link" href="#forums" role="tab" data-toggle="tab">#}
-                    {#                                                                    <span class="d-none d-md-block">#}
-                    {#                                            <i class="material-icons d-none d-md-block">chat</i>#}
-                    {#                                            Forums#}
-                    {#                                        </span>#}
-                    {#                                        <span class="d-md-none">#}
-                    {#                                            Forums#}
-                    {#                                        </span>#}
-                    {#                                                                </a>#}
-                    {#                                                            </li>#}
-
-                    <li class="nav-item">
-                        <a id="id_tab_results" class="nav-link auto-refresh" href="#results" role="tab" data-toggle="tab">
-                            <span class="d-none d-md-block">
-                                <i class="material-icons d-none d-md-block">content_paste</i>
-                                Results
-                            </span>
-                            <span class="d-md-none">
-                                Results
-                            </span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a id="id_tab_comms" class="nav-link auto-refresh" href="#comms" role="tab" data-toggle="tab">
-                            <span class="d-none d-md-block">
-                                <i class="material-icons d-none d-md-block">alternate_email</i>
-                                Communications
-                            </span>
-                            <span class="d-md-none">
-                                Comms
-                            </span>
-                        </a>
-                    </li>
-
-                    {% if show_finance %}
-
-                        <li class="nav-item">
-                            <a id="id_tab_finance" class="nav-link auto-refresh" href="#finance" role="tab" data-toggle="tab">
-                                <span class="d-none d-md-block">
-                                    <i class="material-icons d-none d-md-block">monetization_on</i>
-                                    Finance
-                                </span>
-                                <span class="d-md-none">
-                                    Finance
-                                </span>
-                            </a>
-                        </li>
-
-                    {% endif %}
-
-                    <li class="nav-item">
-                        <a id="id_tab_access" class="nav-link" href="#access" role="tab" data-toggle="tab">
-                            <span class="d-none d-md-block">
-                                <i class="material-icons d-none d-md-block">face</i>
-                                Access
-                            </span>
-                            <span class="d-md-none">
-                                Access
-                            </span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a id="id_tab_settings" class="nav-link auto-refresh" href="#settings" role="tab" data-toggle="tab">
-                            <span class="d-none d-md-block">
-                                <i class="material-icons d-none d-md-block">settings</i>
-                                Settings
-                            </span>
-                            <span class="d-md-none">
-                                Settings
-                            </span>
-                        </a>
-                    </li>
-
-                </ul>
-
-                <div class='justify-content-center text-center'>
-                    <span class="htmx-indicator">
-                        <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
-                    </span>
-                </div>
-
-            </div>
-
-            <!-- CONTENTS PARTS -->
-
-            <div class="card-body" style="min-height: 500px;">
-                <div class="tab-content tab-space">
-                    <div class="tab-pane active" id="dashboard">
-                        {% include "organisations/club_menu/dashboard.html" %}
+    <div class="card">
+        <div class="card-header card-header-rose">
+            <h1>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        Club Menu
                     </div>
-                    <div class="tab-pane" id="members">
-                        {% include "organisations/club_menu/members.html" %}
-                    </div>
-                    <div class="tab-pane" id="congress">
-                        {% include "organisations/club_menu/congress.html" %}
-                    </div>
-                    <div class="tab-pane" id="sessions">
-                        {% include "organisations/club_menu/sessions.html" %}
-                    </div>
-                    <div class="tab-pane" id="forums">
-                        {% include "organisations/club_menu/forums.html" %}
-                    </div>
-                    <div class="tab-pane" id="results">
-                        {% include "organisations/club_menu/results.html" %}
-                    </div>
-                    <div class="tab-pane" id="comms">
-                        {% include "organisations/club_menu/comms.html" %}
-                    </div>
-                    <div class="tab-pane" id="finance">
-                        {% include "organisations/club_menu/finance.html" %}
-                    </div>
-                    <div class="tab-pane" id="access">
-                        {% include "organisations/club_menu/access.html" %}
-                    </div>
-                    <div class="tab-pane" id="settings">
-                        {% include "organisations/club_menu/settings.html" %}
+                    <!-- DONT SHOW ICON ON SMALL SCREENS -->
+                    <div class="d-none d-md-inline">
+                        <i class="material-icons" style="font-size:50px">storefront</i>
                     </div>
                 </div>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h2>{{ club }}</h2>
+                    </div>
+                    <div>
+                        {% if other_clubs %}
+                            <button type="button" class="btn bg-light text-dark" onclick="showClubSelection()">
+                                Change Club
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </h1>
+        </div>
+
+        <div class="card-body">
+            <!-- NAV CARD -->
+
+            <div>
+                <div class="card">
+
+                    <!-- NAVIGATION TOP PARTS (ICONS AND WORDS) -->
+
+                    <div class="card-header card-header-secondary">
+                        <ul id="id_menu" class="nav nav-pills nav-pills-icons" style="z-index: 3;" role="tablist">
+
+                            <li class="nav-item">
+                                <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#dashboard" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">space_dashboard</i>
+                                        Club
+                                    </span>
+                                    <span class="d-md-none">
+                                        Club
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a id="id_tab_members" class="nav-link auto-refresh" href="#members" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">manage_accounts</i>
+                                        Members
+                                    </span>
+                                    <span class="d-md-none">
+                                        Members
+                                    </span>
+                                </a>
+                            </li>
+
+                            {% if show_sessions %}
+
+                                <li class="nav-item">
+                                    <a id="id_tab_sessions" class="nav-link auto-refresh" href="#sessions" role="tab" data-toggle="tab">
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">games</i>
+                                            Sessions
+                                        </span>
+                                        <span class="d-md-none">
+                                            Sessions
+                                        </span>
+                                    </a>
+                                </li>
+
+                            {% endif %}
+
+                            {% if show_congress %}
+
+                                <li class="nav-item">
+                                    <a id="id_tab_congress" class="nav-link auto-refresh" href="#congress" role="tab" data-toggle="tab">
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">event_note</i>
+                                            Calendar
+                                        </span>
+                                        <span class="d-md-none">
+                                            Calendar
+                                        </span>
+                                    </a>
+                                </li>
+
+                            {% endif %}
+
+                            {#                                                            <li class="nav-item">#}
+                            {#                                                                <a id="id_tab_forums" class="nav-link" href="#forums" role="tab" data-toggle="tab">#}
+                            {#                                                                    <span class="d-none d-md-block">#}
+                            {#                                            <i class="material-icons d-none d-md-block">chat</i>#}
+                            {#                                            Forums#}
+                            {#                                        </span>#}
+                            {#                                        <span class="d-md-none">#}
+                            {#                                            Forums#}
+                            {#                                        </span>#}
+                            {#                                                                </a>#}
+                            {#                                                            </li>#}
+
+                            <li class="nav-item">
+                                <a id="id_tab_results" class="nav-link auto-refresh" href="#results" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">content_paste</i>
+                                        Results
+                                    </span>
+                                    <span class="d-md-none">
+                                        Results
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a id="id_tab_comms" class="nav-link auto-refresh" href="#comms" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">alternate_email</i>
+                                        Communications
+                                    </span>
+                                    <span class="d-md-none">
+                                        Comms
+                                    </span>
+                                </a>
+                            </li>
+
+                            {% if show_finance %}
+
+                                <li class="nav-item">
+                                    <a id="id_tab_finance" class="nav-link auto-refresh" href="#finance" role="tab" data-toggle="tab">
+                                        <span class="d-none d-md-block">
+                                            <i class="material-icons d-none d-md-block">monetization_on</i>
+                                            Finance
+                                        </span>
+                                        <span class="d-md-none">
+                                            Finance
+                                        </span>
+                                    </a>
+                                </li>
+
+                            {% endif %}
+
+                            <li class="nav-item">
+                                <a id="id_tab_access" class="nav-link" href="#access" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">face</i>
+                                        Access
+                                    </span>
+                                    <span class="d-md-none">
+                                        Access
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a id="id_tab_settings" class="nav-link auto-refresh" href="#settings" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">settings</i>
+                                        Settings
+                                    </span>
+                                    <span class="d-md-none">
+                                        Settings
+                                    </span>
+                                </a>
+                            </li>
+
+                        </ul>
+
+                        <div class='justify-content-center text-center'>
+                            <span class="htmx-indicator">
+                                <img style="width: 40px" src="{% static "assets/img/spinners/bars.svg" %}"/>
+                            </span>
+                        </div>
+
+                    </div>
+
+                    <!-- CONTENTS PARTS -->
+
+                    <div class="card-body" style="min-height: 500px; padding-top: 0px;">
+                        <div class="tab-content tab-space" style="padding-top: 0px">
+                            <div class="tab-pane active" id="dashboard">
+                                {% include "organisations/club_menu/dashboard.html" %}
+                            </div>
+                            <div class="tab-pane" id="members">
+                                {% include "organisations/club_menu/members.html" %}
+                            </div>
+                            <div class="tab-pane" id="congress">
+                                {% include "organisations/club_menu/congress.html" %}
+                            </div>
+                            <div class="tab-pane" id="sessions">
+                                {% include "organisations/club_menu/sessions.html" %}
+                            </div>
+                            <div class="tab-pane" id="forums">
+                                {% include "organisations/club_menu/forums.html" %}
+                            </div>
+                            <div class="tab-pane" id="results">
+                                {% include "organisations/club_menu/results.html" %}
+                            </div>
+                            <div class="tab-pane" id="comms">
+                                {% include "organisations/club_menu/comms.html" %}
+                            </div>
+                            <div class="tab-pane" id="finance">
+                                {% include "organisations/club_menu/finance.html" %}
+                            </div>
+                            <div class="tab-pane" id="access">
+                                {% include "organisations/club_menu/access.html" %}
+                            </div>
+                            <div class="tab-pane" id="settings">
+                                {% include "organisations/club_menu/settings.html" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
+
 
     <script>
         // save the initial tab to be shown, accessed in the ready function in menu_js.html

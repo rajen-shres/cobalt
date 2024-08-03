@@ -1,0 +1,28 @@
+<!-- Member activity - recent sessions -->
+
+{% include "organisations/club_menu/members/club_admin_member_activity_nav_htmx.html" with activity_selected="SESSIONS" %}
+<div class="card-body">
+    {% if things %}
+        <div class="table-responsive">
+            <table class="table table-condensed table-hover">
+                <thead>
+                    <tr>
+                        <th class="text-left">Date</th>
+                        <th class="text-left">Session</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for thing in things %}
+                        <tr>
+                            <td class="text-left">{{ thing.session.session_date }}</td>
+                            <td class="text-left"><a target="_blank" href="{% url "club_sessions:manage_session" session_id=thing.session.id %}">{{ thing.session.description }}</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% include 'utils/pagination_footer_htmx.html' %}
+        </div>
+    {% else %}
+        This member has no recorded sessions
+    {% endif %}
+</div>

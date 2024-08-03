@@ -253,181 +253,20 @@
                     <tbody>
                         {% for thing in things %}
                             <tr>
-                                <td class="text-left">
-                                    {% if member_admin %}
 
-                                        <!-- ONLY SHOW LINKS IF ADMIN -->
+                                {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.first_name %}
 
-                                        <a href="javascript:void(0)"
-                                            id="t_edit_member1_{{ member.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {{ thing.first_name }}
-                                        </a>
-                                    {% else %}
-                                        {{ thing.first_name }}
-                                    {% endif %}
-                                </td>
+                                {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.last_name %}
 
-                                <td class="text-left">
-                                    {% if member_admin %}
+                                {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.system_number %}
 
-                                        <!-- ONLY SHOW LINKS IF ADMIN -->
+                                {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.latest_membership.membership_type.name %}
 
-                                        <a href="#"
-                                            id="t_edit_member2_{{ thing.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {{ thing.last_name }}
-                                        </a>
-                                    {% else %}
-                                        {{ thing.last_name }}
-                                    {% endif %}
-                                </td>
+                                {# TO DO - column for home club flag : thing.latest_membership.home_club #}
 
-                                <td class="text-left">
-                                    {% if member_admin %}
+                                {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.get_membership_status_display %}
 
-                                        <!-- ONLY SHOW LINKS IF ADMIN -->
-
-                                        <a href="#"
-                                            id="t_edit_member3_{{ thing.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {{ thing.system_number }}
-                                        </a>
-                                    {% else %}
-                                        {{ thing.system_number }}
-                                    {% endif %}
-                                </td>
-
-                                <!-- COB-769 -->
-
-                                <td class="text-left">
-                                    {% if member_admin %}
-
-                                        <!-- ONLY SHOW LINKS IF ADMIN -->
-
-                                        <a href="#"
-                                            id="t_edit_member4_{{ thing.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {{ thing.latest_membership.membership_type.name }}
-                                        </a>
-                                    {% else %}
-                                        {{ thing.latest_membership.membership_type.name }}
-                                    {% endif %}
-                                </td>
-
-                                <!-- HOME CLUB : Reistate when Masterpoints implemented-->
-                                <!-- <td class="text-left">
-                                    {% if member_admin %}
-
-                                        <a href="#"
-                                            id="t_edit_member5_{{ thing.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {% if thing.latest_membership.home_club %}Yes{% else %}No{% endif %}
-                                        </a>
-                                    {% else %}
-                                        {% if thing.latest_membership.home_club %}Yes{% else %}No{% endif %}
-                                    {% endif %}
-                                </td> -->
-
-                                <td class="text-left">
-                                    {% if member_admin %}
-
-                                        <!-- ONLY SHOW LINKS IF ADMIN -->
-
-                                        <a href="#"
-                                            id="t_edit_member6_{{ thing.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {{ thing.get_membership_status_display }}
-                                        </a>
-                                    {% else %}
-                                        {{ thing.get_membership_status_display }}
-                                    {% endif %}
-                                </td>
-
-                                <td class="text-left">
-                                    {% if member_admin %}
-
-                                        <!-- ONLY SHOW LINKS IF ADMIN -->
-
-                                        <a href="#"
-                                            id="t_edit_member7_{{ thing.id }}"
-                                            hx-target="#id_member_list_tab"
-                                            {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_edit_member_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, member:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% else %}
-                                                hx-post="{% url "organisations:club_menu_tab_members_un_reg_edit_htmx" %}"
-                                                hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
-                                                hx-push-url="{{ club.id }}"
-                                            {% endif %}
-                                        >
-                                            {{ thing.user_type }}
-                                        </a>
-                                    {% else %}
-                                        {{ thing.user_type }}
-                                    {% endif %}
-                                </td>
+                                {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.user_type %}
 
                                 <td class="text-center">
                                     {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
@@ -462,24 +301,3 @@
         {% endif %}
     </div>
 </div>
-
-{#<script>#}
-{#    $(document).ready( function () {#}
-{##}
-{#        // Initialise datatable - only show pagination if more than one page, sort in order, column 0#}
-{##}
-{#        $('#id_attach_table').DataTable({#}
-{#            "order": [[ 1, "asc" ]],#}
-{#            drawCallback: function(settings) {#}
-{#                const pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');#}
-{#                pagination.toggle(this.api().page.info().pages > 1);#}
-{#            },#}
-{#        });#}
-{##}
-{##}
-{#        // Unhide table now. This avoids the flicker#}
-{#        $('#id_attach_table').show();#}
-{##}
-{#    });#}
-{##}
-{#</script>#}

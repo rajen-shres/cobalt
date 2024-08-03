@@ -1,0 +1,21 @@
+{#  Common format for column content in the members list. #}
+{#  Include passing in the column_content #}
+
+<td class="text-left">
+    {% if member_admin %}
+
+        {# ONLY SHOW LINKS IF ADMIN #}
+
+        <a href="javascript:void(0)"
+            id="t_edit_member1_{{ member.id }}"
+            hx-target="#id_panel_members"
+            hx-post="{% url "organisations:club_admin_edit_member_htmx" %}"
+            hx-vars="club_id:{{ club.id }}, system_number: {{ thing.system_number }}"
+            hx-push-url="{{ club.id }}"
+        >
+            {{ column_content }}
+        </a>
+    {% else %}
+        {{ column_content }}
+    {% endif %}
+</td>

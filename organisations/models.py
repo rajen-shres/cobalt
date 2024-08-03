@@ -407,9 +407,9 @@ class MemberMembershipType(models.Model):
         return self.paid_until_date == self.end_date
 
     @property
-    def is_final_state(self):
-        """Is this in a finalised state (ie not current or due)"""
-        return self.membership_state not in [
+    def is_active_state(self):
+        """Is this one of the active states (current or due)"""
+        return self.membership_state in [
             self.MEMBERSHIP_STATE_CURRENT,
             self.MEMBERSHIP_STATE_DUE,
         ]
@@ -429,7 +429,7 @@ class MemberMembershipType(models.Model):
         """
 
         old_state = self.membership_state
-        if not self.is_final_state and self.end_date:
+        if self.is_active_state and self.end_date:
             now = as_at_date if as_at_date else timezone.now().date()
             if self.paid_until_date <= now:
                 self.membership_state = self.MEMBERSHIP_STATE_CURRENT
@@ -520,7 +520,19 @@ class MemberClubDetails(models.Model):
     )
     """ The current state of this membership, note this is date dependent"""
 
+    previous_membership_status = models.CharField(
+        "Previous Membership Status",
+        max_length=4,
+        choices=MEMBERSHIP_STATUS,
+        default=None,
+        null=True,
+        blank=True,
+    )
+    """ The current state of this membership, note this is date dependent"""
+
     joined_date = models.DateField("Date Joined", null=True, blank=True)
+
+    left_date = models.DateField("Date Joined", null=True, blank=True, default=None)
 
     address1 = models.CharField("Address Line 1", max_length=100, blank=True, null=True)
 
@@ -583,18 +595,6 @@ class MemberClubDetails(models.Model):
     class Meta:
         unique_together = ("club", "system_number")
 
-    @property
-    def left_date(self):
-        """Date left the club, or None"""
-        if self.membership_status in [
-            self.MEMBERSHIP_STATUS_CURRENT,
-            self.MEMBERSHIP_STATUS_DUE,
-            self.MEMBERSHIP_STATUS_CONTACT,
-        ]:
-            return None
-        else:
-            return self.latest_membership.end_date if self.latest_membership else None
-
     def refresh_status(self, as_at_date=None, commit=True):
         """Ensure that the membership status and current membership are correct.
 
@@ -647,8 +647,16 @@ class MemberClubDetails(models.Model):
 
         return changed
 
+    @property
+    def is_active_status(self):
+        """Is the member in one of the active statuses"""
+        return self.membership_status in [
+            MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+            MemberClubDetails.MEMBERSHIP_STATUS_DUE,
+        ]
+
     def __str__(self):
-        return f"{self.organisation} - {self.system_number}"
+        return f"{self.club} - {self.system_number}"
 
 
 class ClubMemberLog(models.Model):

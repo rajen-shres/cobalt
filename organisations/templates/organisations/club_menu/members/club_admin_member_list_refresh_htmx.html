@@ -1,0 +1,22 @@
+{# An html snippet to refresh the club admin member list view  #}
+{# from within the view (ie from an htmx end point) #}
+
+<div
+    id="trigger-post-list"
+    hx-post="{% url 'organisations:club_menu_tab_members_htmx' %}"
+    hx-target="#id_panel_members"
+    hx-vals='{
+    "club_id":{{ club.id }},
+    "former_members":"off"
+    }'
+    hx-trigger="load"
+    style="display: none;"
+></div>
+
+<script>
+    (function() {
+        // Trigger the hx-post request by causing the "load" event
+        var triggerDivList = document.getElementById('trigger-post-list');
+        triggerDivList.dispatchEvent(new Event('load'));
+    })();
+</script>

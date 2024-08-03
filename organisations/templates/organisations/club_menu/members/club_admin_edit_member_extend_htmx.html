@@ -15,7 +15,8 @@ This will be rendered in the action pane of the club admin edit member window
         <div class="container">
             <div class="card-body">
                 <form
-                    hx-post="{% url 'organisations:club_admin_edit_member_extend_htmx' club_id=club.id system_number=system_number %}"
+                    hx-post="{% url 'organisations:club_admin_edit_member_extend_htmx' %}"
+                    hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ system_number }}, "save": "YES" }'
                     hx-target="#id_action_pane"
                 >
                     {% csrf_token %}
@@ -81,7 +82,28 @@ This will be rendered in the action pane of the club admin edit member window
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success cobalt-save">Extend</button>
+
+                    <div class="row pb-2">
+                        <div class="col">
+                            <button
+                                type="Save"
+                                class="btn btn-sm btn-success cobalt-save"
+                            >
+                                Extend
+                            </button>
+                        </div>
+                        <div class="col text-right">
+                            <button
+                                class="btn btn-sm btn-info"
+                                hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
+                                hx-target="#id_panel_members"
+                                hx-trigger="click"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

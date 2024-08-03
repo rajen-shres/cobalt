@@ -784,59 +784,63 @@ urlpatterns = [
         organisations.views.club_menu_tabs.settings.toggle_use_last_payment_method_for_player_sessions_htmx,
         name="club_menu_tab_settings_use_last_payment_method_for_player_sessions_htmx",
     ),
+    # -----------------------------------------------------------------------------------
+    #   Club admin - Edit member
+    # -----------------------------------------------------------------------------------
     path(
-        "club-admin/edit-member/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member,
-        name="club_admin_edit_member",
+        "club-admin/edit-member-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_edit_member_htmx,
+        name="club_admin_edit_member_htmx",
+    ),
+    #
+    #   Club admin - Edit member - Action button end points
+    #
+    path(
+        "club-admin/edit-member/action/",
+        organisations.views.club_menu_tabs.members.club_admin_edit_member_membership_action_htmx,
+        name="club_admin_edit_member_membership_action_htmx",
     ),
     path(
-        "club-admin/edit-member/<int:club_id>/<int:system_number>/<str:message>",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member,
-        name="club_admin_edit_member",
-    ),
-    path(
-        "club-admin/edit-member/paid/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_paid,
-        name="club_admin_edit_member_paid",
-    ),
-    path(
-        "club-admin/edit-member/extend/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_extend_htmx,
-        name="club_admin_edit_member_extend_htmx",
-    ),
-    path(
-        "club-admin/edit-member/reinstate/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_reinstate_htmx,
-        name="club_admin_edit_member_reinstate_htmx",
-    ),
-    path(
-        "club-admin/edit-member/change/<int:club_id>/<int:system_number>/",
+        "club-admin/edit-member/change/",
         organisations.views.club_menu_tabs.members.club_admin_edit_member_change_htmx,
         name="club_admin_edit_member_change_htmx",
     ),
     path(
-        "club-admin/edit-member/lapsed/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_lapsed,
-        name="club_admin_edit_member_lapsed",
+        "club-admin/edit-member/extend/",
+        organisations.views.club_menu_tabs.members.club_admin_edit_member_extend_htmx,
+        name="club_admin_edit_member_extend_htmx",
+    ),
+    #
+    #   Club Admin - Edit member - Member activity subviews
+    #
+    path(
+        "club-admin/edit-member-activity-tags-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_activity_tags_htmx,
+        name="club_admin_activity_tags_htmx",
     ),
     path(
-        "club-admin/edit-member/resigned/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_resigned,
-        name="club_admin_edit_member_resigned",
+        "club-admin/edit-member-activity-emails-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_activity_emails_htmx,
+        name="club_admin_activity_emails_htmx",
     ),
     path(
-        "club-admin/edit-member/deceased/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_deceased,
-        name="club_admin_edit_member_deceased",
+        "club-admin/edit-member-activity-entries-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_activity_entries_htmx,
+        name="club_admin_activity_entries_htmx",
     ),
     path(
-        "club-admin/edit-member/terminate/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_terminate,
-        name="club_admin_edit_member_terminate",
+        "club-admin/edit-member-activity-sessions-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_activity_sessions_htmx,
+        name="club_admin_activity_sessions_htmx",
     ),
     path(
-        "club-admin/edit-member/delete/<int:club_id>/<int:system_number>/",
-        organisations.views.club_menu_tabs.members.club_admin_edit_member_delete,
-        name="club_admin_edit_member_delete",
+        "club-admin/edit-member-activity-transactions-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_activity_transactions_htmx,
+        name="club_admin_activity_transactions_htmx",
+    ),
+    path(
+        "club-admin/edit-member-activity-invitations-htmx",
+        organisations.views.club_menu_tabs.members.club_admin_activity_invitations_htmx,
+        name="club_admin_activity_invitations_htmx",
     ),
 ]

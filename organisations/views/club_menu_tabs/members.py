@@ -34,11 +34,12 @@ from organisations.club_admin_core import (
     get_member_details,
     get_club_members,
     get_member_log,
-    mark_member_as_lapsed,
-    mark_member_as_resigned,
-    mark_member_as_deceased,
     renew_membership,
     change_membership,
+    member_details_description,
+    get_valid_actions,
+    can_perform_action,
+    perform_simple_action,
     MEMBERSHIP_STATES_TERMINAL,
 )
 from organisations.decorators import check_club_menu_access
@@ -127,7 +128,10 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     former_members = request.POST.get("former_members") == "on"
 
     members = get_club_members(
-        club, sort_option=sort_option, active_only=not former_members
+        club,
+        sort_option=sort_option,
+        active_only=not former_members,
+        exclude_deceased=not former_members,
     )
 
     # pagination and params
@@ -1440,17 +1444,28 @@ def recent_sessions_for_member_htmx(request, club):
     )
 
 
-def club_admin_edit_member(request, club_id, system_number, message=None):
+# ----------------------------------------------------------------------------------
+# Club admin - Edit member
+# ----------------------------------------------------------------------------------
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
 
-    # JPG debug
-    print(
-        f"\n**** club_admin_edit_member({club_id}, {system_number}, '{message}') ****"
-    )
+@check_club_menu_access(check_members=True)
+def club_admin_edit_member_htmx(request, club):
+    """
+    Edit member for full club admin, htmx endpoint version
 
-    club = get_object_or_404(Organisation, pk=club_id)
+    Called with club_id and system_number in the POST (note only POST methods accepted)
+    """
+
+    system_number = request.POST.get("system_number", None)
+    message = request.POST.get("message", None)
+
+    if not system_number:
+        return list_htmx(request, message="System number required")
+
     member_details = get_member_details(club, system_number)
+
+    valid_actions = get_valid_actions(member_details)
 
     # get the members complete set of memberships
     member_history = (
@@ -1473,106 +1488,103 @@ def club_admin_edit_member(request, club_id, system_number, message=None):
     else:
         form = MemberClubDetailsForm(instance=member_details)
 
+    # Note: member_admin is used in conditioning the member nav area.
+    # The user has this access if they have got this far.
+
+    member_description = member_details_description(member_details)
+
     return render(
         request,
-        "organisations/club_menu/members/club_admin_edit_member.html",
+        "organisations/club_menu/members/club_admin_edit_member_htmx.html",
         {
             "club": club,
             "member_details": member_details,
             "member_history": member_history,
             "log_history": log_history[:20],
             "form": form,
-            "allow_deletion": True,
+            "valid_actions": valid_actions,
             "message": message,
+            "member_admin": True,
+            "member_description": member_description,
         },
     )
 
 
-def club_admin_edit_member_paid(request, club_id, system_number):
+# ----------------------------------------------------------------------------------
+# Club admin - Edit member - Action button end points
+#
+#   Simple actions are all handled through one end point which gets the action
+#   name from the request:
+#       club_admin_edit_member_membership_action_htmx
+#
+#   More complex actions which require a view to be presented to get additional
+#   parameters require their own end points (and url path entries)
+# ----------------------------------------------------------------------------------
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+
+def _refresh_edit_member(request, club, system_number, message):
+    """Refreshes the edit member view from within the view
+    ie. call as the result of an htmx end point to refresh the view
+    """
 
     # JPG debug
-    print(f"club_admin_edit_member_paid({club_id}, {system_number})")
-
-    return HttpResponse("WORK IN PROGRESS")
-
-
-def club_admin_edit_member_extend_htmx(request, club_id, system_number):
-
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
-
-    # JPG debug
-    print(
-        f"club_admin_edit_member_extend_htmx({club_id}, {system_number}) {request.method}"
-    )
-
-    club = get_object_or_404(Organisation, pk=club_id)
-    member_details = get_member_details(club, system_number)
-
-    if request.method == "POST":
-        form = MembershipExtendForm(request.POST)
-        if form.is_valid():
-
-            success, message = renew_membership(
-                club,
-                system_number,
-                form.cleaned_data["new_end_date"],
-                form.cleaned_data["fee"],
-                form.cleaned_data["due_date"],
-                is_paid=form.cleaned_data["is_paid"],
-                requester=request.user,
-            )
-
-            if success:
-                response = HttpResponse()
-                response["hx-redirect"] = reverse(
-                    "organisations:club_admin_edit_member",
-                    kwargs={
-                        "club_id": club.id,
-                        "system_number": system_number,
-                        "message": "Membership extended",
-                    },
-                )
-                return response
-
-    else:
-        message = None
-        default_due_date = club.next_renewal_date + timedelta(
-            days=member_details.latest_membership.membership_type.grace_period_days
-        )
-
-        initial_data = {
-            "new_end_date": club.next_end_date.strftime("%Y-%m-%d"),
-            "fee": member_details.latest_membership.membership_type.annual_fee,
-            "due_date": default_due_date.strftime("%Y-%m-%d"),
-            "is_paid": False,
-        }
-        form = MembershipExtendForm(initial=initial_data)
+    print(f"_refresh_edit_member: {club.id}, {system_number}, '{message}'")
 
     return render(
         request,
-        "organisations/club_menu/members/club_admin_edit_member_extend_htmx.html",
+        "organisations/club_menu/members/club_admin_edit_member_refresh_htmx.html",
         {
-            "club": club,
+            "club_id": club.id,
             "system_number": system_number,
-            "form": form,
             "message": message,
         },
     )
 
 
-def club_admin_edit_member_reinstate_htmx(request, club_id, system_number):
+def _refresh_member_list(request, club):
+    """Refreshes the member list view from within the view
+    ie. call as the result of an htmx end point to refresh the view
+    """
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_list_refresh_htmx.html",
+        {
+            "club_id": club.id,
+        },
+    )
 
-    # JPG debug
-    print(f"club_admin_edit_member_reinstate_htmx({club_id}, {system_number})")
 
-    return HttpResponse("WORK IN PROGRESS")
+# JPG Clean-up - old code, later definition is more up to date
+# @check_club_menu_access(check_members=True)
+# def club_admin_edit_member_membership_action_htmx(request, club):
+#     """Common end point for all simple membership actions
+
+#     The member's system number and action name are passed in the
+#     request POST. The updated is attempted and the member edit view
+#     is refreshed with the new state or an error message.
+#     """
+
+#     system_number = request.POST.get("system_number", None)
+#     action_name = request.POST.get("action_name", None)
+
+#     if not system_number or not action_name:
+#         message = "Error - system number or action missing"
+#     else:
+#         _, message = perform_simple_action(
+#             action_name, club, system_number, requester=request.user
+#         )
+
+#     return _refresh_edit_member(
+#         request,
+#         club,
+#         system_number,
+#         message,
+#     )
 
 
-def club_admin_edit_member_change_htmx(request, club_id, system_number):
+@check_club_menu_access(check_members=True)
+def club_admin_edit_member_change_htmx(request, club):
     """HTMX endpoint to change a member to a new membership type.
     Displays and processes a form to get the new type and related attributes.
     Redirects to reload the main edit member view on completion or fatal error.
@@ -1586,14 +1598,20 @@ def club_admin_edit_member_change_htmx(request, club_id, system_number):
         HttpResponse: the response
     """
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    if request.method == "POST":
+        system_number = request.POST.get("system_number")
 
-    # JPG debug
-    print(f"club_admin_edit_member_change_htmx({club_id}, {system_number})")
-
-    message = None
-    club = get_object_or_404(Organisation, pk=club_id)
     member_details = get_member_details(club, system_number)
+
+    permitted_action, message = can_perform_action("change", member_details)
+    if not permitted_action:
+        # refresh view with error
+        return _refresh_edit_member(
+            request,
+            club,
+            system_number,
+            message if message else "Action not permitted",
+        )
 
     # Build the list of available membership types, and associated default fees and dates.
     # When the user selects a type in the form the corresponding fee and dates need to be set
@@ -1631,7 +1649,7 @@ def club_admin_edit_member_change_htmx(request, club_id, system_number):
         )
         return response
 
-    if request.method == "POST":
+    if "save" in request.POST:
         form = MembershipChangeTypeForm(
             request.POST, membership_choices=membership_choices
         )
@@ -1655,16 +1673,13 @@ def club_admin_edit_member_change_htmx(request, club_id, system_number):
             )
 
             if success:
-                response = HttpResponse()
-                response["hx-redirect"] = reverse(
-                    "organisations:club_admin_edit_member",
-                    kwargs={
-                        "club_id": club.id,
-                        "system_number": system_number,
-                        "message": message if message else "Membership type changed",
-                    },
+
+                return _refresh_edit_member(
+                    request,
+                    club,
+                    system_number,
+                    message if message else "Membership type changed",
                 )
-                return response
 
     else:
         initial_data = {
@@ -1692,64 +1707,261 @@ def club_admin_edit_member_change_htmx(request, club_id, system_number):
     )
 
 
-def club_admin_edit_member_lapsed(request, club_id, system_number):
+@check_club_menu_access(check_members=True)
+def club_admin_edit_member_membership_action_htmx(request, club):
+    """Common end point for all simple membership actions
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    The member's system number and action name are passed in the
+    request POST. The updated is attempted and the member edit view
+    is refreshed with the new state or an error message.
+    """
 
-    club = get_object_or_404(Organisation, pk=club_id)
-    success, message = mark_member_as_lapsed(
-        club, system_number, requester=request.user
-    )
+    system_number = request.POST.get("system_number", None)
+    action_name = request.POST.get("action_name", None)
 
-    return redirect(
-        "organisations:club_admin_edit_member",
-        club.id,
+    if not system_number or not action_name:
+        message = "Error - system number or action missing"
+    else:
+        success, message = perform_simple_action(
+            action_name, club, system_number, requester=request.user
+        )
+
+    if success and action_name == "delete":
+        # member is now a contact so can't refresh the member edit view
+
+        # JPG debug
+        print("++++++ _refresh_member_list")
+
+        return _refresh_member_list(request, club)
+
+    return _refresh_edit_member(
+        request,
+        club,
         system_number,
-        message if message else "Membership marked as lapsed",
+        message,
     )
 
 
-def club_admin_edit_member_resigned(request, club_id, system_number):
+@check_club_menu_access(check_members=True)
+def club_admin_edit_member_extend_htmx(request, club):
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    system_number = request.POST.get("system_number", None)
+    if not system_number:
+        return _refresh_edit_member(
+            request,
+            club,
+            system_number,
+            "Error - system number not specified",
+        )
 
-    club = get_object_or_404(Organisation, pk=club_id)
-    success, message = mark_member_as_resigned(
-        club, system_number, requester=request.user
+    member_details = get_member_details(club, system_number)
+
+    permitted_action, message = can_perform_action("extend", member_details)
+    if not permitted_action:
+        # should be here - redirect with an error message
+        return _refresh_edit_member(
+            request,
+            club,
+            system_number,
+            message,
+        )
+
+    if "save" in request.POST:
+
+        form = MembershipExtendForm(request.POST)
+        if form.is_valid():
+
+            success, message = renew_membership(
+                club,
+                system_number,
+                form.cleaned_data["new_end_date"],
+                form.cleaned_data["fee"],
+                form.cleaned_data["due_date"],
+                is_paid=form.cleaned_data["is_paid"],
+                requester=request.user,
+            )
+
+            if success:
+                return _refresh_edit_member(
+                    request,
+                    club,
+                    system_number,
+                    message if message else "Membership extended",
+                )
+
+    else:
+        message = None
+        default_due_date = club.next_renewal_date + timedelta(
+            days=member_details.latest_membership.membership_type.grace_period_days
+        )
+
+        initial_data = {
+            "new_end_date": club.next_end_date.strftime("%Y-%m-%d"),
+            "fee": member_details.latest_membership.membership_type.annual_fee,
+            "due_date": default_due_date.strftime("%Y-%m-%d"),
+            "is_paid": False,
+        }
+        form = MembershipExtendForm(initial=initial_data)
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_extend_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "form": form,
+            "message": message,
+        },
     )
 
-    return redirect(
-        "organisations:club_admin_edit_member",
-        club.id,
-        system_number,
-        message if message else "Membership marked as resigned",
+
+# ----------------------------------------------------------------------------------
+# Club admin - Edit member - Recent activity end points
+# ----------------------------------------------------------------------------------
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_activity_tags_htmx(request, club):
+    """Show the tags activity subview
+
+    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
+    """
+
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
+
+    # JPG - TO DO
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_activity_tags_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+        },
     )
 
 
-def club_admin_edit_member_deceased(request, club_id, system_number):
+@check_club_menu_access(check_members=True)
+def club_admin_activity_emails_htmx(request, club):
+    """Show the emails activity subview
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
+    """
 
-    club = get_object_or_404(Organisation, pk=club_id)
-    mark_member_as_deceased(club, system_number, requester=request.user)
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
 
-    return redirect(
-        "organisations:club_admin_edit_member",
-        club.id,
-        system_number,
-        "Membership marked as Deceased",
+    # JPG - TO DO
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_activity_emails_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+        },
     )
 
 
-def club_admin_edit_member_terminate(request, club_id, system_number):
+@check_club_menu_access(check_members=True)
+def club_admin_activity_entries_htmx(request, club):
+    """Show the entries activity subview
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
+    """
 
-    return HttpResponse("WORK IN PROGRESS")
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
+
+    # JPG - TO DO
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_activity_entries_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+        },
+    )
 
 
-def club_admin_edit_member_delete(request, club_id, system_number):
+@check_club_menu_access(check_members=True)
+def club_admin_activity_sessions_htmx(request, club):
+    """Show the session activity subview
 
-    # JPG TO DO - access checks, using @check_club_menu_access(check_members=True)
+    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
+    """
 
-    return HttpResponse("WORK IN PROGRESS")
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
+
+    sessions = (
+        SessionEntry.objects.filter(system_number=system_number)
+        .order_by("-session__session_date")
+        .select_related("session")
+    )
+
+    things = cobalt_paginator(request, sessions, 10)
+
+    # Add hx_post for paginator controls
+    hx_post = reverse("organisations:club_admin_activity_sessions_htmx")
+    hx_vars = f"club_id:{club.id}, system_number:{member_details.system_number}"
+    hx_target = "#id-activity-card"
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_activity_sessions_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+            "things": things,
+            "hx_post": hx_post,
+            "hx_vars": hx_vars,
+            "hx_target": hx_target,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_activity_transactions_htmx(request, club):
+    """Show the sessions activity subview
+
+    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
+    """
+
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
+
+    # JPG - TO DO
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_activity_transactions_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_activity_invitations_htmx(request, club):
+    """Show the invitations activity subview
+
+    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
+    """
+
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
+
+    # JPG - TO DO
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_member_activity_invitations_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+        },
+    )

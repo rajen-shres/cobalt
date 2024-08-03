@@ -1,0 +1,12 @@
+{% if action_name in valid_actions %}
+
+    <button
+        class="btn btn-sm btn-primary"
+        hx-post="{% url 'organisations:club_admin_edit_member_membership_action_htmx' %}"
+        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, action_name:'{{ action_name }}'"
+        hx-target="#id_action_pane"
+    >
+        {{ label }}
+    </button>
+
+{% endif %}
