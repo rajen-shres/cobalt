@@ -1,0 +1,203 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Basic list view of contacts, shown under the contacts tab              #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
+    <div class="card-header card-header-success">
+        <h2>Contacts</h2>
+        {% include "organisations/club_menu/contacts/nav_htmx.html" with selected="list" %}
+    </div>
+
+    <div class="card-body" id="id_contact_list_tab">
+
+        {% if message %}
+            <h3
+                class="text-danger"
+                _="on load wait 5s then transition opacity to 0 then remove me"
+            >
+                {{ message }}
+            </h3>
+        {% endif %}
+
+        <h3>
+            {{ club }} has {{ total_contacts|intcomma }} Contacts
+        </h3>
+
+        {% if things %}
+
+            <!-- TABLE -->
+
+            <table id="id_attach_table" class="table table-condensed table-hover">
+                <thead>
+                    <tr>
+                        <!-- SORTABLE COLUMNS -->
+
+                        <th class="text-left">
+
+                            <!-- FIRST NAME -->
+
+                            <a href="javascript:void(0)"
+                                hx-post="{% url "organisations:club_menu_tab_contacts_htmx" %}"
+
+                                {% if sort_option == "first_desc" %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'first_asc'"
+                                {% else %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'first_desc'"
+                                {% endif %}
+                                hx-target="#id_panel_contacts"
+                            >
+                                <span class="cobalt-no-wrap">
+                                    First Name
+                                    {% if sort_option == "first_desc" %}
+                                        &darr;
+                                    {% elif sort_option == "first_asc"  %}
+                                        &uarr;
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </th>
+
+                        <th class="text-left">
+
+                            <!-- LAST NAME -->
+
+                            <a href="javascript:void(0)"
+                                hx-post="{% url "organisations:club_menu_tab_contacts_htmx" %}"
+
+                                {% if sort_option == "last_desc" %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'last_asc'"
+                                {% else %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'last_desc'"
+                                {% endif %}
+
+                                hx-target="#id_panel_contacts"
+                            >
+                                <span class="cobalt-no-wrap">
+                                    Last Name
+                                    {% if sort_option == "last_desc" %}
+                                        &darr;
+                                    {% elif sort_option == "last_asc"  %}
+                                        &uarr;
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </th>
+
+                        <th class="text-left">
+
+                            <!-- SYSTEM NUMBER -->
+
+                            <a href="javascript:void(0)"
+                                hx-post="{% url "organisations:club_menu_tab_contacts_htmx" %}"
+
+                                {% if sort_option == "system_number_desc" %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'system_number_asc'"
+                                {% else %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'system_number_desc''"
+                                {% endif %}
+
+                                hx-target="#id_panel_contacts"
+                            >
+                                <span class="cobalt-no-wrap">
+                                    {{ GLOBAL_ORG }} Number
+                                    {% if sort_option == "system_number_desc" %}
+                                        &darr;
+                                    {% elif sort_option == "system_number_asc"  %}
+                                        &uarr;
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </th>
+
+                        <th class="text-left">
+
+                            <!-- USER TYPE -->
+
+                            <a href="javascript:void(0)"
+                                hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+
+                                {% if sort_option == "type_desc" %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'type_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                {% else %}
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'type_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                {% endif %}
+
+                                hx-target="#id_panel_members"
+                            >
+                                <span class="cobalt-no-wrap">
+                                    User Type
+                                    {% if sort_option == "type_desc" %}
+                                        &darr;
+                                    {% elif sort_option == "type_asc"  %}
+                                        &uarr;
+                                    {% endif %}
+                                </span>
+                            </a>
+                        </th>
+
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for thing in things %}
+                        <tr>
+
+                            {% include 'organisations/club_menu/contacts/list_column_content.html' with column_content=thing.first_name %}
+
+                            {% include 'organisations/club_menu/contacts/list_column_content.html' with column_content=thing.last_name %}
+
+                            {% if thing.internal %}
+
+                                {% include 'organisations/club_menu/contacts/list_column_content.html' with  column_content='-' %}
+
+                            {% else %}
+
+                                {% include 'organisations/club_menu/contacts/list_column_content.html' with column_content=thing.system_number %}
+
+                            {% endif %}
+
+                            {% include 'organisations/club_menu/contacts/list_column_content.html' with column_content=thing.user_type %}
+
+                            <td class="text-center">
+                                {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
+                                    <a target="_blank" href="{% url "accounts:public_profile" pk=thing.user_or_unreg_id %}" style="width: 150px" class="btn btn-sm btn-info text-center">view profile</a>
+                                {% elif thing.internal == False %}
+
+                                    <a style="width: 150px"
+                                        class="btn btn-sm btn-success text-center text-white"
+                                        hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
+                                        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ thing.user_or_unreg_id }}"
+                                        hx-target="#id_panel_members"
+                                        onclick="GrowlNotification.notify({
+                                        title: 'Sending invite...',
+                                        description: 'Sending invite to {{ thing.first_name }}.',
+                                        type: 'success',
+                                        position: 'top-right',
+                                        closeTimeout: 2000})"
+                                    >invite to {{ GLOBAL_TITLE }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% include "utils/pagination_footer_htmx.html" with hx_target="#id_panel_contacts" %}
+
+            </div>
+
+        {% else %}
+            <h3>You have no contacts. You can add real members using the <b>Add</b> link above.</h3>
+        {% endif %}
+
+    </div>
+</div>

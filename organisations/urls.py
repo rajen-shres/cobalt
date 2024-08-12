@@ -9,11 +9,13 @@ import organisations.views.club_menu_tabs.dashboard
 import organisations.views.club_menu_tabs.finance
 import organisations.views.club_menu_tabs.import_data
 import organisations.views.club_menu_tabs.members
+import organisations.views.club_menu_tabs.contacts
 import organisations.views.club_menu_tabs.results
 import organisations.views.club_menu_tabs.sessions
 import organisations.views.club_menu_tabs.settings
 import organisations.views.club_menu_tabs.utils
 import organisations.views.home
+import organisations.views.club_admin
 from .views import club_menu, ajax
 
 from .views import admin
@@ -649,6 +651,7 @@ urlpatterns = [
         organisations.views.club_menu_tabs.comms.email_recipients_list_htmx,
         name="club_menu_tab_comms_email_recipients_list_htmx",
     ),
+    # JPG deprecate - replaced
     path(
         "club-menu/member/add-misc-payment",
         organisations.views.club_menu_tabs.members.add_misc_payment_htmx,
@@ -810,37 +813,95 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.club_admin_edit_member_extend_htmx,
         name="club_admin_edit_member_extend_htmx",
     ),
-    #
-    #   Club Admin - Edit member - Member activity subviews
-    #
+    # -----------------------------------------------------------------------------------
+    #   Club admin - Recent activity views - common to members and contacts
+    # -----------------------------------------------------------------------------------
     path(
-        "club-admin/edit-member-activity-tags-htmx",
-        organisations.views.club_menu_tabs.members.club_admin_activity_tags_htmx,
+        "club-admin/activity/tags",
+        organisations.views.club_admin.activity_tags_htmx,
         name="club_admin_activity_tags_htmx",
     ),
     path(
-        "club-admin/edit-member-activity-emails-htmx",
-        organisations.views.club_menu_tabs.members.club_admin_activity_emails_htmx,
+        "club-admin/activity/emails",
+        organisations.views.club_admin.activity_emails_htmx,
         name="club_admin_activity_emails_htmx",
     ),
     path(
-        "club-admin/edit-member-activity-entries-htmx",
-        organisations.views.club_menu_tabs.members.club_admin_activity_entries_htmx,
+        "club-admin/activity/entries",
+        organisations.views.club_admin.activity_entries_htmx,
         name="club_admin_activity_entries_htmx",
     ),
     path(
-        "club-admin/edit-member-activity-sessions-htmx",
-        organisations.views.club_menu_tabs.members.club_admin_activity_sessions_htmx,
+        "club-admin/activity/sessions",
+        organisations.views.club_admin.activity_sessions_htmx,
         name="club_admin_activity_sessions_htmx",
     ),
     path(
-        "club-admin/edit-member-activity-transactions-htmx",
-        organisations.views.club_menu_tabs.members.club_admin_activity_transactions_htmx,
+        "club-admin/activity/transactions",
+        organisations.views.club_admin.activity_transactions_htmx,
         name="club_admin_activity_transactions_htmx",
     ),
     path(
-        "club-admin/edit-member-activity-invitations-htmx",
-        organisations.views.club_menu_tabs.members.club_admin_activity_invitations_htmx,
+        "club-admin/activity/transactions/transact",
+        organisations.views.club_admin.add_misc_payment_htmx,
+        name="club_admin_add_misc_payment_htmx",
+    ),
+    path(
+        "club-admin/activity/invitations",
+        organisations.views.club_admin.activity_invitations_htmx,
         name="club_admin_activity_invitations_htmx",
+    ),
+    path(
+        "club-admin/activity/none",
+        organisations.views.club_admin.activity_none_htmx,
+        name="club_admin_activity_none_htmx",
+    ),
+    # -----------------------------------------------------------------------------------
+    #   Club admin - Contacts
+    # -----------------------------------------------------------------------------------
+    path(
+        "club-menu/tabs/contacts",
+        organisations.views.club_menu_tabs.contacts.list_htmx,
+        name="club_menu_tab_contacts_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/add",
+        organisations.views.club_menu_tabs.contacts.add_htmx,
+        name="club_menu_tab_contacts_add_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/edit",
+        organisations.views.club_menu_tabs.contacts.edit_htmx,
+        name="club_admin_tab_edit_contact_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/delete",
+        organisations.views.club_menu_tabs.contacts.delete_htmx,
+        name="club_admin_delete_contact_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/convert",
+        organisations.views.club_menu_tabs.contacts.convert_htmx,
+        name="club_admin_edit_covert_contact_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/add/individual-system",
+        organisations.views.club_menu_tabs.contacts.add_contact_manual_htmx,
+        name="club_admin_add_contact_manual_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/add/individual-internal",
+        organisations.views.club_menu_tabs.contacts.add_individual_internal_htmx,
+        name="club_admin_add_contact_individual_internal_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/add/upload",
+        organisations.views.club_menu_tabs.contacts.upload_csv_htmx,
+        name="club_admin_add_contact_upload_csv_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/add/search",
+        organisations.views.club_menu_tabs.contacts.add_search_htmx,
+        name="club_menu_tab_members_add_contact_search_htmx",
     ),
 ]

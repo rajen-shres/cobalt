@@ -1,0 +1,172 @@
+<!--
+Club Admin - Edit member - tags activity sub-view
+-->
+
+{#---------------------------------------------------------------------------------------------------#}
+{#                                                                                                   #}
+{# There is a strange problem with this. If you have the boxes above and below each other then       #}
+{# the drag from the bottom box doesn't work. It highlights the dropzone but the item slips out of   #}
+{# your mouse pointer and stays put. It doesn't matter which one goes on the top or bottom.          #}
+{# However if you let bootstrap position them, then it is fine. So the col-12 on the boxes is        #}
+{# important.                                                                                        #}
+{#                                                                                                   #}
+{#---------------------------------------------------------------------------------------------------#}
+
+{% include "organisations/club_admin/activity_nav_htmx.html" with activity_selected="TAGS" %}
+<div class="card-body">
+
+    <div id="id_manage_tags" class="container">
+        {% if not member_tags and not available_tags %}
+            <h4>You can use tags to group members together. Set up tags within communications.</h4>
+
+        {% else %}
+
+            <!-- CLUB HAS TAGS -->
+            <div class="container">
+                <div class="row">
+
+                    <!-- CARD FOR USERS TAGS -->
+                    <div class="card col-6">
+
+                        <div class="card-header card-header-success">
+                            <h3>{{ member.first_name }}'s Tags</h3>
+                        </div>
+
+                        <!-- CARD BODY WITH DRAG AND DROP FUNCTIONS -->
+                        <div id="member_tags"
+                            class="card-body drag-addable"
+                            ondragstart="onDragStartRemove(event);"
+                            ondrop="drop(event)"
+                            ondragover="allowDrop(event)">
+
+                            {% for tag in member_tags %}
+
+                                <!-- BUTTON WITH DRAG AND DROP ATTRIBUTES -->
+                                <button
+                                    id="item_{{ tag.club_tag.id }}"
+                                    draggable="true"
+                                    ondragstart="drag(event)"
+                                    class="btn btn-sm btn-danger"
+                                >{{ tag.club_tag.tag_name }}
+                                </button>
+
+                            {% endfor %}
+
+                        </div>
+                    </div>
+
+                    <!-- CARD FOR AVAILABLE TAGS -->
+                    <div class="card col-6">
+
+                        <div class="card-header card-header-success">
+                            <h3>Available Tags</h3>
+                        </div>
+
+                        <!-- CARD BODY WITH DRAG AND DROP FUNCTIONS -->
+                        <div class="card-body drag-removable"
+                            id="available_tags"
+                            ondrop="drop(event)"
+                            ondragover="allowDrop(event)"
+                            ondragstart="onDragStartAdd(event);"
+                        >
+
+                            {% for tag in available_tags %}
+
+                                <!-- BUTTON WITH DRAG AND DROP ATTRIBUTES -->
+                                <button
+                                    id="item_{{ tag.id }}"
+                                    draggable="true"
+                                    ondragstart="drag(event)"
+                                    class="btn btn-sm btn-default"
+                                >{{ tag.tag_name }}
+                                </button>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MESSAGE -->
+            <h4 class="text-info font-weight-bold settings_message" id="tag_message"></h4>
+
+        {% endif %}
+    </div>
+</div>
+
+
+<script>
+
+    // Allow drop event
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    // Handle drag event
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    // Drag is over
+    function onDragEnd(event) {
+        $("#available_tags").removeClass("drag-remove");
+        $("#member_tags").removeClass("drag-add");
+
+    }
+
+    // Drag from bottom box to top has started - change target box to highlight it
+    function onDragStartAdd(event) {
+        $("#member_tags").addClass("drag-add");
+    }
+
+    // Drag from top box to bottom has started - change target box to highlight it
+    function onDragStartRemove(event) {
+        $("#available_tags").addClass("drag-remove");
+    }
+
+    // Handle drop event
+    function drop(ev) {
+
+        // remove from list of tags for this member
+        let postData;
+        ev.preventDefault();
+        onDragEnd();
+
+        // Only allow drop on div, not on other elements
+
+        // Add to list of tags for this member
+        if (ev.target.id === "member_tags"){
+            const id = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(id));
+
+            const moved = $("#" + id);
+            moved.addClass("btn-danger");
+            moved.removeClass("btn-default");
+
+            postData = {
+                'club_id': {{ club.id }},
+                'tag_id': id.split("_")[1],
+                'system_number': {{ member.system_number }}
+            };
+
+            const url = '{% url "organisations:club_menu_tab_comms_tags_add_user_tag" %}';
+            htmx.ajax('POST', url, {'target': '#tag_message', 'values': postData});
+        }
+        if (ev.target.id === "available_tags") {
+            const id = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(id));
+
+            const moved = $("#" + id);
+            moved.addClass("btn-default");
+            moved.removeClass("btn-danger");
+            postData = {
+                'club_id': {{ club.id }},
+                'tag_id': id.split("_")[1],
+                'system_number': {{ member.system_number }}
+            };
+            const url = '{% url "organisations:club_menu_tab_comms_tags_remove_user_tag" %}';
+            htmx.ajax('POST', url, {'target': '#tag_message', 'values': postData});
+        }
+    }
+
+</script>

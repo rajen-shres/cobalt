@@ -1,0 +1,54 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Add a contact, shown under the contacts tab                            #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
+    <div class="card-header card-header-success">
+        <h2>Contacts</h2>
+        {% include "organisations/club_menu/contacts/nav_htmx.html" with selected="add" %}
+    </div>
+
+    <div class="card-body" id="id_contact_add_tab">
+
+        <div class="table-responsive">
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                id="t_contact_add_individual_with_sys"
+                                hx-post="{% url 'organisations:club_admin_add_contact_manual_htmx' %}"
+                                hx-target="#id_contact_add_tab"
+                                hx-vars="club_id:{{ club.id }}"
+                            >Add Contact</button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Add a contact manually
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                hx-post="{% url 'organisations:club_admin_add_contact_upload_csv_htmx' %}"
+                                hx-target="#id_contact_add_tab"
+                                hx-vars="club_id:{{ club.id }}"
+                            >CSV Upload</button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Upload your contacts list in various formats
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

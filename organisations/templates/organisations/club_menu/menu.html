@@ -92,7 +92,8 @@
                         <ul id="id_menu" class="nav nav-pills nav-pills-icons" style="z-index: 3;" role="tablist">
 
                             <li class="nav-item">
-                                <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#dashboard" role="tab" data-toggle="tab">
+                                <a id="id_tab_dashboard" class="nav-link active auto-refresh" href="#dashboard" role="tab" data-toggle="tab"
+                                >
                                     <span class="d-none d-md-block">
                                         <i class="material-icons d-none d-md-block">space_dashboard</i>
                                         Club
@@ -111,6 +112,18 @@
                                     </span>
                                     <span class="d-md-none">
                                         Members
+                                    </span>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a id="id_tab_contacts" class="nav-link auto-refresh" href="#contacts" role="tab" data-toggle="tab">
+                                    <span class="d-none d-md-block">
+                                        <i class="material-icons d-none d-md-block">people</i>
+                                        Contacts
+                                    </span>
+                                    <span class="d-md-none">
+                                        Contacts
                                     </span>
                                 </a>
                             </li>
@@ -146,18 +159,6 @@
                                 </li>
 
                             {% endif %}
-
-                            {#                                                            <li class="nav-item">#}
-                            {#                                                                <a id="id_tab_forums" class="nav-link" href="#forums" role="tab" data-toggle="tab">#}
-                            {#                                                                    <span class="d-none d-md-block">#}
-                            {#                                            <i class="material-icons d-none d-md-block">chat</i>#}
-                            {#                                            Forums#}
-                            {#                                        </span>#}
-                            {#                                        <span class="d-md-none">#}
-                            {#                                            Forums#}
-                            {#                                        </span>#}
-                            {#                                                                </a>#}
-                            {#                                                            </li>#}
 
                             <li class="nav-item">
                                 <a id="id_tab_results" class="nav-link auto-refresh" href="#results" role="tab" data-toggle="tab">
@@ -242,6 +243,9 @@
                             </div>
                             <div class="tab-pane" id="members">
                                 {% include "organisations/club_menu/members.html" %}
+                            </div>
+                            <div class="tab-pane" id="contacts">
+                                {% include "organisations/club_menu/contacts.html" %}
                             </div>
                             <div class="tab-pane" id="congress">
                                 {% include "organisations/club_menu/congress.html" %}

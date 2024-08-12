@@ -1,0 +1,267 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# Edit a contact, shown under the contacts tab                           #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+{% include "utils/summernote_heading.html" %}
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
+    <div class="card-header card-header-success">
+        <h2>Contacts</h2>
+        {% include "organisations/club_menu/contacts/nav_htmx.html" with selected="list" %}
+    </div>
+
+    <div class="card-body" id="id_contact_edit_tab">
+
+        <div class="text-center">
+            <h2>{{ contact_details.first_name }} {{ contact_details.last_name }}
+                {% if contact_details.internal %}
+                    - No {{ GLOBAL_ORG }} number
+                {% else %}
+                    - {{ GLOBAL_ORG }}:{{ contact_details.system_number }}
+                {% endif %}
+            </h2>
+
+            {% if message %}
+                <h3
+                    class="text-danger"
+                    _="on load wait 5s then transition opacity to 0 then remove me"
+                >
+                    {{ message }}
+                </h3>
+            {% endif %}
+        </div>
+
+        <!-- CONTACT DETAILS -->
+
+        <div class="card mt-5">
+            <div class="card-header card-header-warning">
+                Contact Details
+            </div>
+            <div class="container">
+                <div class="card-body">
+                    <form
+                        hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                        hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ contact_details.system_number }}, "save": "YES" }'
+                        hx-target="#id_panel_contacts"
+                    >
+                        {% csrf_token %}
+
+                        {% include "organisations/club_admin/common_details.html" %}
+
+                        <!-- BUTTONS -->
+
+                        <div class="row" id="id_contact_action_pane">
+
+                            {% if edit_details %}
+
+                                <!-- SAVE / CANCEL BUTTONS -->
+
+                                <div class="col">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-success cobalt-save"
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+
+                                <div class="col text-right">
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit: 'NO'"
+                                        hx-target="#id_panel_contacts"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+
+                            {% else %}
+
+                                <!-- ACTION BUTTONS -->
+
+                                <div class="col">
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit: 'YES'"
+                                        hx-target="#id_panel_contacts"
+                                    >
+                                        Edit Details
+                                    </button>
+
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        hx-post="{% url 'organisations:club_admin_edit_covert_contact_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO'"
+                                        hx-target="#id_contact_action_pane"
+                                    >
+                                        Convert to Member
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-primary delete-contact-button"
+                                        id="id-delete-contact"
+                                        data-toggle="tooltip"
+                                        title="Delete this contact completely"
+                                        onclick="deleteContact()"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+
+        {% include "organisations/club_admin/activity_card_htmx.html" %}
+
+
+        <!-- CHANGE HISTORY -->
+
+        <div class="card mt-5">
+            <div class="card-header card-header-warning">
+                Change History
+            </div>
+            <div class="container">
+                <div class="card-body">
+
+                    {% if not edit_details %}
+
+                        <!-- ADD LOG ENTRY -->
+
+                        <div class="row">
+                            <div class="col-10">
+                                <input
+                                    class="form-control"
+                                    type="text"
+                                    maxlength=254
+                                    id="id-log-entry"
+                                    name="log_entry"
+                                    placeholder="Add a comment to the log"
+                                >
+                            </div>
+
+                            <div class="col-2">
+                                <button
+                                    class="btn btn-sm btn-success"
+                                    hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                    hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'LOG', edit: 'NO'"
+                                    hx-include="#id-log-entry"
+                                    hx-target="#id_panel_contacts"
+                                >
+                                    Add
+                                </button>
+
+                            </div>
+                        </div>
+
+                    {% endif %}
+
+                    {% if log_history %}
+                        <!-- LOG HISTORY TABLE -->
+
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">Date</th>
+                                        <th class="text-left">Description</th>
+                                        <th class="text-left">By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in log_history %}
+                                        <tr>
+                                            <td class="text-left">{{ log.date }}</td>
+                                            <td class="text-left">{{ log.description }}</td>
+                                            <td class="text-left">{{ log.actor }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        No changes have been made
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+
+    function show_contact_list(a_message) {
+        htmx.ajax('POST', "{% url 'organisations:club_menu_tab_contacts_htmx' %}", {
+            target: "#id_panel_contacts",
+            values: {
+                club_id: '{{ club.id }}',
+                message: a_message
+            }
+        });
+    };
+
+    document.addEventListener('htmx:afterSettle', function(event) {
+
+        if (event.detail.target.id === 'id_contact_action_pane') {
+
+            // hook for any initialisation required for the form entry in the action pane
+            initialiseHTMXForm();
+        };
+
+        if (event.detail.target.id === 'id-activity-card') {
+            initialiseActivityView();
+        }
+    });
+
+    function deleteContact() {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to undo this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'organisations:club_admin_delete_contact_htmx' %}",
+                    data: {
+                        club_id: "{{ club.id }}",
+                        system_number: "{{ contact_details.system_number }}"
+                    },
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        show_contact_list("Contact deleted");
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire('Error', 'An error occurred while deleting the contact.', 'error');
+                    }
+                });
+            };
+        });
+    };
+
+</script>

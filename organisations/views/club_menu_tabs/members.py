@@ -38,8 +38,10 @@ from organisations.club_admin_core import (
     change_membership,
     member_details_description,
     get_valid_actions,
+    get_valid_activities,
     can_perform_action,
     perform_simple_action,
+    log_member_change,
     MEMBERSHIP_STATES_TERMINAL,
 )
 from organisations.decorators import check_club_menu_access
@@ -88,9 +90,6 @@ logger = logging.getLogger("cobalt")
 @check_club_menu_access()
 def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     """build the members tab in club menu"""
-
-    # JPG debug
-    print("**** list_htmx ****")
 
     DEFAULT_SORT = "last_desc"
 
@@ -394,231 +393,219 @@ def delete_member_htmx(request, club):
     return list_htmx(request, message=f"{member.full_name} membership deleted.")
 
 
-def _un_reg_edit_htmx_process_form(
-    request, un_reg, club, membership, user_form, club_email_form, club_membership_form
-):
-    """Sub process to handle form for un_reg_edit_htmx"""
+# JPG deprecate
+# def _un_reg_edit_htmx_process_form(
+#     request, un_reg, club, membership, user_form, club_email_form, club_membership_form
+# ):
+#     """Sub process to handle form for un_reg_edit_htmx"""
 
-    # Assume the worst
-    message = "Errors found on Form"
+#     # Assume the worst
+#     message = "Errors found on Form"
 
-    if user_form.is_valid():
-        new_un_reg = user_form.save()
+#     if user_form.is_valid():
+#         new_un_reg = user_form.save()
 
-        message = "Data Saved"
-        ClubLog(
-            organisation=club,
-            actor=request.user,
-            action=f"Updated details for {new_un_reg}",
-        ).save()
+#         message = "Data Saved"
+#         ClubLog(
+#             organisation=club,
+#             actor=request.user,
+#             action=f"Updated details for {new_un_reg}",
+#         ).save()
 
-    if club_membership_form.is_valid():
-        membership.home_club = club_membership_form.cleaned_data["home_club"]
-        membership_type = MembershipType.objects.get(
-            pk=club_membership_form.cleaned_data["membership_type"]
-        )
-        membership.membership_type = membership_type
-        membership.save()
+#     if club_membership_form.is_valid():
+#         membership.home_club = club_membership_form.cleaned_data["home_club"]
+#         membership_type = MembershipType.objects.get(
+#             pk=club_membership_form.cleaned_data["membership_type"]
+#         )
+#         membership.membership_type = membership_type
+#         membership.save()
 
-        message = "Data Saved"
-        ClubLog(
-            organisation=club,
-            actor=request.user,
-            action=f"Updated details for {membership.system_number}",
-        ).save()
+#         message = "Data Saved"
+#         ClubLog(
+#             organisation=club,
+#             actor=request.user,
+#             action=f"Updated details for {membership.system_number}",
+#         ).save()
 
-    if club_email_form.is_valid():
-        club_email = club_email_form.cleaned_data["email"]
+#     if club_email_form.is_valid():
+#         club_email = club_email_form.cleaned_data["email"]
 
-        # If the club email was used but is now empty, delete the record
-        if not club_email:
-            club_email_entry = MemberClubEmail.objects.filter(
-                organisation=club, system_number=un_reg.system_number
-            )
-            if club_email_entry:
-                club_email_entry.delete()
-                message = "Local email address deleted"
-                ClubLog(
-                    organisation=club,
-                    actor=request.user,
-                    action=f"Removed club email address for {un_reg}",
-                ).save()
+#         # If the club email was used but is now empty, delete the record
+#         if not club_email:
+#             club_email_entry = MemberClubEmail.objects.filter(
+#                 organisation=club, system_number=un_reg.system_number
+#             )
+#             if club_email_entry:
+#                 club_email_entry.delete()
+#                 message = "Local email address deleted"
+#                 ClubLog(
+#                     organisation=club,
+#                     actor=request.user,
+#                     action=f"Removed club email address for {un_reg}",
+#                 ).save()
 
-        else:
+#         else:
 
-            # See if we have an email for this user and club
-            club_email_entry = MemberClubEmail.objects.filter(
-                organisation=club, system_number=un_reg.system_number
-            ).first()
-            if not club_email_entry:
-                club_email_entry = MemberClubEmail(
-                    organisation=club, system_number=un_reg.system_number
-                )
+#             # See if we have an email for this user and club
+#             club_email_entry = MemberClubEmail.objects.filter(
+#                 organisation=club, system_number=un_reg.system_number
+#             ).first()
+#             if not club_email_entry:
+#                 club_email_entry = MemberClubEmail(
+#                     organisation=club, system_number=un_reg.system_number
+#                 )
 
-            club_email_entry.email = club_email
-            club_email_entry.save()
-            message = "Data Saved"
-            ClubLog(
-                organisation=club,
-                actor=request.user,
-                action=f"Updated club email address for {un_reg}",
-            ).save()
+#             club_email_entry.email = club_email
+#             club_email_entry.save()
+#             message = "Data Saved"
+#             ClubLog(
+#                 organisation=club,
+#                 actor=request.user,
+#                 action=f"Updated club email address for {un_reg}",
+#             ).save()
 
-            # See if we have a bounce on this user and clear it
-            if club_email_entry.email_hard_bounce:
-                club_email_entry.email_hard_bounce = False
-                club_email_entry.email_hard_bounce_reason = None
-                club_email_entry.email_hard_bounce_date = None
-                club_email_entry.save()
+#             # See if we have a bounce on this user and clear it
+#             if club_email_entry.email_hard_bounce:
+#                 club_email_entry.email_hard_bounce = False
+#                 club_email_entry.email_hard_bounce_reason = None
+#                 club_email_entry.email_hard_bounce_date = None
+#                 club_email_entry.save()
 
-                ClubLog(
-                    organisation=club,
-                    actor=request.user,
-                    action=f"Cleared email hard bounce for {un_reg} by editing email address",
-                ).save()
+#                 ClubLog(
+#                     organisation=club,
+#                     actor=request.user,
+#                     action=f"Cleared email hard bounce for {un_reg} by editing email address",
+#                 ).save()
 
-    return message, un_reg, membership
-
-
-def _un_reg_edit_htmx_common(
-    request,
-    club,
-    un_reg,
-    message,
-    user_form,
-    club_email_form,
-    club_membership_form,
-    member_details,
-    club_email_entry,
-):
-    """Common part of editing un registered user, used whether form was filled in or not"""
-
-    member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
-        club_tag__organisation=club, system_number=un_reg.system_number
-    )
-    used_tags = member_tags.values("club_tag__tag_name")
-    available_tags = ClubTag.objects.filter(organisation=club).exclude(
-        tag_name__in=used_tags
-    )
-
-    email_address = active_email_for_un_reg(un_reg, club)
-
-    # Get recent emails if allowed
-    # if rbac_user_has_role(
-    #     request.user, f"notifications.orgcomms.{club.id}.edit"
-    # ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-    #     if email_address:
-    #         emails = PostOfficeEmail.objects.filter(to=[email_address]).order_by("-pk")[
-    #             :20
-    #         ]
-    #     else:
-    #         emails = None
-    # else:
-    #     emails = None
-
-    # JPG cleanup
-
-    emails = get_emails_sent_to_address(email_address, club, request.user)
-
-    # See if there are blocks on either email address - we don't just look for this user
-    if club_email_entry:
-        private_email_blocked = UnregisteredBlockedEmail.objects.filter(
-            email=club_email_entry.email
-        ).exists()
-    else:
-        private_email_blocked = False
-
-    return render(
-        request,
-        "organisations/club_menu/members/edit_un_reg_htmx.html",
-        {
-            "club": club,
-            "un_reg": un_reg,
-            "user_form": user_form,
-            "club_email_form": club_email_form,
-            "club_membership_form": club_membership_form,
-            "member_details": member_details,
-            "member_tags": member_tags,
-            "available_tags": available_tags,
-            "hx_delete": reverse(
-                "organisations:club_menu_tab_member_delete_un_reg_htmx"
-            ),
-            "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
-            "message": message,
-            "email_address": email_address,
-            "emails": emails,
-            "private_email_blocked": private_email_blocked,
-        },
-    )
+#     return message, un_reg, membership
 
 
-@check_club_menu_access(check_members=True)
-def un_reg_edit_htmx(request, club):
-    """Edit unregistered member details"""
+# JPG deprecate
+# def _un_reg_edit_htmx_common(
+#     request,
+#     club,
+#     un_reg,
+#     message,
+#     user_form,
+#     club_email_form,
+#     club_membership_form,
+#     member_details,
+#     club_email_entry,
+# ):
+#     """Common part of editing un registered user, used whether form was filled in or not"""
 
-    un_reg_id = request.POST.get("un_reg_id")
-    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+#     member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
+#         club_tag__organisation=club, system_number=un_reg.system_number
+#     )
+#     used_tags = member_tags.values("club_tag__tag_name")
+#     available_tags = ClubTag.objects.filter(organisation=club).exclude(
+#         tag_name__in=used_tags
+#     )
 
-    # Get first membership record for this user and this club
-    membership = MemberMembershipType.objects.filter(
-        system_number=un_reg.system_number, membership_type__organisation=club
-    ).first()
+#     email_address = active_email_for_un_reg(un_reg, club)
 
-    message = ""
-    club_email_entry = None
+#     emails = get_emails_sent_to_address(email_address, club, request.user)
 
-    if "save" in request.POST:
-        # We got form data - process it
-        user_form = UnregisteredUserForm(request.POST, instance=un_reg)
-        club_email_form = MemberClubEmailForm(request.POST, prefix="club")
-        club_membership_form = UnregisteredUserMembershipForm(
-            request.POST, club=club, system_number=un_reg.system_number, prefix="member"
-        )
+#     # See if there are blocks on either email address - we don't just look for this user
+#     if club_email_entry:
+#         private_email_blocked = UnregisteredBlockedEmail.objects.filter(
+#             email=club_email_entry.email
+#         ).exists()
+#     else:
+#         private_email_blocked = False
 
-        message, un_reg, membership = _un_reg_edit_htmx_process_form(
-            request,
-            un_reg,
-            club,
-            membership,
-            user_form,
-            club_email_form,
-            club_membership_form,
-        )
+#     return render(
+#         request,
+#         "organisations/club_menu/members/edit_un_reg_htmx.html",
+#         {
+#             "club": club,
+#             "un_reg": un_reg,
+#             "user_form": user_form,
+#             "club_email_form": club_email_form,
+#             "club_membership_form": club_membership_form,
+#             "member_details": member_details,
+#             "member_tags": member_tags,
+#             "available_tags": available_tags,
+#             "hx_delete": reverse(
+#                 "organisations:club_menu_tab_member_delete_un_reg_htmx"
+#             ),
+#             "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
+#             "message": message,
+#             "email_address": email_address,
+#             "emails": emails,
+#             "private_email_blocked": private_email_blocked,
+#         },
+#     )
 
-    else:
-        # No form data so build up what we need to show user
-        club_email_entry = MemberClubEmail.objects.filter(
-            organisation=club, system_number=un_reg.system_number
-        ).first()
-        user_form = UnregisteredUserForm(instance=un_reg)
-        club_email_form = MemberClubEmailForm(prefix="club")
-        club_membership_form = UnregisteredUserMembershipForm(
-            club=club, system_number=un_reg.system_number, prefix="member"
-        )
 
-        # Set initial values for membership form
-        #        club_membership_form.initial["home_club"] = membership.home_club
-        if membership:
-            club_membership_form.initial[
-                "membership_type"
-            ] = membership.membership_type_id
+# JPG deprecate ?
+# @check_club_menu_access(check_members=True)
+# def un_reg_edit_htmx(request, club):
+#     """Edit unregistered member details"""
 
-        # Set initial value for email if record exists
-        if club_email_entry:
-            club_email_form.initial["email"] = club_email_entry.email
+#     un_reg_id = request.POST.get("un_reg_id")
+#     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
-    # Common parts
-    return _un_reg_edit_htmx_common(
-        request,
-        club,
-        un_reg,
-        message,
-        user_form,
-        club_email_form,
-        club_membership_form,
-        membership,
-        club_email_entry,
-    )
+#     # Get first membership record for this user and this club
+#     membership = MemberMembershipType.objects.filter(
+#         system_number=un_reg.system_number, membership_type__organisation=club
+#     ).first()
+
+#     message = ""
+#     club_email_entry = None
+
+#     if "save" in request.POST:
+#         # We got form data - process it
+#         user_form = UnregisteredUserForm(request.POST, instance=un_reg)
+#         club_email_form = MemberClubEmailForm(request.POST, prefix="club")
+#         club_membership_form = UnregisteredUserMembershipForm(
+#             request.POST, club=club, system_number=un_reg.system_number, prefix="member"
+#         )
+
+#         message, un_reg, membership = _un_reg_edit_htmx_process_form(
+#             request,
+#             un_reg,
+#             club,
+#             membership,
+#             user_form,
+#             club_email_form,
+#             club_membership_form,
+#         )
+
+#     else:
+#         # No form data so build up what we need to show user
+#         club_email_entry = MemberClubEmail.objects.filter(
+#             organisation=club, system_number=un_reg.system_number
+#         ).first()
+#         user_form = UnregisteredUserForm(instance=un_reg)
+#         club_email_form = MemberClubEmailForm(prefix="club")
+#         club_membership_form = UnregisteredUserMembershipForm(
+#             club=club, system_number=un_reg.system_number, prefix="member"
+#         )
+
+#         # Set initial values for membership form
+#         #        club_membership_form.initial["home_club"] = membership.home_club
+#         if membership:
+#             club_membership_form.initial[
+#                 "membership_type"
+#             ] = membership.membership_type_id
+
+#         # Set initial value for email if record exists
+#         if club_email_entry:
+#             club_email_form.initial["email"] = club_email_entry.email
+
+#     # Common parts
+#     return _un_reg_edit_htmx_common(
+#         request,
+#         club,
+#         un_reg,
+#         message,
+#         user_form,
+#         club_email_form,
+#         club_membership_form,
+#         membership,
+#         club_email_entry,
+#     )
 
 
 @check_club_menu_access(check_members=True)
@@ -825,6 +812,7 @@ def add_member_search_htmx(request):
     )
 
 
+# JPG deprecated
 @check_club_menu_access(check_members=True)
 def edit_member_htmx(request, club, message=""):
     """Edit a club member manually"""
@@ -934,6 +922,7 @@ def edit_member_htmx(request, club, message=""):
     )
 
 
+# JPG clean-up deprecated - replaced by club_admin.py activity_emails_html
 @check_club_menu_access(check_members=True)
 def get_recent_emails_htmx(request, club):
     """Delayed load of recent emails for the member detail view"""
@@ -954,6 +943,7 @@ def get_recent_emails_htmx(request, club):
     )
 
 
+# JPG deprecated
 def _get_misc_payment_vars(member, club):
     """get variables relating to this members misc payments for this club"""
 
@@ -968,6 +958,7 @@ def _get_misc_payment_vars(member, club):
     return recent_payments, misc_payment_types
 
 
+# JPG deprecated ?
 def _edit_member_htmx_save(request, club, member):
     """sub for edit_member_htmx to handle getting a real POST"""
 
@@ -1155,6 +1146,7 @@ def errors_htmx(request, club):
     )
 
 
+# JPG depratce - moved to club_admin common
 @check_club_menu_access(check_session_or_payments=True)
 def add_misc_payment_htmx(request, club):
     """Adds a miscellaneous payment for a user. Could be the club charging them, or the club paying them"""
@@ -1204,6 +1196,7 @@ def add_misc_payment_htmx(request, club):
     )
 
 
+# JPG deprecate
 def _add_misc_payment_charge(request, club, member, amount, misc_description):
     """handle club charging user"""
 
@@ -1459,8 +1452,11 @@ def club_admin_edit_member_htmx(request, club):
 
     system_number = request.POST.get("system_number", None)
     message = request.POST.get("message", None)
+    saving = request.POST.get("save", "NO") == "YES"
+    editing = request.POST.get("edit", "NO") == "YES"
 
     if not system_number:
+        # JPG to do - this call will not work. perhaps raise an exception instead
         return list_htmx(request, message="System number required")
 
     member_details = get_member_details(club, system_number)
@@ -1480,10 +1476,53 @@ def club_admin_edit_member_htmx(request, club):
     # get the members log history
     log_history = get_member_log(club, system_number)
 
-    if request.method == "POST":
+    if request.POST.get("save", "NO") == "LOG":
+
+        if request.POST.get("log_entry", None):
+
+            # JPG to do: clean text
+
+            # log it
+            log_member_change(
+                club,
+                system_number,
+                request.user,
+                request.POST.get("log_entry"),
+            )
+            message = "Comment added to the log"
+
+        else:
+            message = "Nothing added, type a comment then click Add"
+
+    if member_details.user_type == f"{GLOBAL_TITLE} User":
+
+        # Get any outstanding debts
+        user_pending_payments = UserPendingPayment.objects.filter(
+            system_number=system_number
+        )
+
+        # augment data
+        for user_pending_payment in user_pending_payments:
+
+            if user_pending_payment.organisation == club:
+
+                user_pending_payment.can_delete = True
+                user_pending_payment.hx_delete = reverse(
+                    "organisations:club_menu_tab_finance_cancel_user_pending_debt_htmx"
+                )
+                user_pending_payment.hx_vars = f"club_id:{club.id}, user_pending_payment_id:{user_pending_payment.id}, member:{member_details.user_or_unreg_id}, return_member_tab:1"
+
+    else:
+        user_pending_payments = None
+
+    if saving:
         form = MemberClubDetailsForm(request.POST, instance=member_details)
         if form.is_valid():
             form.save()
+            message = "Updates saved"
+        else:
+            message = "Error saving updates"
+            editing = True
 
     else:
         form = MemberClubDetailsForm(instance=member_details)
@@ -1492,6 +1531,9 @@ def club_admin_edit_member_htmx(request, club):
     # The user has this access if they have got this far.
 
     member_description = member_details_description(member_details)
+
+    # which recent activities should be shown?
+    permitted_activities = get_valid_activities(member_details)
 
     return render(
         request,
@@ -1505,7 +1547,11 @@ def club_admin_edit_member_htmx(request, club):
             "valid_actions": valid_actions,
             "message": message,
             "member_admin": True,
+            "user_pending_payments": user_pending_payments,
+            "edit_details": editing,
             "member_description": member_description,
+            "system_number": member_details.system_number,
+            "permitted_activities": permitted_activities,
         },
     )
 
@@ -1526,9 +1572,6 @@ def _refresh_edit_member(request, club, system_number, message):
     """Refreshes the edit member view from within the view
     ie. call as the result of an htmx end point to refresh the view
     """
-
-    # JPG debug
-    print(f"_refresh_edit_member: {club.id}, {system_number}, '{message}'")
 
     return render(
         request,
@@ -1553,34 +1596,6 @@ def _refresh_member_list(request, club):
             "club_id": club.id,
         },
     )
-
-
-# JPG Clean-up - old code, later definition is more up to date
-# @check_club_menu_access(check_members=True)
-# def club_admin_edit_member_membership_action_htmx(request, club):
-#     """Common end point for all simple membership actions
-
-#     The member's system number and action name are passed in the
-#     request POST. The updated is attempted and the member edit view
-#     is refreshed with the new state or an error message.
-#     """
-
-#     system_number = request.POST.get("system_number", None)
-#     action_name = request.POST.get("action_name", None)
-
-#     if not system_number or not action_name:
-#         message = "Error - system number or action missing"
-#     else:
-#         _, message = perform_simple_action(
-#             action_name, club, system_number, requester=request.user
-#         )
-
-#     return _refresh_edit_member(
-#         request,
-#         club,
-#         system_number,
-#         message,
-#     )
 
 
 @check_club_menu_access(check_members=True)
@@ -1615,7 +1630,7 @@ def club_admin_edit_member_change_htmx(request, club):
 
     # Build the list of available membership types, and associated default fees and dates.
     # When the user selects a type in the form the corresponding fee and dates need to be set
-    # Note: end_date is nto set for types which do not renew (eg Life membership)
+    # Note: end_date is not set for types which do not renew (eg Life membership)
     # Note: values are converted to types that JavaScript can ingest
     membership_types = (
         MembershipType.objects.filter(organisation=club)
@@ -1729,9 +1744,6 @@ def club_admin_edit_member_membership_action_htmx(request, club):
     if success and action_name == "delete":
         # member is now a contact so can't refresh the member edit view
 
-        # JPG debug
-        print("++++++ _refresh_member_list")
-
         return _refresh_member_list(request, club)
 
     return _refresh_edit_member(
@@ -1811,157 +1823,5 @@ def club_admin_edit_member_extend_htmx(request, club):
             "system_number": system_number,
             "form": form,
             "message": message,
-        },
-    )
-
-
-# ----------------------------------------------------------------------------------
-# Club admin - Edit member - Recent activity end points
-# ----------------------------------------------------------------------------------
-
-
-@check_club_menu_access(check_members=True)
-def club_admin_activity_tags_htmx(request, club):
-    """Show the tags activity subview
-
-    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
-    """
-
-    system_number = request.POST.get("system_number")
-    member_details = get_member_details(club, system_number)
-
-    # JPG - TO DO
-
-    return render(
-        request,
-        "organisations/club_menu/members/club_admin_member_activity_tags_htmx.html",
-        {
-            "club": club,
-            "member_details": member_details,
-        },
-    )
-
-
-@check_club_menu_access(check_members=True)
-def club_admin_activity_emails_htmx(request, club):
-    """Show the emails activity subview
-
-    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
-    """
-
-    system_number = request.POST.get("system_number")
-    member_details = get_member_details(club, system_number)
-
-    # JPG - TO DO
-
-    return render(
-        request,
-        "organisations/club_menu/members/club_admin_member_activity_emails_htmx.html",
-        {
-            "club": club,
-            "member_details": member_details,
-        },
-    )
-
-
-@check_club_menu_access(check_members=True)
-def club_admin_activity_entries_htmx(request, club):
-    """Show the entries activity subview
-
-    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
-    """
-
-    system_number = request.POST.get("system_number")
-    member_details = get_member_details(club, system_number)
-
-    # JPG - TO DO
-
-    return render(
-        request,
-        "organisations/club_menu/members/club_admin_member_activity_entries_htmx.html",
-        {
-            "club": club,
-            "member_details": member_details,
-        },
-    )
-
-
-@check_club_menu_access(check_members=True)
-def club_admin_activity_sessions_htmx(request, club):
-    """Show the session activity subview
-
-    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
-    """
-
-    system_number = request.POST.get("system_number")
-    member_details = get_member_details(club, system_number)
-
-    sessions = (
-        SessionEntry.objects.filter(system_number=system_number)
-        .order_by("-session__session_date")
-        .select_related("session")
-    )
-
-    things = cobalt_paginator(request, sessions, 10)
-
-    # Add hx_post for paginator controls
-    hx_post = reverse("organisations:club_admin_activity_sessions_htmx")
-    hx_vars = f"club_id:{club.id}, system_number:{member_details.system_number}"
-    hx_target = "#id-activity-card"
-
-    return render(
-        request,
-        "organisations/club_menu/members/club_admin_member_activity_sessions_htmx.html",
-        {
-            "club": club,
-            "member_details": member_details,
-            "things": things,
-            "hx_post": hx_post,
-            "hx_vars": hx_vars,
-            "hx_target": hx_target,
-        },
-    )
-
-
-@check_club_menu_access(check_members=True)
-def club_admin_activity_transactions_htmx(request, club):
-    """Show the sessions activity subview
-
-    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
-    """
-
-    system_number = request.POST.get("system_number")
-    member_details = get_member_details(club, system_number)
-
-    # JPG - TO DO
-
-    return render(
-        request,
-        "organisations/club_menu/members/club_admin_member_activity_transactions_htmx.html",
-        {
-            "club": club,
-            "member_details": member_details,
-        },
-    )
-
-
-@check_club_menu_access(check_members=True)
-def club_admin_activity_invitations_htmx(request, club):
-    """Show the invitations activity subview
-
-    Called via hx-post with hx-vars club_id (dereferenced in the decorator) and system_number
-    """
-
-    system_number = request.POST.get("system_number")
-    member_details = get_member_details(club, system_number)
-
-    # JPG - TO DO
-
-    return render(
-        request,
-        "organisations/club_menu/members/club_admin_member_activity_invitations_htmx.html",
-        {
-            "club": club,
-            "member_details": member_details,
         },
     )

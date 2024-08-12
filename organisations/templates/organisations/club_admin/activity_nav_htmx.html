@@ -1,0 +1,41 @@
+
+{#  Member or Contact Activity card navigation header on the member/contact details page            #}
+
+<div class="card-header card-header-warning d-flex justify-content-between align-items-center">
+    <div>
+        Recent Activity:
+
+        <!-- TAGS -->
+        {% include 'organisations/club_admin/activity_nav_button.html' with activity_name='TAGS' endpoint_name='organisations:club_admin_activity_tags_htmx' %}
+
+        <!-- EMAILS -->
+        {% include 'organisations/club_admin/activity_nav_button.html' with activity_name='EMAILS' endpoint_name='organisations:club_admin_activity_emails_htmx' %}
+
+        <!-- ENTRIES -->
+        {% include 'organisations/club_admin/activity_nav_button.html' with activity_name='ENTRIES' endpoint_name='organisations:club_admin_activity_entries_htmx' %}
+
+        <!-- SESSIONS -->
+        {% include 'organisations/club_admin/activity_nav_button.html' with activity_name='SESSIONS' endpoint_name='organisations:club_admin_activity_sessions_htmx' %}
+
+        <!-- TRANSACTIONS -->
+        {% include 'organisations/club_admin/activity_nav_button.html' with activity_name='TRANSACTIONS' endpoint_name='organisations:club_admin_activity_transactions_htmx' %}
+
+        <!-- INVITATIONS -->
+        {% include 'organisations/club_admin/activity_nav_button.html' with activity_name='INVITATIONS' endpoint_name='organisations:club_admin_activity_invitations_htmx' %}
+
+    </div>
+    <div>
+        {% if activity_selected != 'NONE' %}
+            <button
+                class="btn bg-transparent"
+                style="outline: 0; outline-offset: 0; box-shadow: none;"
+                id="id-NONE-nav-button"
+                hx-post="{% url 'organisations:club_admin_activity_none_htmx' %}"
+                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
+                hx-target="#id-activity-card"
+            >
+                Close
+            </button>
+        {% endif %}
+    </div>
+</div>

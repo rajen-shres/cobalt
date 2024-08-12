@@ -1,7 +1,8 @@
-<!--
-View for changing membership type for an existing member
-This will be rendered in the action pane of the club admin edit member window
--->
+{# ---------------------------------------------------------------------------- #}
+{#  View for changing membership type for an existing member                    #}
+{#  OR converting a contact to a member (converting == True)                    #}
+{# ---------------------------------------------------------------------------- #}
+
 {% load static %}
 {% load cobalt_tags %}
 {% load widget_tweaks %}
@@ -10,14 +11,23 @@ This will be rendered in the action pane of the club admin edit member window
 <div class="card-body">
     <div class="card">
         <div class="card-header card-header-primary">
-            Change Membership Type
+            {% if converting %}
+                Convert Contact to Member
+            {% else %}
+                Change Membership Type
+            {% endif %}
         </div>
         <div class="container">
             <div class="card-body">
                 <form
-                    hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' %}"
+                    {% if converting %}
+                        hx-post="{% url 'organisations:club_admin_edit_covert_contact_htmx' %}"
+                        hx-target="#id_contact_action_pane"
+                    {% else %}
+                        hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' %}"
+                        hx-target="#id_action_pane"
+                    {% endif %}
                     hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ system_number }}, "save": "YES" }'
-                    hx-target="#id_action_pane"
                 >
                     {% csrf_token %}
 
@@ -27,6 +37,25 @@ This will be rendered in the action pane of the club admin edit member window
                                 <h3 class="text-danger">{{ message }}</h3>
                             </div>
                         </div>
+                    {% endif %}
+
+                    {% if converting and internal %}
+                        <!-- SYSTEM NUMBER REQUIRED -->
+
+                        <div class="row pb-2">
+                            <div class="col-2 justify-content-center align-self-center pt-3">
+                                {{ GLOBAL_ORG }} Number
+                            </div>
+                            <div class="col-8">
+                                <div id="div_id_new_system_number_type" class="form-group">
+                                    <span class="cobalt-form-error" id="id_new_system_number_errors">
+                                        {{ form.new_system_number.errors|striptags }}
+                                    </span>
+                                    {% render_field form.new_system_number class+="form-control" %}
+                                </div>
+                            </div>
+                        </div>
+
                     {% endif %}
 
                     <div class="row pb-2">
@@ -117,8 +146,6 @@ This will be rendered in the action pane of the club admin edit member window
                                 </label>
                             </div>
                         </div>
-
-
                     </div>
 
                     <div id="id_optional_due_date">
@@ -149,9 +176,14 @@ This will be rendered in the action pane of the club admin edit member window
                         <div class="col text-right">
                             <button
                                 class="btn btn-sm btn-info"
-                                hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                {% if converting %}
+                                    hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                    hx-target="#id_panel_contacts"
+                                {% else %}
+                                    hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                {% endif %}
                                 hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
-                                hx-target="#id_panel_members"
                                 hx-trigger="click"
                             >
                                 Cancel

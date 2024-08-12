@@ -1,0 +1,16 @@
+{% if activity_name in permitted_activities %}
+    <button
+        {% if activity_selected == activity_name %}
+            class="btn btn-sm bg-light text-dark"
+        {% else %}
+            class="btn bg-transparent"
+            style="outline: 0; outline-offset: 0; box-shadow: none;"
+        {% endif %}
+        id="id-{{ activity_name }}-nav-button"
+        hx-post="{% url endpoint_name %}"
+        hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
+        hx-target="#id-activity-card"
+    >
+        {{ activity_name }}
+    </button>
+{% endif %}

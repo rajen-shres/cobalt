@@ -19,7 +19,7 @@ from cobalt.settings import (
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, RegexValidator
-from django.db import models
+from django.db import models, transaction
 
 
 def no_future(value):
@@ -144,6 +144,22 @@ class User(AbstractUser):
         )
 
 
+class UnregisteredUserManager(models.Manager):
+    """
+    Manager to return a query set of unregistered users with non-internal system
+    numbers only
+    """
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                internal_system_number=False,
+            )
+        )
+
+
 class UnregisteredUser(models.Model):
     """Represents users who we have only partial information about and who have not registered themselves yet.
     When a User registers, the matching instance of Unregistered User will be removed.
@@ -177,6 +193,8 @@ class UnregisteredUser(models.Model):
     deceased = models.BooleanField("Deceased", default=False)
     """ Player is deceased, status set by My ABF support """
 
+    internal_system_number = models.BooleanField(default=False)
+
     last_updated_by = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="last_updated"
     )
@@ -207,6 +225,10 @@ class UnregisteredUser(models.Model):
         default="NOTSET",
     )
     """ random string identifier to use in emails to handle preferences. Can't use the pk obviously """
+
+    # Managers: objects excludes internal system number records, all_objects does not
+    all_objects = models.Manager()
+    objects = UnregisteredUserManager()
 
     def save(self, *args, **kwargs):
         """create identifier on first save"""
@@ -322,6 +344,61 @@ class UserAdditionalInfo(models.Model):
 
     def __str__(self):
         return self.user.__str__()
+
+
+class NextInternalSystemNumber(models.Model):
+    """A singleton table to manage the next internal system number
+
+    All access should be through the next_available class method:
+
+        system_number = NextInternalSystemNumber.next_available()
+
+    This will return the number to be used, update the stored value
+    and take a row level update lock until the end of the transaction.
+
+    NOTE: As this is holding a lock, make sure that the transaction is
+    completed (comitted or rolled back) as quickly as possible.
+    """
+
+    _first_number = 1_000_000_000
+
+    number = models.IntegerField("Next Internal System Number", default=_first_number)
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super(NextInternalSystemNumber, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls):
+        """Load the singleton, taking an update lock
+        Must be called within a transaction"""
+        try:
+            obj = cls.objects.select_for_update().get(pk=1)
+        except cls.DoesNotExist:
+            obj = cls()
+            obj.number = cls._first_number
+            obj.save()
+            obj = cls.objects.select_for_update().get(pk=1)
+        return obj
+
+    @classmethod
+    def next_available(cls):
+        """Returns the next available internal system number
+        Note that this takes an update lock on the singleton until
+         the end of teh outermost transaction"""
+        nisn = cls.load()
+        allocated_number = nisn.number
+        nisn.number += 1
+        nisn.save()
+        return allocated_number
+
+    @classmethod
+    def is_internal(cls, number):
+        """Checks whether the number is an internal system number"""
+        return number >= cls._first_number
 
 
 class SystemCard(models.Model):

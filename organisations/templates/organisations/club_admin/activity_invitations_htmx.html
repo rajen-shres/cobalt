@@ -1,0 +1,37 @@
+<!--
+Club Admin - Edit member - Invitations activity sub-view
+-->
+
+{% load humanize %}
+{% load cobalt_tags %}
+
+{% include "organisations/club_admin/activity_nav_htmx.html" with activity_selected="INVITATIONS" %}
+<div class="card-body">
+
+    <p class="my-0">Origin: {{ un_reg.origin }}</p>
+    <p class="my-0">Added On: {{ un_reg.created_at|cobalt_nice_datetime }}</p>
+    <p class="my-0">Last Updated: {{ un_reg.updated_at|cobalt_nice_datetime }}</p>
+    <p class="my-0">Last Updated By: {{ un_reg.last_updated_by.full_name }}</p>
+    {% if un_reg.last_registration_invite_sent %}
+        <p class="my-0">Last Invited to Join By: {{ un_reg.last_registration_invite_by_user.full_name }} ({{ un_reg.last_registration_invite_by_club }})</p>
+        <p class="my-0">Last Invited to Join At: {{ un_reg.last_registration_invite_sent }}</p>
+    {% else %}
+        <p class="my-0">Never invited to join {{ GLOBAL_TITLE }}</p>
+    {% endif %}
+
+    <button
+        hx-post="{% url "organisations:club_menu_tab_members_invite_user_to_join_htmx" %}"
+        hx-target="#members"
+        hx-vars="club_id:{{ club.id }}, un_reg_id:{{ un_reg.id }}"
+        class="btn btn-primary"
+        onclick="GrowlNotification.notify({
+        title: 'Sending invite...',
+        description: 'Sending invite to {{ un_reg.first_name }}.',
+        type: 'success',
+        position: 'top-right',
+        closeTimeout: 2000})"
+    >
+        Send Invite to Join {{ GLOBAL_TITLE }}
+    </button>
+
+</div>

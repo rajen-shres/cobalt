@@ -262,6 +262,10 @@ class MembershipChangeTypeForm(forms.Form):
     Membership type options are passed to init as membership_choices
     a list of tuples of (id, name) for valid membership types"""
 
+    new_system_number = forms.IntegerField(
+        label="System Number",
+        required=False,
+    )
     membership_type = forms.ChoiceField(label="Membership Type", required=True)
     start_date = forms.DateField(
         label="Start date",
@@ -394,6 +398,13 @@ class UnregisteredUserAddForm(forms.Form):
         ):
             self.add_error("home_club", "User already has a home club")
         return home_club
+
+
+class ContactAddForm(forms.Form):
+    """Form for adding a contact"""
+
+    first_name = forms.CharField(max_length=150, initial="", required=True)
+    last_name = forms.CharField(max_length=150, initial="", required=True)
 
 
 class CSVUploadForm(forms.Form):

@@ -1,0 +1,12 @@
+{# Recent activity card for use on teh member and contact details view                              #}
+{#                                                                                                  #}
+{#  Context variables:                                                                              #}
+{#      activity_selected: activity to highlight determines what is shown ("NONE" if no selection)  #}
+{#      permitted_activities: list of activities to show                                            #}
+{#      club: club                                                                                  #}
+{#      system_number: contact or member system number                                              #}
+
+
+<div class="card mt-5" id="id-activity-card">
+    {% include "organisations/club_admin/activity_none_htmx.html" %}
+</div>

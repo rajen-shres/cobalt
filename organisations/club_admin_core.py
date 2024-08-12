@@ -29,6 +29,8 @@ from accounts.models import (
 )
 from cobalt.settings import GLOBAL_TITLE
 
+from notifications.models import Recipient
+
 from .models import (
     Organisation,
     MembershipType,
@@ -36,6 +38,7 @@ from .models import (
     MemberClubDetails,
     MemberClubEmail,
     ClubMemberLog,
+    MemberClubTag,
 )
 
 
@@ -314,7 +317,7 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
     system_numbers = [member.system_number for member in members]
 
     users = User.objects.filter(system_number__in=system_numbers)
-    unreg_users = UnregisteredUser.objects.filter(system_number__in=system_numbers)
+    unreg_users = UnregisteredUser.all_objects.filter(system_number__in=system_numbers)
     player_dict = {
         player.system_number: {
             "first_name": player.first_name,
@@ -402,6 +405,167 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
     return members
 
 
+def get_club_member_list(
+    club,
+    active_only=True,
+    exclude_contacts=True,
+    exclude_deceased=True,
+):
+    """Return a list of system numbers of club members"""
+
+    members = MemberClubDetails.objects.filter(club=club)
+
+    if active_only:
+        members = members.filter(
+            membership_status__in=[
+                MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+                MemberClubDetails.MEMBERSHIP_STATUS_DUE,
+                MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+            ]
+        )
+
+    if exclude_contacts:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+        )
+
+    if exclude_deceased:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
+        )
+
+    return members.values_list("system_number", flat=True)
+
+
+def get_club_contact_list(
+    club,
+):
+    """Return a list of system numbers of club contacts"""
+
+    return MemberClubDetails.objects.filter(
+        club=club,
+        membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+    ).values_list("system_number", flat=True)
+
+
+def get_club_contacts(
+    club,
+    sort_option="last_desc",
+):
+    """Returns a list of contact detail objects for the specified club, augmented with
+    the names and types (user, unregistered, contact).
+
+    Args:
+        club (Organisation): the club
+        sort_option (string): sort column and order
+
+    Returns:
+        list: augmented club member details in the specified order
+    """
+
+    contacts = MemberClubDetails.objects.filter(
+        club=club,
+        membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+    )
+
+    # augment with additional details
+    return _augment_contact_details(contacts, sort_option=sort_option)
+
+
+def _augment_contact_details(contact_qs, sort_option="last_desc"):
+    """Augments a query set of contacts with user/unregistered user details
+
+    Args:
+        club (Organisation): the club to which these members belong
+        member_qs (MemberClubDetails QuerySet): the selected members
+        sort_option (string): sort column and order
+
+    Returns:
+        list: augmented club member details in the specified order
+    """
+
+    contacts = list(contact_qs)
+    system_numbers = [contact.system_number for contact in contacts]
+
+    users = User.objects.filter(system_number__in=system_numbers)
+    unreg_users = UnregisteredUser.all_objects.filter(system_number__in=system_numbers)
+    player_dict = {
+        player.system_number: {
+            "first_name": player.first_name,
+            "last_name": player.last_name,
+            "user_type": f"{GLOBAL_TITLE} User"
+            if type(player) is User
+            else (
+                "Contact Only" if player.internal_system_number else "Unregistered User"
+            ),
+            "user_or_unreg_id": player.id,
+            "internal": False
+            if type(player) is User
+            else player.internal_system_number,
+        }
+        for player in chain(users, unreg_users)
+    }
+
+    for contact in contacts:
+        if contact.system_number in player_dict:
+            contact.first_name = player_dict[contact.system_number]["first_name"]
+            contact.last_name = player_dict[contact.system_number]["last_name"]
+            contact.user_type = player_dict[contact.system_number]["user_type"]
+            contact.user_or_unreg_id = player_dict[contact.system_number][
+                "user_or_unreg_id"
+            ]
+            contact.internal = player_dict[contact.system_number]["internal"]
+        else:
+            contact.first_name = "Unknown"
+            contact.last_name = "Unknown"
+            contact.user_type = "Unknown Type"
+            contact.user_or_unreg_id = None
+            contact.internal = True
+
+    # sort
+    if sort_option == "first_desc":
+        contacts.sort(key=lambda x: x.first_name.lower())
+    elif sort_option == "first_asc":
+        contacts.sort(key=lambda x: x.first_name.lower(), reverse=True)
+    elif sort_option == "last_desc":
+        contacts.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
+    elif sort_option == "last_asc":
+        contacts.sort(
+            key=lambda x: (x.last_name.lower(), x.first_name.lower()), reverse=True
+        )
+    elif sort_option == "system_number_desc":
+        contacts.sort(key=lambda x: x.system_number)
+    elif sort_option == "system_number_asc":
+        contacts.sort(key=lambda x: x.system_number, reverse=True)
+
+    return contacts
+
+
+def get_contact_details(club, system_number):
+    """Return a MemberClubDetails object augmented with user/unregistered user information
+
+    Args:
+        club (Organisation): the club
+        system_number (int): the member's system_number
+
+    Returns:
+        object: augmented MemberClubDetails or None
+    """
+
+    member_qs = MemberClubDetails.objects.filter(
+        club=club,
+        system_number=system_number,
+        membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+    )
+
+    augmented_list = _augment_contact_details(member_qs, None)
+
+    if len(augmented_list) == 0:
+        return None
+    else:
+        return augmented_list[0]
+
+
 def club_email_for_member(club, system_number):
     """Return an email address to be used by a club for a member (or None), and
     whether the email has bounced. The email could be club specific or from the user
@@ -421,7 +585,7 @@ def club_email_for_member(club, system_number):
     member_details = (
         MemberClubDetails.objects.filter(
             club=club,
-            system_numner=system_number,
+            system_number=system_number,
         )
         .exclude(membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED)
         .last()
@@ -666,6 +830,24 @@ def get_valid_actions(member_details):
         valid_actions.append("change_status")
 
     return valid_actions
+
+
+def get_valid_activities(member_details):
+    """Returns a list of valid recent activity views for this member or contact
+
+    This should be the only place where this business logic is represented."""
+
+    activities = ["TAGS", "EMAILS"]
+
+    if member_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+
+        if member_details.user_type == f"{GLOBAL_TITLE} User":
+            activities += ["ENTRIES", "SESSIONS", "TRANSACTIONS"]
+
+        if member_details.user_type == "Unregistered User":
+            activities += ["INVITATIONS"]
+
+    return activities
 
 
 # -------------------------------------------------------------------------------------
@@ -1426,3 +1608,206 @@ def convert_existing_memberships_for_club(club):
             )
 
     return (ok_count, error_count)
+
+
+# -------------------------------------------------------------------------------------
+# Contacts functions
+# -------------------------------------------------------------------------------------
+
+
+def add_contact_with_system_number(club, system_number):
+    """Add a contact with the specified details"""
+
+    contact_details = MemberClubDetails()
+    contact_details.club = club
+    contact_details.system_number = system_number
+    contact_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+    contact_details.save()
+
+
+def _replace_internal_system_number(internal_number, real_number):
+    """Replace all occurances of an internal system number with a real number"""
+
+    Recipient.objects.filter(system_number=internal_number).update(
+        system_number=real_number
+    )
+
+    MemberClubTag.objects.filter(system_number=internal_number).update(
+        system_number=real_number
+    )
+
+    ClubMemberLog.objects.filter(system_number=internal_number).update(
+        system_number=real_number
+    )
+
+
+def convert_contact_to_member(
+    club,
+    old_system_number,
+    system_number,
+    membership_type,
+    requester,
+    fee=None,
+    start_date=None,
+    end_date=None,
+    due_date=None,
+    is_paid=False,
+):
+    """Convert a club contact to a member with the supplied parameters.
+
+    The contact may be a User, UnregisteredUser with an ABF number or an UnregisteredUser with
+    an internal system number.
+
+    Args:
+        club (Organisation): the club
+        system_number (int): the member's system number
+        contact (MemberClubDetails): the contact member record
+        membership_type (MembershipType): the new membership type to be linked to
+        requester (User): the user making teh change, required for the new record
+        fee (Decimal): optional fee to override the default from the membership type
+        start_date (Date): optional start date, otherwise will use today
+        end_date (Date): optional end date, otherwise will use the club default or None if perpetual
+        due_date (Date): optional due_date, otherwise use the payment type grace period if a fees is set
+        is_paid (bool): has the fee been paid, used to set the paid until date
+
+    Returns:
+        bool: success
+        string: explanatory message or None
+    """
+
+    today = timezone.now().date()
+
+    member_details = MemberClubDetails.objects.get(
+        club=club,
+        system_number=old_system_number,
+    )
+
+    contact_unreg_user = UnregisteredUser.all_objects.filter(
+        system_number=old_system_number
+    ).last()
+
+    # check if converting an internal system number unreg user contact
+    if contact_unreg_user and contact_unreg_user.internal_system_number:
+
+        # check whether the new system number is already in use
+        check_user = User.objects.filter(
+            system_number=system_number,
+        ).last()
+
+        if check_user:
+            # system number is in use by a registered user
+            contact_unreg_user.delete()
+
+        else:
+            check_unreg = UnregisteredUser.objects.filter(
+                system_number=system_number,
+            ).last()
+
+            if check_unreg:
+                # system number is in use by an unreg user
+                contact_unreg_user.delete()
+
+            else:
+                # system number not in use, so convert to unreg user
+                contact_unreg_user.system_number = system_number
+                contact_unreg_user.internal_system_number = False
+                contact_unreg_user.save()
+
+        # now have either a user or unreg user with the new system number
+        # so update the contact and any other uses of the old system number
+        member_details.system_number = system_number
+
+        _replace_internal_system_number(old_system_number, system_number)
+
+    # build the new membership record
+    new_membership = MemberMembershipType()
+    new_membership.system_number = system_number
+    new_membership.last_modified_by = requester
+    new_membership.membership_type = membership_type
+    new_membership.fee = fee if fee else membership_type.annual_fee
+    new_membership.start_date = start_date if start_date else today
+    if membership_type.does_not_renew:
+        new_membership.end_date = None
+    else:
+        new_membership.end_date = end_date if end_date else club.current_end_date
+    if is_paid or new_membership.fee == 0:
+        new_membership.due_date = None
+        new_membership.paid_until_date = new_membership.end_date
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+    else:
+        new_membership.due_date = (
+            due_date
+            if due_date
+            else new_membership.start_date
+            + timedelta(days=membership_type.grace_period_days)
+        )
+        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+
+    # last minute validatation
+
+    if new_membership.start_date > today:
+        return (False, "Start date cannot be in the future")
+
+    if new_membership.start_date and new_membership.end_date:
+        if new_membership.start_date > new_membership.end_date:
+            return (False, "End date must be after start date")
+
+    new_membership.save()
+
+    # update the member detail record (the old contact object)
+
+    member_details.latest_membership = new_membership
+    member_details.membership_status = new_membership.membership_state
+    member_details.joined_date = today
+
+    member_details.save()
+
+    # and log it
+    message = f"Contact converted to member ({membership_type.name})"
+
+    if is_paid and new_membership.paid_until_date:
+        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+
+    log_member_change(
+        club,
+        system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
+
+
+def delete_contact(club, system_number):
+    """Delete a contact"""
+
+    contact_details = MemberClubDetails.objects.get(
+        club=club, system_number=system_number
+    )
+
+    if contact_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+        return (False, "This person is notr a contact of the club")
+
+    contact_unreg_user = UnregisteredUser.all_objects.filter(
+        system_number=system_number
+    ).last()
+
+    if contact_unreg_user and contact_unreg_user.internal_system_number:
+        # delete the unregistered user record and any recipient entries
+
+        contact_unreg_user.delete()
+
+        Recipient.objects.filter(system_number=system_number).delete()
+
+    # delete membership related entries for this club
+
+    MemberClubTag.objects.filter(
+        club_tag__organisation=club, system_number=system_number
+    ).delete()
+
+    MemberClubDetails.objects.filter(club=club, system_number=system_number).delete()
+
+    ClubMemberLog.objects.filter(club=club, system_number=system_number)
+
+    return (True, "Contact deleted")

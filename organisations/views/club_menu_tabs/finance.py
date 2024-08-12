@@ -13,7 +13,7 @@ from notifications.views.core import send_cobalt_email_to_system_number
 from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog, MemberMembershipType, Organisation
 from organisations.views.club_menu import tab_finance_htmx
-from organisations.views.club_menu_tabs.members import edit_member_htmx
+from organisations.views.club_menu_tabs.members import club_admin_edit_member_htmx
 from organisations.views.general import is_player_a_member
 from payments.models import UserPendingPayment, OrganisationTransaction
 from payments.views.core import (
@@ -59,7 +59,12 @@ def cancel_user_pending_debt_htmx(request, club):
 
     # We get called from the member page too, check if we should return the member view or default ot finance
     if request.POST.get("return_member_tab"):
-        return edit_member_htmx(request, message=message)
+        # JPG cleanup
+        # return edit_member_htmx(request, message=message)
+        request.POST = request.POST.copy()
+        request.POST["system_number"] = user_pending_payment.system_number
+        request.POST["message"] = message
+        return club_admin_edit_member_htmx(request)
 
     return tab_finance_htmx(request, message=message)
 

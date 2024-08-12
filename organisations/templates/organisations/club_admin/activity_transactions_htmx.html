@@ -1,0 +1,234 @@
+<!--
+Club Admin - Edit member - transactions activity sub-view
+-->
+{% load humanize %}
+{% load cobalt_tags %}
+
+{% include "organisations/club_admin/activity_nav_htmx.html" with activity_selected="TRANSACTIONS" %}
+<div class="card-body">
+
+    <div class="card-header card-header-success mt-3">
+        <h2>Transactions</h2>
+
+    </div>
+    <div class="card-body">
+
+        <!-- SHOW RECENT PAYMENTS IF WE HAVE ANY -->
+
+        {% if recent_payments %}
+
+            <div class="table-responsive">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Date</th>
+                            <th class="text-left">Description</th>
+                            <th class="text-right cobalt-no-wrap">Amount ({{ GLOBAL_CURRENCY_SYMBOL }})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recent_payment in recent_payments %}
+                            <tr>
+                                <td class="text-left">{{ recent_payment.created_date|cobalt_nice_datetime_short }}</td>
+                                <td class="text-left">{{ recent_payment.description }}</td>
+                                <td class="text-right">{{ recent_payment.amount|floatformat:2|intcomma }}</td>
+
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- NEW MISC PAYMENT -->
+
+    {% if user_has_payments_edit and member != request.user %}
+
+        <!-- CHARGE USER -->
+        <div class="card">
+            <div class="card-header card-header-success my-0 py-0 by-0">
+                <h3>Charge {{ member.first_name }}</h3>
+                <h4>Balance: {{ user_balance|cobalt_currency_colour }}</h4>
+                <h5>Auto Top Up is: {{ member.stripe_auto_confirmed|yesno:"On:Off" }}</h5>
+            </div>
+            <div class="card-body">
+
+                <h5 class="text-primary font-weight-bold">{{ charge_message }}</h5>
+
+                <!-- MISC PAYMENTS FORM -->
+                <form
+                    hx-post="{% url "organisations:club_admin_add_misc_payment_htmx" %}"
+                    hx-target="#id-activity-card"
+                    hx-vars="club_id:{{ club.id }}"
+                >
+
+                    <!-- HIDDEN MEMBER ID -->
+                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                    <input type="hidden" name="charge_or_pay" value="charge">
+
+                    <div class="container">
+
+                        <!-- SHOW DROPDOWN IF WE HAVE SET UP MISC PAYMENT TYPES -->
+
+                        {% if misc_payment_types %}
+
+                            <div class="row">
+
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="id_misc_payment" class="bmd-label-static">Item</label>
+                                        <select class="selectpicker" data-style="btn btn-primary btn-round btn-sm" name="misc_payment" id="id_misc_payment">
+                                            <option selected value="-1">---select---</option>
+                                            {% for misc_payment_type in misc_payment_types %}
+                                                <option value="{{ misc_payment_type.id }}">{{ misc_payment_type.description }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {% endif %}
+
+                        <!-- INPUT FIELDS, EITHER MANUAL OR FROM DROPDOWN OF SET UP TYPES -->
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                    <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description" name="misc_description">
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                    <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount" name="amount">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SUBMIT BUTTON -->
+                    <div class="row">
+                        <div class="col text-center">
+                            <button class="btn btn-success btn-sm" id="id_misc_button" disabled type="submit">Charge</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- PAY USER -->
+        <div class="card">
+            <div class="card-header card-header-success my-0 py-0 by-0">
+                <h3>Pay {{ member.first_name }}</h3>
+                <h4>Club Balance: {{ club_balance|cobalt_currency_colour }}</h4>
+            </div>
+            <div class="card-body">
+
+                <h5 class="text-primary font-weight-bold">{{ pay_message }}</h5>
+
+                <!-- MISC PAYMENTS FORM -->
+                <form
+                    hx-post="{% url "organisations:club_admin_add_misc_payment_htmx" %}"
+                    hx-target="#id-activity-card"
+                    hx-vars="club_id:{{ club.id }}"
+                >
+
+                    <!-- HIDDEN MEMBER ID -->
+                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                    <input type="hidden" name="charge_or_pay" value="pay">
+
+                    <div class="container">
+
+                        <!-- SHOW DROPDOWN IF WE HAVE SET UP MISC PAYMENT TYPES -->
+
+                        <!-- INPUT FIELDS -->
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_misc_description" class="bmd-label-floating">Description</label>
+                                    <input type="text" value="" maxlength="30" class="form-control" id="id_misc_description2" name="misc_description">
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="id_amount" class="bmd-label-floating">Amount</label>
+                                    <input type="number" value="" min="0.00" step="0.01" class="form-control" id="id_amount2" name="amount">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- SUBMIT BUTTON -->
+                    <div class="row">
+                        <div class="col text-center">
+                            <button class="btn btn-success btn-sm" id="id_misc_button2" disabled type="submit">Pay</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+
+    function initialiseActivityView() {
+
+        console.log("afterSettle initialiseTransactionView")
+
+        // enable selectpicker
+        $(".selectpicker").selectpicker();
+
+        // Handle changing the misc payment type
+        $("#id_misc_payment").change( function(){
+
+            // description
+            $("#id_misc_description").val($('#id_misc_payment option:selected').text());
+
+            // enable button
+            $("#id_misc_button").removeAttr("disabled");
+
+            // add default payment amount as a dictionary from Django
+            const default_amount = {
+                {% for misc_payment_type in misc_payment_types %}
+                    "{{ misc_payment_type.id }}": "{{ misc_payment_type.default_amount }}",
+                {% endfor %}
+            };
+
+            const new_val = default_amount[$(this).val()];
+            $("#id_amount").val(new_val);
+        });
+
+        // handle manually entering misc payment - enable button if both fields have values
+        $("#id_amount, #id_misc_description").keyup(function() {
+            // check if form is valid to submit
+            if ($("#id_amount").val() > 0 && $("#id_misc_description").val().length > 0){
+                $("#id_misc_button").removeAttr("disabled");
+            } else {
+                $("#id_misc_button").attr("disabled", true);
+            }
+        });
+
+        // handle manually entering misc payment - enable button if both fields have values. This is for pay to user
+        $("#id_amount2, #id_misc_description2").keyup(function() {
+            // check if form is valid to submit
+            if ($("#id_amount2").val() > 0 && $("#id_misc_description2").val().length > 0){
+                $("#id_misc_button2").removeAttr("disabled");
+            } else {
+                $("#id_misc_button2").attr("disabled", true);
+            }
+        });
+    };
+
+</script>

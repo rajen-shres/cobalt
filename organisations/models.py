@@ -549,7 +549,7 @@ class MemberClubDetails(models.Model):
     mobile = models.CharField(
         "Mobile Number",
         blank=True,
-        unique=True,
+        unique=False,
         null=True,
         max_length=15,
         validators=[mobile_regex],

@@ -1,0 +1,75 @@
+{# Add a contact without a system number #}
+
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+<div class="card mt-5">
+    <div class="card-header card-header-warning">
+        Add a Contact - No {{ GLOBAL_ORG }} number
+    </div>
+    <div class="container">
+        <div class="card-body">
+            <form
+                hx-post="{% url 'organisations:club_admin_add_contact_individual_internal_htmx' %}"
+                hx-vars='{ "club_id": {{ club.id }}, "save": "YES" }'
+                hx-target="#id_contact_add_tab"
+            >
+                {% csrf_token %}
+
+                <!-- FIRST NAME -->
+                <div class="row pb-2">
+                    <div class="col-2 justify-content-center align-self-center pt-3">
+                        First Name
+                    </div>
+                    <div class="col-8">
+                        <div id="div_id_first_name" class="form-group">
+                            <span class="cobalt-form-error" id="id_first_name_errors">
+                                {{ form.first_name.errors|striptags }}
+                            </span>
+                            {% render_field form.first_name class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAST NAME -->
+                <div class="row pb-2">
+                    <div class="col-2 justify-content-center align-self-center pt-3">
+                        Last Name
+                    </div>
+                    <div class="col-8">
+                        <div id="div_id_last_name" class="form-group">
+                            <span class="cobalt-form-error" id="id_last_name_errors">
+                                {{ form.last_name.errors|striptags }}
+                            </span>
+                            {% render_field form.last_name class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pb-2">
+                    <div class="col">
+                        <button
+                            type="Save"
+                            class="btn btn-sm btn-success cobalt-save"
+                        >
+                            Save
+                        </button>
+                    </div>
+                    <div class="col text-right">
+                        <button
+                            class="btn btn-sm btn-info"
+                            hx-post="{% url 'organisations:club_menu_tab_contacts_add_htmx' %}"
+                            hx-vars="club_id:{{ club.id }}"
+                            hx-target="#id_contact_list_tab"
+                            hx-trigger="click"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <form>
+                </div>
+            </div>
+        </div>

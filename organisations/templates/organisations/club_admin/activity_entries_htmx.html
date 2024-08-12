@@ -1,0 +1,172 @@
+<!--
+Club Admin - Edit member - Entries activity sub-view
+-->
+
+{% include "organisations/club_admin/activity_nav_htmx.html" with activity_selected="ENTRIES" %}
+<div class="card-body">
+
+    <div class="card">
+        <div class="card-header card-header-success">
+            Upcoming Entries
+        </div>
+
+        <div class="card-body table-responsive">
+
+            {% if events %}
+
+                <h4>
+                    {% if total_events == 1 %}
+                        1 upcoming event entry
+                    {% else %}
+                        {{ total_events }} upcoming event entries
+                    {% endif %}
+                </h4>
+
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr class="text-primary" style="font-size: larger">
+                            <td class="text-left">Date</td>
+                            <td class="text-left">Congress</td>
+                            <td class="text-left">Event</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for event in events %}
+
+                            <tr>
+
+                                <td class="text-left">
+                                    {% if event.is_running  %}
+                                        <span class="text-success font-weight-bold">TODAY</span>
+                                    {% else %}
+                                        {{ event.calculated_start_date }}
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-left">
+                                    <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
+                                        {{ event.event_entry.event.congress }}</a>
+                                </td>
+
+                                <td class="text-left">
+                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                        {{ event.event_entry.event.event_name }}</a>
+
+                                    {% if event.in_cart %}
+                                        (in cart)
+                                    {% endif %}
+                                    {% if event.in_other_cart %}
+                                        (in {{ event.in_other_cart.full_name }}'s cart)
+                                    {% endif %}
+                                    {% if event.payment_status == "Pending Manual" and event.payment_type == "bank-transfer" %}
+                                        (transfer pending)
+                                    {% endif %}
+                                    {% if event.payment_status == "Pending Manual" and event.payment_type == "cheque" %}
+                                        (cheque pending)
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                        <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
+                                    </a>
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+                {% if more_events %}
+                    <a href='{% url "events:view_events" %}'>See More...</a>
+                {% endif %}
+
+            {% else %}
+
+                <span class="card-link">No upcoming event entries</span>
+
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header card-header-success">
+            Past Entries
+        </div>
+
+        <div class="card-body table-responsive">
+
+            {% if events %}
+
+                <h4>
+                    {% if total__past_events == 1 %}
+                        1 past event entry
+                    {% else %}
+                        {{ total_past_events }} past event entries
+                        {% if more_past_events %}
+                            (showing the most recent 5)
+                        {% endif %}
+                    {% endif %}
+                </h4>
+
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr class="text-primary" style="font-size: larger">
+                            <td class="text-left">Date</td>
+                            <td class="text-left">Congress</td>
+                            <td class="text-left">Event</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {% for event in past_events %}
+
+                            <tr>
+
+                                <td class="text-left">
+                                    {% if event.is_running  %}
+                                        <span class="text-success font-weight-bold">TODAY</span>
+                                    {% else %}
+                                        {{ event.calculated_start_date }}
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-left">
+                                    <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
+                                        {{ event.event_entry.event.congress }}</a>
+                                </td>
+
+                                <td class="text-left">
+                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                        {{ event.event_entry.event.event_name }}</a>
+                                </td>
+
+                                <td>
+                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                        <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
+                                    </a>
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+                {% if more_past_events %}
+                    <a href='{% url "events:view_events" %}'>See More...</a>
+                {% endif %}
+
+            {% else %}
+
+                <span class="card-link">No past event entries</span>
+
+            {% endif %}
+        </div>
+    </div>
+</div>
