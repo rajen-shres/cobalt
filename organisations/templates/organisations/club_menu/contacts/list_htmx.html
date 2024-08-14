@@ -27,9 +27,11 @@
             </h3>
         {% endif %}
 
-        <h3>
-            {{ club }} has {{ total_contacts|intcomma }} Contacts
-        </h3>
+        {% if total_contacts != 0 %}
+            <h3>
+                {{ club }} has {{ total_contacts|intcomma }} Contacts
+            </h3>
+        {% endif %}
 
         {% if things %}
 
@@ -196,7 +198,7 @@
             </div>
 
         {% else %}
-            <h3>You have no contacts. You can add real members using the <b>Add</b> link above.</h3>
+            <h3>You have no contacts. You can add contacts using the <b>Add</b> link above.</h3>
         {% endif %}
 
     </div>

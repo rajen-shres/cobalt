@@ -1,0 +1,135 @@
+{% load crispy_forms_filters %}
+{% load cobalt_tags %}
+
+<style>
+    input[type="file"] {
+        display: none;
+    }
+    .custom-file-upload {
+        border: 1px solid #ccc;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- SUB-LEVEL NAVIGATION -->
+
+    <div class="card-header card-header-success">
+        <h2>Contacts</h2>
+        {% include "organisations/club_menu/contacts/nav_htmx.html" with selected="add" %}
+    </div>
+
+    <h3 class="text-center">Use this page to import your contacts list into {{ GLOBAL_TITLE }}</h3>
+
+    <h4 class="text-center">This can take a little while to process, please be patient.</h4>
+    <hr>
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+
+                <div class="container">
+
+                    <div class="row">
+                        <form id='form'
+                            hx-encoding='multipart/form-data'
+                            hx-post='{% url "organisations:club_menu_tab_contacts_upload_csv" %}'
+                            hx-target='#id_panel_contacts'
+                        >
+
+                            <div id="div_id_file_type" class="form-group row">
+                                <div class="col-6 text-right">
+                                    <label for="id_file_type" class="bmd-label-static">
+                                        File Type
+                                    </label>
+                                </div>
+
+                                <div class="">
+                                    <span class="cobalt-form-error">{{ form.file_type.errors|striptags }}</span>
+                                    <select name="file_type" class="select form-control" id="id_file_type">
+                                        {% for option in form.file_type.field.choices %}
+                                            <h1>{{ option }}</h1>
+                                            <option value="{{ option.0 }}">{{ option.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <input type='file'
+                                accept=".csv"
+                                name='file'
+                                id="file-upload"
+                                class="form-control"
+                                onchange="$('#upload_pianola').show();"
+                            >
+                            <br>
+                            <button id="upload_pianola"
+                                style="display:none;"
+                                class="btn btn-sm btn-success"
+                                onclick="$('#upload_pianola_msg').show();
+                                $('#upload_pianola').hide();
+                                $('#file-upload').hide();
+                                $('#label-for-file-upload').hide();"
+                            >Upload
+                            </button>
+
+                            <br>
+                            <progress id='progress' value='0' max='100'></progress>
+
+                            <div id="upload_pianola_msg" style="display: none">
+                                Working...
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            <div id="id_csv_types_description" class="col-6">
+                <h3>Generic CSV</h3>
+                <p>You can upload any data in our generic CSV format. The file needs to have comma-separated
+                    values (CSV) with the following required columns:
+                </p>
+                <code>First Name, Last Name</code>
+                <br>
+                <br>
+                <p>Optional columns can also be included:</p>
+                <code>Email Address, {{ GLOBAL_ORG }} Number, Address 1, Address 2, State, Postcode, Mobile, Other Phone, Date of Birth, Emergency Contact, Notes</code>
+                <br>
+                <br>
+                <p>Note: If an optional column is included, all prior optional columns must also be included</p>
+                <p>A header row is expected, you will lose the first row of data if you do not have one.</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    htmx.on('#form', 'htmx:xhr:progress', function(evt) {
+        htmx.find('#progress').setAttribute('value', evt.detail.loaded/evt.detail.total * 100)
+    });
+    $('#id_file_type').on('change', function (){
+        if (this.value === "Pianola") {
+            $('#id_csv_types_description').html("<h3>Pianola Export Format</h3><p>You can export data from Pianola. " +
+                "Go to <b>Administration</b>, then <b>Members</b> and click on <b>Export</b>. Use the 'Export to CSV' option." +
+                "use the saved file to upload here. Only visitors will be imported.</p>");
+        }
+        if (this.value === "CS2") {
+            $('#id_csv_types_description').html("<h3>Compscore Export Format</h3><p>You can export data from Compscore2/3. " +
+                "Use the saved file to upload here.</p>");
+        }
+        if (this.value === "CSV") {
+            $('#id_csv_types_description').html("<h3>Generic CSV</h3><p>You can upload any data in our generic CSV format. " +
+                "The file needs to have comma-separated values (CSV) with the following required columns:</p>" +
+                "<code>First Name, Last Name</code><br><br>" +
+                "<p>Optional columns can also be included:</p>" +
+                "<code>Email Address, {{ GLOBAL_ORG }} Number, Address 1, Address 2, State, Postcode, Mobile, Other Phone, Date of Birth, Emergency Contact, Notes</code><br><br>" +
+                "<p>Note: If an optional column is included, all prior optional columns must also be included</p>" +
+                "<p>A header row is expected, you will lose the first row if data of you do not have one.</p>");
+        }
+
+    });
+</script>

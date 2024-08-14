@@ -109,16 +109,22 @@
         <div id="id_csv_types_description" class="col-6">
             <h3>Generic CSV</h3>
             <p>You can upload any data in our generic CSV format. The file needs to have comma-separated
-                values (CSV) with the following format:
+                values (CSV) with the following required columns:
             </p>
             <code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address, Membership Type</code>
             <br>
             <br>
-            <p>A header row is expected, you will lose the first row of data if you do not have one.</p>
             <p>The email address is optional.</p>
             <p>The Membership type is also optional. If specified, it will override the Membership Type
                 chosen on the form. Membership Type must match exactly with the name of a valid Membership Type
                 as defined in Settings.</p>
+            <br>
+            <p>Optional columns can also be included:</p>
+            <code>Address 1, Address 2, State, Postcode, Mobile, Other Phone, Date of Birth, Club Membership Number, Joined Date, Left Date, Emergency Contact, Notes</code>
+            <br>
+            <br>
+            <p>Note: If an optional column is included, all prior optional columns must also be included</p>
+            <p>A header row is expected, you will lose the first row of data if you do not have one.</p>
         </div>
 
 
@@ -137,18 +143,21 @@
                 "use the saved file to upload here.</p>");
         }
         if (this.value === "CS2") {
-            $('#id_csv_types_description').html("<h3>Compscore2 Export Format</h3><p>You can export data from Compscore2. " +
+            $('#id_csv_types_description').html("<h3>Compscore Export Format</h3><p>You can export data from Compscore2/3. " +
                 "Use the saved file to upload here.</p>");
         }
         if (this.value === "CSV") {
             $('#id_csv_types_description').html("<h3>Generic CSV</h3><p>You can upload any data in our generic CSV format. " +
-                "The file needs to have comma-separated values (CSV) with the following format:</p>" +
+                "The file needs to have comma-separated values (CSV) with the following required columns:</p>" +
                 "<code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address, Membership Type</code><br><br>" +
-                "<p>A header row is expected, you will lose the first row if data of you do not have one.</p>" +
                 "<p>The email address is optional.</p> " +
                 "<p>The Membership type is also optional. If specified, it will override the Membership Type " +
                 "chosen on the form. Membership Type must match exactly with the name of a valid Membership Type " +
-                "as defined in Settings.</p>");
+                "as defined in Settings.</p>" +
+                "<br><p>Optional columns can also be included:</p>" +
+                "<code>Address 1, Address 2, State, Postcode, Mobile, Other Phone, Date of Birth, Club Membership Number, Joined Date, Left Date, Emergency Contact, Notes</code><br>br>" +
+                "<p>Note: If an optional column is included, all prior optional columns must also be included</p>"
+                "<p>A header row is expected, you will lose the first row if data of you do not have one.</p>");
         }
 
     });

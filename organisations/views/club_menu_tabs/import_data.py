@@ -1,35 +1,431 @@
 import codecs
 import csv
+from datetime import datetime
 import logging
+import re
 
 from django.core.exceptions import ValidationError, ImproperlyConfigured
-from django.core.validators import validate_email
+from django.core.validators import validate_email, RegexValidator
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from accounts.models import User, UnregisteredUser
+from accounts.models import (
+    User,
+    UnregisteredUser,
+    NextInternalSystemNumber,
+)
 from cobalt.settings import GLOBAL_ORG, GLOBAL_MPSERVER
 from masterpoints.views import abf_checksum_is_valid
+from organisations.club_admin_core import (
+    add_contact_with_system_number,
+    add_member,
+    change_membership,
+    get_member_details,
+    convert_contact_to_member,
+    log_member_change,
+    MEMBERSHIP_STATES_ACTIVE,
+)
 from organisations.decorators import check_club_menu_access
-from organisations.forms import CSVUploadForm, MPCForm
+from organisations.forms import (
+    CSVUploadForm,
+    MPCForm,
+    CSVContactUploadForm,
+)
 from organisations.models import (
+    MemberClubDetails,
     MembershipType,
     ClubLog,
     Organisation,
     MemberMembershipType,
     MemberClubEmail,
 )
-from organisations.views.club_menu_tabs.members import list_htmx
+from organisations.views.club_menu_tabs.members import list_htmx as members_list_htmx
+from organisations.views.club_menu_tabs.contacts import list_htmx as contacts_list_htmx
 from utils.views.general import masterpoint_query
 
 
-def _csv_pianola(club_member):
+# Mapping for generic CSV member imports
+GENERIC_MEMBER_MAPPING = {
+    "system_number": {"csv_col": 0, "type": "sysnum", "required": True},
+    "first_name": {"csv_col": 1, "required": True},
+    "last_name": {"csv_col": 2, "required": True},
+    "email": {"csv_col": 3, "type": "email"},
+    "membership_type": {"csv_col": 4, "opt_column": True},
+    "address1": {"csv_col": 5, "len": 100, "opt_column": True},
+    "address2": {"csv_col": 6, "len": 100, "opt_column": True},
+    "state": {"csv_col": 7, "type": "str", "len": 3, "opt_column": True},
+    "postcode": {"csv_col": 8, "type": "str", "len": 10, "opt_column": True},
+    "mobile": {"csv_col": 9, "type": "mobile", "opt_column": True},
+    "other_phone": {"csv_col": 10, "type": "phone", "opt_column": True},
+    "dob": {"csv_col": 11, "type": "date", "opt_column": True},
+    "club_membership_number": {"csv_col": 12, "opt_column": True},
+    "joined_date": {"csv_col": 13, "type": "date", "opt_column": True},
+    "left_date": {"csv_col": 14, "type": "date", "opt_column": True},
+    "emergency_contact": {"csv_col": 15, "opt_column": True},
+    "notes": {"csv_col": 16, "opt_column": True},
+}
+
+# Mapping for generic CSV member imports
+GENERIC_CONTACT_MAPPING = {
+    "first_name": {"csv_col": 0, "required": True},
+    "last_name": {"csv_col": 1, "required": True},
+    "email": {"csv_col": 2, "type": "email", "opt_column": True},
+    "system_number": {"csv_col": 3, "type": "sysnum", "opt_column": True},
+    "address1": {"csv_col": 4, "len": 100, "opt_column": True},
+    "address2": {"csv_col": 5, "len": 100, "opt_column": True},
+    "state": {"csv_col": 6, "type": "str", "len": 3, "opt_column": True},
+    "postcode": {"csv_col": 7, "type": "str", "len": 10, "opt_column": True},
+    "mobile": {"csv_col": 8, "type": "mobile", "opt_column": True},
+    "other_phone": {"csv_col": 9, "type": "phone", "opt_column": True},
+    "dob": {"csv_col": 10, "type": "date", "opt_column": True},
+    "emergency_contact": {"csv_col": 11, "opt_column": True},
+    "notes": {"csv_col": 12, "opt_column": True},
+}
+
+# Mapping for PIANOLA CSV member imports
+PIANOLA_MAPPING = {
+    "system_number": {"csv_col": 1, "type": "sysnum", "required": True},
+    "first_name": {"csv_col": 5, "required": True},
+    "last_name": {"csv_col": 6, "required": True},
+    "email": {"csv_col": 7, "type": "email"},
+    "address1": {"csv_col": 10, "type": "concat", "other": 11, "len": 100},
+    "address2": {"csv_col": 12, "type": "concat", "other": 13, "len": 100},
+    "state": {"csv_col": 14, "type": "str", "len": 3},
+    "postcode": {"csv_col": 15, "type": "str", "len": 10},
+    "mobile": {
+        "csv_col": 9,
+        "type": "mobile",
+    },
+    "other_phone": {"csv_col": 8, "type": "phone"},
+    "dob": {"csv_col": 20, "type": "date"},
+    "club_membership_number": {"csv_col": 0},
+    "joined_date": {"csv_col": 22, "type": "date"},
+    "left_date": {
+        "csv_col": 26,
+        "type": "date",
+    },
+    "emergency_contact": {"csv_col": 30},
+    "notes": {"csv_col": 29},
+}
+
+# Mapping for PIANOLA CSV contacts imports, same as for members, but system number optional
+PIANOLA_MAPPING = {
+    "system_number": {"csv_col": 1, "type": "sysnum"},
+    "first_name": {"csv_col": 5, "required": True},
+    "last_name": {"csv_col": 6, "required": True},
+    "email": {"csv_col": 7, "type": "email"},
+    "address1": {"csv_col": 10, "type": "concat", "other": 11, "len": 100},
+    "address2": {"csv_col": 12, "type": "concat", "other": 13, "len": 100},
+    "state": {"csv_col": 14, "type": "str", "len": 3},
+    "postcode": {"csv_col": 15, "type": "str", "len": 10},
+    "mobile": {
+        "csv_col": 9,
+        "type": "mobile",
+    },
+    "other_phone": {"csv_col": 8, "type": "phone"},
+    "dob": {"csv_col": 20, "type": "date"},
+    "club_membership_number": {"csv_col": 0},
+    "joined_date": {"csv_col": 22, "type": "date"},
+    "left_date": {
+        "csv_col": 26,
+        "type": "date",
+    },
+    "emergency_contact": {"csv_col": 30},
+    "notes": {"csv_col": 29},
+}
+
+# Mapping for Compscore CSV member imports
+COMPSCORE_MEMBER_MAPPING = {
+    "system_number": {"csv_col": 8, "type": "sysnum", "required": True},
+    "first_name": {"csv_col": 1, "required": True, "case": "cap"},
+    "last_name": {"csv_col": 0, "required": True, "case": "cap"},
+    "email": {"csv_col": 7, "type": "email"},
+}
+
+DATE_FORMATS = [
+    "%d/%m/%Y",
+    "%d/%m/%y",
+    "%d/%m/%Y %H:%M",
+    "%d/%m/%y %H:%M",
+]
+
+
+def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
+    """Use a mapping specification to build a dictionary of import values
+    from a list of column values from a csv file row.
+
+    This performs type conversion (from str) and validation of data types and required values,
+    as specified in the mapping. Malformed values are ignore unless in a required field or in
+    strict mode.
+
+    The mapping specification is a dictionary keyed by ClubMemberDetails attribute name.
+    Each value is a dictionary with the following key:values pairs:
+        csv_col : int, 0 relative column number to use (required)
+        type : str, a valid type used for conversion and validation (optional, defaults to str)
+            sysnum = an ABF number (int with a valid checksum)
+            str = a string
+            int = an integer
+            email = a validly formed email address
+            mobile = a validly formed mobile number (non digits are stripped)
+            phone = a validly formed phone number (non digits are stripped)
+            date = a date in one of the supported formats
+            concat = concatenation of two str columns (second column specified by 'other')
+        required : bool, is a value required (optional, defaults to false)
+        len : int, the length to truncate to for str or concat types (optional)
+        other : int, the 0 relative index for the second column in a concatenation (required if concat)
+        opt_column : bool, if true the column could be omitted. If optional columns are allowed, all columns
+            after the first optional column must also be optional
+        case : str, specifying case conversion for str values:
+            cap : capitalise
+            upper : upper
+
+    Args:
+        mapping (dict): a mapping specification dictionary
+        csv (list): a list of teh data columns from a csv row
+        date_formats (list): a list of date format strings for interpreting date fields
+        strict (bool): error if any field fails conversion or validation
+
+    Returns:
+        Bool: True for success, False for failure
+        error: message describing error (if there was one)
+        item: dict with formatted values
+    """
+
+    def _smart_concat(part1, part2):
+        # jpg debug
+        print(f"              concatenating '{part1}' and '{part2}'")
+        if part1 and part2:
+            return f"{part1}, {part2}"
+        elif part1:
+            return part1
+        elif part2:
+            return part2
+        else:
+            return ""
+
+    item = {}
+    for attr_name in mapping:
+
+        spec = mapping[attr_name]
+
+        def _str_value(old_str):
+            # return a correcly converted string value
+            if "len" in spec:
+                new_str = old_str[: spec["len"]]
+            else:
+                new_str = old_str
+
+            if "case" in spec:
+                if spec["case"] == "cap":
+                    new_str = new_str.capitalize()
+                elif spec["case"] == "upper":
+                    new_str = new_str.upper()
+            return new_str
+
+        # skip optional columns if not there
+        if spec.get("opt_column", False) and spec["csv_col"] >= len(csv):
+            continue
+
+        # check for required value
+        if spec.get("required", False) and not csv[spec["csv_col"]]:
+            return (
+                False,
+                f"{attr_name} expected in column {spec['csv_col']}",
+                None,
+            )
+
+        if csv[spec["csv_col"]] or spec.get("type", None) == "concat":
+            # type checking
+            source = csv[spec["csv_col"]]
+            if "type" in spec:
+
+                if spec["type"] == "sysnum":
+                    # a system number, must be an int with a valid checksum
+
+                    try:
+                        system_number = int(source)
+                    except ValueError:
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {GLOBAL_ORG} Number in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                    # TODO: Checking with MPC is too slow. We just validate the checksum
+                    if not abf_checksum_is_valid(system_number):
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {GLOBAL_ORG} Number in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                    item[attr_name] = system_number
+
+                elif spec["type"] == "str":
+                    # a string with optional length limit and case treatment
+
+                    item[attr_name] = _str_value(source)
+
+                elif spec["type"] == "concat":
+                    # combine two strings with optional length limit
+
+                    other = csv[spec["other"]]
+                    concat = _smart_concat(source, other)
+                    if concat:
+                        if "len" in spec:
+                            item[attr_name] = concat[: spec["len"]]
+                        else:
+                            item[attr_name] = concat
+
+                    elif spec.get("required", False):
+                        return (
+                            False,
+                            f"{attr_name} expected in columns {spec['csv_col']} or {spec['other']}",
+                            None,
+                        )
+
+                elif spec["type"] == "int":
+                    # an integer
+
+                    try:
+                        item[attr_name] = int(source)
+                    except ValueError:
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {attr_name} ({spec['type']}) in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                elif spec["type"] == "date":
+                    # a date, in a variety of formats
+
+                    date_obj = None
+                    for date_format in date_formats if date_formats else DATE_FORMATS:
+                        try:
+                            date_obj = datetime.strptime(source, date_format).date()
+                        except ValueError:
+                            date_obj = None
+                    if date_obj:
+                        item[attr_name] = date_obj
+                    else:
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {attr_name} ({spec['type']}) in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                elif spec["type"] == "email":
+                    # an email address
+
+                    try:
+                        validate_email(source)
+                        item[attr_name] = source
+                    except ValidationError:
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {attr_name} ({spec['type']}) in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                elif spec["type"] == "mobile":
+                    # a mobile number
+
+                    digits_only = re.sub(r"\D", "", source)
+                    try:
+                        MemberClubDetails.mobile_regex(digits_only)
+                        item[attr_name] = digits_only
+                    except ValidationError:
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {attr_name} ({spec['type']}) in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                elif spec["type"] == "phone":
+                    # a phone number
+
+                    digits_only = re.sub(r"\D", "", source)
+                    try:
+                        MemberClubDetails.phone_regex(digits_only)
+                        item[attr_name] = digits_only
+                    except ValidationError:
+                        if spec.get("required", False) or strict:
+                            return (
+                                False,
+                                f"Invalid {attr_name} ({spec['type']}) in column {spec['csv_col']} '{source}'",
+                                None,
+                            )
+
+                else:
+                    # unknown type, treat as a string
+                    item[attr_name] = _str_value(source)
+
+            else:
+                # no type specified (ie string)
+                item[attr_name] = _str_value(source)
+
+    # jpg debug
+    print(item)
+
+    return (True, None, item)
+
+
+def _augment_member_details(club, system_number, new_details, overwrite=False):
+    """Augment an existing MemberClubDetails record with values from a dictionary.
+
+    By default existing values are not overwriten
+    The MemberClubDetails must exist, and is saved on exit
+
+    Returns:
+        bool: have any updates been made
+    """
+
+    # jpg debug
+    print(
+        f"_augment_member_details {system_number} {new_details['first_name']} {new_details['last_name']}"
+    )
+    print(f"    {new_details}")
+
+    member_details = MemberClubDetails.objects.get(
+        club=club, system_number=system_number
+    )
+
+    updated = False
+    for attr_name in new_details:
+        try:
+            old_value = getattr(member_details, attr_name)
+            if not old_value or overwrite:
+                setattr(member_details, attr_name, new_details[attr_name])
+                updated = True
+                # jpg debug
+                print(
+                    f"    updated {attr_name}: {old_value} => {new_details[attr_name]}"
+                )
+        except (AttributeError, TypeError):
+            # JPG debug
+            print(f"_augment_member_details - error on '{attr_name}'")
+
+    if updated:
+        member_details.save()
+
+    return updated
+
+
+def _csv_pianola(club_member, contacts=False):
     """Pianola specific formatting for CSV files
 
     Args:
-        club_member: list (a row from spreadsheet)
+        club_member (list): a row from spreadsheet
+        contacts (bool): process only visitor rows
 
     Returns:
         Bool: True for success, False for failure
@@ -38,25 +434,27 @@ def _csv_pianola(club_member):
 
     """
 
-    # Skip visitors, at least for now
-    if club_member[21].find("Visitor") >= 0:
-        return False, f"{club_member[1]} - skipped visitor", None
-    item = {
-        "system_number": club_member[1],
-        "first_name": club_member[5],
-        "last_name": club_member[6],
-        "email": club_member[7],
-        # "membership_type": club_member[21],
-    }
+    if contacts:
 
-    return True, None, item
+        if club_member[21].find("Visitor") >= 0:
+            return _map_csv_to_columns(PIANOLA_MAPPING, club_member)
+        else:
+            return False, f"{club_member[1]} - skipped non-visitor", None
+
+    else:
+
+        if club_member[21].find("Visitor") >= 0:
+            return False, f"{club_member[1]} - skipped visitor", None
+        else:
+            return _map_csv_to_columns(PIANOLA_MAPPING, club_member)
 
 
-def _csv_generic(club_member):
+def _csv_generic(club_member, contacts=False):
     """formatting for Generic CSV files
 
     Args:
         club_member: list (a row from spreadsheet)
+        contacts (bool): use contacts mapping
 
     Returns:
         Bool: True for success, False for failure
@@ -65,22 +463,14 @@ def _csv_generic(club_member):
 
     """
 
-    item = {
-        "system_number": club_member[0],
-        "first_name": club_member[1],
-        "last_name": club_member[2],
-        "email": club_member[3],
-    }
-
-    # Allow Membership Type to be specified for each row(member). This overrides the form setting
-    if len(club_member) > 4:
-        item["membership_type"] = club_member[4]
-
-    return True, None, item
+    if contacts:
+        return _map_csv_to_columns(GENERIC_CONTACT_MAPPING, club_member)
+    else:
+        return _map_csv_to_columns(GENERIC_MEMBER_MAPPING, club_member)
 
 
-def _cs2_generic(club_member):
-    """formatting for Compscore 2 files
+def _csv_compscore(club_member):
+    """formatting for Compscore 2/3 files
 
     Args:
         club_member: list (a row from spreadsheet)
@@ -91,76 +481,12 @@ def _cs2_generic(club_member):
         item: dict with formatted values
 
     """
-
-    item = {
-        "system_number": club_member[8],
-        "first_name": club_member[1].capitalize(),
-        "last_name": club_member[0].capitalize(),
-        "email": club_member[7],
-    }
-
-    return True, None, item
-
-
-def _csv_common(item):
-    """Common checks for all formats
-
-    Args:
-        item: dict
-
-    Returns:
-        Bool: True for success, False for failure
-        error: message describing error (if there was one)
-        item: dict with formatted values
-
-    """
-
-    system_number = item["system_number"]
-    first_name = item["first_name"]
-    last_name = item["last_name"]
-    email = item["email"]
-    membership_type = item.get("membership_type")  # None if not set
-
-    system_number = system_number.strip()
-
-    try:
-        system_number = int(system_number)
-    except ValueError:
-        return False, f"{system_number} - invalid {GLOBAL_ORG} Number", None
-
-    # Basic validation
-
-    # TODO: Checking with MPC is too slow. We just validate the checksum
-    #  if not check_system_number(system_number):
-    if not abf_checksum_is_valid(system_number):
-        return False, f"{system_number} - invalid {GLOBAL_ORG} Number", None
-
-    if len(first_name) < 1:
-        return False, f"{system_number} - First name missing", None
-
-    if len(last_name) < 1:
-        return False, f"{system_number} - Last name missing", None
-
-    if email:
-        try:
-            validate_email(email)
-        except ValidationError:
-            return False, f"{system_number} - Invalid email {email}", None
-
-    item = {
-        "system_number": system_number,
-        "first_name": first_name,
-        "last_name": last_name,
-        "email": email,
-        "membership_type": membership_type,
-    }
-
-    return True, None, item
+    return _map_csv_to_columns(COMPSCORE_MEMBER_MAPPING, club_member)
 
 
 @check_club_menu_access()
 def upload_csv_htmx(request, club):
-    """Upload CSV"""
+    """Import members from a CSV file"""
 
     # no files - show form
     if not request.FILES:
@@ -198,16 +524,9 @@ def upload_csv_htmx(request, club):
         elif file_type == "CSV":
             rc, error, item = _csv_generic(club_member)
         elif file_type == "CS2":
-            rc, error, item = _cs2_generic(club_member)
+            rc, error, item = _csv_compscore(club_member)
         else:
             raise ImproperlyConfigured
-
-        if not rc:
-            csv_errors.append(error)
-            continue
-
-        # Common checks
-        rc, error, item = _csv_common(item)
 
         if not rc:
             csv_errors.append(error)
@@ -240,7 +559,7 @@ def upload_csv_htmx(request, club):
         action=f"Uploaded member data from CSV file. Type={file_type}",
     ).save()
 
-    return list_htmx(request, table)
+    return members_list_htmx(request, table)
 
 
 @check_club_menu_access()
@@ -308,40 +627,13 @@ def import_mpc_htmx(request, club):
         home_club=True,
     )
 
-    # Get Alternate (non-home) club members from MPC
-    qry = f"{GLOBAL_MPSERVER}/clubAltMemberList/{club.org_id}"
-    club_members = masterpoint_query(qry)
-
-    member_data = [
-        {
-            "system_number": club_member["ABFNumber"],
-            "first_name": club_member["GivenNames"],
-            "last_name": club_member["Surname"],
-            "email": club_member["EmailAddress"],
-        }
-        for club_member in club_members
-    ]
-
-    alt_added_users, alt_added_unregistered_users, away_errors = process_member_import(
-        club=club,
-        member_data=member_data,
-        user=request.user,
-        origin="MPC",
-        default_membership=default_membership,
-        home_club=False,
-    )
-
-    errors = home_errors + away_errors
-    registered_added = home_added_users + alt_added_users
-    unregistered_added = home_added_unregistered_users + alt_added_unregistered_users
-
     # Build results table
     table = render_to_string(
         "organisations/club_menu/members/table_htmx.html",
         {
-            "added_users": registered_added,
-            "added_unregistered_users": unregistered_added,
-            "errors": errors,
+            "added_users": home_added_users,
+            "added_unregistered_users": home_added_unregistered_users,
+            "errors": home_errors,
         },
     )
 
@@ -351,7 +643,7 @@ def import_mpc_htmx(request, club):
         action="Imported member data from the Masterpoints Centre",
     ).save()
 
-    return list_htmx(request, table)
+    return members_list_htmx(request, table)
 
 
 def add_member_to_membership(
@@ -361,10 +653,9 @@ def add_member_to_membership(
     default_membership: MembershipType,
     home_club: bool = False,
 ):
-    """Sub process to add a member to the member-membership model. Returns 0 if already there
+    """Sub process to add a member to the club. Returns 0 if already there
     or 1 for counting purposes, plus an error or warning if one is found"""
 
-    error = None
     name = f"{club_member['system_number']} - {club_member['first_name']} {club_member['last_name']}"
 
     # See if we are overriding the membership type
@@ -380,39 +671,72 @@ def add_member_to_membership(
                 f"Invalid membership type {club_member['membership_type']} for {name}",
             )
 
-    # Check if already a member (any membership type)
-    member_membership = (
-        MemberMembershipType.objects.filter(system_number=club_member["system_number"])
-        .filter(membership_type__organisation=club)
-        .first()
-    )
+    # check whether a member already (active or otherwise, or contact)
+    member_details = get_member_details(club, club_member["system_number"])
 
-    if member_membership:
-        error = f"{name} - Already a member"
+    if member_details and member_details.membership_status in MEMBERSHIP_STATES_ACTIVE:
+        updated = _augment_member_details(
+            club, club_member["system_number"], club_member
+        )
+        if not updated:
+            return 0, f"{name} - Already an active member"
+        else:
+            return 1, f"{name} - Already an active member, details updated"
 
-        # if other_home_club and home_club:
-        #     error = f"{name} - Already a member and has a different home club"
-        # elif home_club:
-        #     member_membership.home_club = home_club
-        #     member_membership.save()
-        return 0, error
+    if member_details:
 
-    # check for other home clubs before setting this as the users home club
-    other_home_club = MemberMembershipType.objects.filter(
-        system_number=club_member["system_number"]
-    ).exists()
+        if (
+            member_details.membership_status
+            == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+        ):
+            # contact, so convert
 
-    if home_club and other_home_club:
-        error = f"{name} - Added but already has a home club"
-        home_club = False
+            success, message = convert_contact_to_member(
+                club,
+                club_member["system_number"],
+                club_member["system_number"],
+                default_membership,
+                user,
+            )
 
-    MemberMembershipType(
-        membership_type=default_membership,
-        system_number=club_member["system_number"],
-        last_modified_by=user,
-        home_club=home_club,
-    ).save()
-    return 1, error
+        else:
+            # has a non-current membership with this club, so change to default
+            success, message = change_membership(
+                club,
+                club_member["system_number"],
+                default_membership,
+                user,
+            )
+
+    else:
+        # create the member details and membership records
+        success, message = add_member(
+            club,
+            club_member["system_number"],
+            default_membership,
+            user,
+        )
+
+    # update membership details with MCP email address and other values unless there is already one
+
+    if success:
+        _augment_member_details(club, club_member["system_number"], club_member)
+
+    # if club_member.get("email", None):
+
+    #     member_detail_record = MemberClubDetails.objects.get(
+    #         club=club,
+    #         system_number=club_member["system_number"],
+    #     )
+
+    #     if not member_detail_record.email:
+    #         member_detail_record.email = club_member['email']
+    #         member_detail_record.save()
+
+    if success:
+        return 1, None
+    else:
+        return 0, message
 
 
 def process_member_import(
@@ -471,20 +795,6 @@ def process_member_import(
                     added_by_club=club,
                 ).save()
 
-            # add to club email list if required - don't override if already present
-            if (
-                club_member["email"]
-                and not MemberClubEmail.objects.filter(
-                    organisation=club,
-                    system_number=club_member["system_number"],
-                ).exists()
-            ):
-                MemberClubEmail(
-                    organisation=club,
-                    system_number=club_member["system_number"],
-                    email=club_member["email"],
-                ).save()
-
             added, error = add_member_to_membership(
                 club, club_member, user, default_membership, home_club
             )
@@ -495,3 +805,205 @@ def process_member_import(
             errors.append(error)
 
     return added_users, added_unregistered_users, errors
+
+
+@check_club_menu_access()
+def contact_upload_csv_htmx(request, club):
+    """Upload contacts from CSV"""
+
+    # no files - show form
+    if not request.FILES:
+        form = CSVContactUploadForm()
+        return render(
+            request, "organisations/club_menu/contacts/csv_htmx.html", {"form": form}
+        )
+
+    form = CSVContactUploadForm(request.POST)
+    form.is_valid()
+    csv_errors = []
+
+    # Get params
+    csv_file = request.FILES["file"]
+    file_type = form.cleaned_data["file_type"]
+
+    # get CSV reader (convert bytes to strings)
+    csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
+
+    # skip header
+    next(csv_data, None)
+
+    # Process data
+    contact_data = []
+
+    for club_member in csv_data:
+
+        # Specific formatting and tests by format
+        if file_type == "Pianola":
+            rc, error, item = _csv_pianola(club_member, contacts=True)
+        elif file_type == "CSV":
+            rc, error, item = _csv_generic(club_member, contacts=True)
+        elif file_type == "CS2":
+            rc, error, item = _csv_compscore(club_member)
+        else:
+            raise ImproperlyConfigured
+
+        if not rc:
+            csv_errors.append(error)
+            continue
+
+        contact_data.append(item)
+
+    added_contacts, updated_contacts, errors = process_contact_import(
+        club=club,
+        contact_data=contact_data,
+        user=request.user,
+        origin=file_type,
+    )
+
+    # Build results table
+    table = render_to_string(
+        "organisations/club_menu/contacts/table_htmx.html",
+        {
+            "added_contacts": added_contacts,
+            "updated_contacts": updated_contacts,
+            "errors": errors + csv_errors,
+        },
+    )
+
+    ClubLog(
+        organisation=club,
+        actor=request.user,
+        action=f"Uploaded contact data from CSV file. Type={file_type}",
+    ).save()
+
+    return contacts_list_htmx(request, table)
+
+
+def process_contact_import(
+    club: Organisation,
+    contact_data: list,
+    user: User,
+    origin: str,
+):
+    """Process a list of imported contacts
+
+    Args:
+        club (Organisation): the club
+        contact_data (list): list of contact details (dictionaries keyed by attribute name)
+        user (User): processing user
+        origin (str): file type being uploaded
+
+    Returns:
+        int: number of contacts added
+        int: number of existing contacts updated
+        errors: list of error/warning messages
+    """
+
+    # counters
+    added_contacts = 0
+    updated_contacts = 0
+    errors = []
+
+    # loop through members
+    for contact in contact_data:
+
+        error = None
+        existing_contact = False
+
+        if "system_number" in contact:
+
+            # check whether this system number is already a club member or contact
+
+            check_member = get_member_details(club, contact["system_number"])
+            if check_member:
+
+                # do not process if a member
+                if (
+                    check_member.membership_status
+                    != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+                ):
+                    errors.append(
+                        f"{GLOBAL_ORG} Number {contact['system_number']} is already a member"
+                    )
+                    continue
+
+                # continue for an existing contact to allow for updates to details
+                existing_contact = True
+                error = f"{GLOBAL_ORG} Number {contact['system_number']} is already a contact"
+
+            else:
+
+                # check whether this person is already on the system
+                user_match = User.objects.filter(
+                    system_number=contact["system_number"]
+                ).first()
+
+                if not user_match:
+                    un_reg = UnregisteredUser.objects.filter(
+                        system_number=contact["system_number"]
+                    ).first()
+
+                    if not un_reg:
+                        #  create an unregistered user
+
+                        UnregisteredUser(
+                            system_number=contact["system_number"],
+                            first_name=contact["first_name"],
+                            last_name=contact["last_name"],
+                            origin=origin,
+                            last_updated_by=user,
+                            added_by_club=club,
+                        ).save()
+
+        else:
+            # no system number, create an unregistered user with an internal system number
+
+            with transaction.atomic():
+
+                # create a new unregistered user with an internal system number
+                unreg_user = UnregisteredUser()
+                unreg_user.system_number = NextInternalSystemNumber.next_available()
+                unreg_user.first_name = contact["first_name"]
+                unreg_user.last_name = contact["last_name"]
+                unreg_user.origin = "CSV"
+                unreg_user.internal_system_number = True
+                unreg_user.added_by_club = club
+                unreg_user.last_updated_by = user
+                unreg_user.save()
+
+                contact["system_number"] = unreg_user.system_number
+
+        # either a user or un_reg user now exists, so create (if required) and augment the contact details
+
+        if not existing_contact:
+            add_contact_with_system_number(club, contact["system_number"])
+
+        updated = _augment_member_details(
+            club,
+            contact["system_number"],
+            contact,
+        )
+
+        # log it
+        if existing_contact:
+            if updated:
+                log_member_change(
+                    club,
+                    unreg_user.system_number,
+                    user,
+                    "Contact updated (csv upload)",
+                )
+                updated_contacts += 1
+                error += ", details updated"
+            errors.append(error)
+
+        else:
+            log_member_change(
+                club,
+                contact["system_number"],
+                user,
+                "Contact created (csv upload)",
+            )
+            added_contacts += 1
+
+    return added_contacts, updated_contacts, errors

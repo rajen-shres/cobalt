@@ -1,0 +1,31 @@
+<div class="card col-md-10 col-lg-6 mx-auto">
+    <div class="card-header card-header-warning">
+        <h3>Import Results</h3>
+    </div>
+    <div class="card-body">
+
+        <h3>Import Complete</h3>
+        <table class="table table-condensed">
+            <tr>
+                <td class="font-weight-bold">Contacts created</td>
+                <td class="font-weight-bold">Existing contacts updated</td>
+            </tr>
+            <tr>
+                <td>{{ added_contacts }}</td>
+                <td>{{ updated_contacts }}</td>
+            </tr>
+
+        </table>
+
+        {% if errors %}
+            <h4>Warnings</h4>
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    </div>
+</div>
+

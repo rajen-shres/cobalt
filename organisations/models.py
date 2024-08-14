@@ -562,7 +562,7 @@ class MemberClubDetails(models.Model):
     other_phone = models.CharField(
         "Phone",
         blank=True,
-        unique=True,
+        unique=False,
         null=True,
         max_length=15,
         validators=[phone_regex],

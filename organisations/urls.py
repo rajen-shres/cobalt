@@ -373,7 +373,7 @@ urlpatterns = [
     ),
     path(
         "club-menu/tabs/members-reports-all-csv/<int:club_id>/",
-        organisations.views.club_menu_tabs.members.report_all_csv,
+        organisations.views.club_menu_tabs.members.club_admin_report_all_csv,
         name="club_menu_tab_members_report_all_csv",
     ),
     path(
@@ -791,6 +791,19 @@ urlpatterns = [
     #   Club admin - Edit member
     # -----------------------------------------------------------------------------------
     path(
+        "club-admin/add-member",
+        organisations.views.club_menu_tabs.members.club_admin_add_member_htmx,
+        name="club_admin_add_member_htmx",
+    ),
+    path(
+        "club-admin/add-member/detail",
+        organisations.views.club_menu_tabs.members.club_admin_add_member_detail_htmx,
+        name="club_admin_add_member_detail_htmx",
+    ),
+    # -----------------------------------------------------------------------------------
+    #   Club admin - Edit member
+    # -----------------------------------------------------------------------------------
+    path(
         "club-admin/edit-member-htmx",
         organisations.views.club_menu_tabs.members.club_admin_edit_member_htmx,
         name="club_admin_edit_member_htmx",
@@ -894,14 +907,29 @@ urlpatterns = [
         organisations.views.club_menu_tabs.contacts.add_individual_internal_htmx,
         name="club_admin_add_contact_individual_internal_htmx",
     ),
-    path(
-        "club-menu/tabs/contacts/add/upload",
-        organisations.views.club_menu_tabs.contacts.upload_csv_htmx,
-        name="club_admin_add_contact_upload_csv_htmx",
-    ),
+    # path(
+    #     "club-menu/tabs/contacts/add/upload",
+    #     organisations.views.club_menu_tabs.contacts.upload_csv_htmx,
+    #     name="club_admin_add_contact_upload_csv_htmx",
+    # ),
     path(
         "club-menu/tabs/contacts/add/search",
         organisations.views.club_menu_tabs.contacts.add_search_htmx,
         name="club_menu_tab_members_add_contact_search_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts-upload-csv",
+        organisations.views.club_menu_tabs.import_data.contact_upload_csv_htmx,
+        name="club_menu_tab_contacts_upload_csv",
+    ),
+    path(
+        "club-menu/tabs/contacts-reports",
+        organisations.views.club_menu_tabs.contacts.reports_htmx,
+        name="club_menu_tab_contacts_reports_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts-reports-all-csv/<int:club_id>/",
+        organisations.views.club_menu_tabs.contacts.club_admin_report_all_csv,
+        name="club_menu_tab_contacts_report_all_csv",
     ),
 ]

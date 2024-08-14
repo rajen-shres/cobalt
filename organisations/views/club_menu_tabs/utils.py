@@ -90,18 +90,19 @@ def _menu_rbac_advanced_is_admin(club, user):
     return _user_is_uber_admin(club, user)
 
 
-def get_member_count(club, reference_date=None):
-    """Get member count for club with optional ref date"""
+# JPG deprecated - replaced by club_admin_core function
+# def get_member_count(club, reference_date=None):
+#     """Get member count for club with optional ref date"""
 
-    if not reference_date:
-        reference_date = timezone.now()
+#     if not reference_date:
+#         reference_date = timezone.now()
 
-    return (
-        MemberMembershipType.objects.filter(start_date__lte=reference_date)
-        .filter(membership_type__organisation=club)
-        .distinct("system_number")
-        .count()
-    )
+#     return (
+#         MemberMembershipType.objects.filter(start_date__lte=reference_date)
+#         .filter(membership_type__organisation=club)
+#         .distinct("system_number")
+#         .count()
+#     )
 
 
 def _tab_is_okay(request):

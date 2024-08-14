@@ -259,12 +259,14 @@ class MembershipExtendForm(forms.Form):
 
 class MembershipChangeTypeForm(forms.Form):
     """Form for changing or creating a new membership
-    Membership type options are passed to init as membership_choices
-    a list of tuples of (id, name) for valid membership types"""
+    Membership type options are derived from the club parameter"""
 
     new_system_number = forms.IntegerField(
         label="System Number",
         required=False,
+    )
+    new_email = forms.EmailField(
+        label="Email Address (accessible by this club only)", required=False
     )
     membership_type = forms.ChoiceField(label="Membership Type", required=True)
     start_date = forms.DateField(
@@ -285,10 +287,16 @@ class MembershipChangeTypeForm(forms.Form):
     )
     is_paid = forms.BooleanField(label="Mark as paid", required=False)
 
+    send_welcome_pack = forms.BooleanField(initial=True, required=False)
+
     def __init__(self, *args, **kwargs):
-        membership_choices = kwargs.pop("membership_choices", [])
+        self.club = kwargs.pop("club")
         super(MembershipChangeTypeForm, self).__init__(*args, **kwargs)
-        self.fields["membership_type"].choices = membership_choices
+        self.fields["membership_type"].choices = membership_type_choices(self.club)
+
+        # If this club doesn't have a membership pack then don't show on form
+        # if not WelcomePack.objects.filter(organisation=self.club).exists():
+        #     del self.fields["send_welcome_email"]
 
     def clean_start_date(self):
         start_date = self.cleaned_data.get("start_date")
@@ -424,6 +432,18 @@ class CSVUploadForm(forms.Form):
         self.club = kwargs.pop("club")
         super().__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
+
+
+class CSVContactUploadForm(forms.Form):
+    """Form for uploading a CSV to load contacts"""
+
+    file_type = forms.ChoiceField(
+        choices=[
+            ("CSV", "Generic CSV"),
+            ("CS2", "Compscore"),
+            ("Pianola", "Pianola Export"),
+        ]
+    )
 
 
 class MPCForm(forms.Form):

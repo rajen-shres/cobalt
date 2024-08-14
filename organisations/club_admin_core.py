@@ -230,7 +230,7 @@ def get_member_details(club, system_number):
 
 def check_user_or_unreg_deceased(system_number):
     """Checks whether a user or unregistered user is marked as deceased at the user level
-    (ie marked by the support function, nit by a club)
+    (ie marked by the support function, not by a club)
 
     Args:
         system_number: the member's system_number
@@ -252,6 +252,99 @@ def check_user_or_unreg_deceased(system_number):
             return unreg_user.deceased
         else:
             raise CobaltMemberNotFound(None, system_number)
+
+
+def get_member_count(club, reference_date=None):
+    """Get member count for club with optional as at date"""
+
+    if not reference_date:
+        # just return teh current membership
+
+        return MemberClubDetails.objects.filter(
+            club=club, membership_status__in=MEMBERSHIP_STATES_ACTIVE
+        ).count()
+
+    # asking for membership count at a specific date
+    # so look at the members - membership records
+
+    # not clear this will always be accurate, eg if a person
+    # resigns part way through a membership period.
+
+    non_renewing_count = MemberMembershipType.objects.filter(
+        membership_type__organisation=club,
+        start_date__lte=reference_date,
+        end_date=None,
+    ).count()
+
+    renewing_count = (
+        MemberMembershipType.objects.filter(
+            membership_type__organisation=club,
+            start_date__lte=reference_date,
+        )
+        .exclude(
+            end_date=None,
+        )
+        .filter(end_date__gte=reference_date)
+        .count()
+    )
+
+    return non_renewing_count + renewing_count
+
+
+def club_has_unregistered_members(club):
+    """Returns whether a club has any current unregistered members"""
+
+    members = MemberClubDetails.objects.filter(
+        club=club, membership_status__in=MEMBERSHIP_STATES_ACTIVE
+    ).values("system_number")
+
+    return (
+        UnregisteredUser.objects.filter(system_number__in=members)
+        .exclude(
+            deceased=True,
+        )
+        .exists()
+    )
+
+
+def get_member_system_numbers(club, target_list=None):
+    """Return a list of system numbers for current members,
+    optionally constarined within a list of system numbers
+
+    Args:
+        club (Organisation): the club
+        target_list (list): system numbers to narrow the query
+    """
+
+    qs = MemberClubDetails.objects.filter(
+        club=club,
+        membership_status__in=MEMBERSHIP_STATES_ACTIVE,
+    )
+
+    if target_list:
+        qs = qs.filter(system_number__in=target_list)
+
+    return qs.values_list("system_number", flat=True)
+
+
+def get_contact_system_numbers(club, target_list=None):
+    """Return a list of system numbers for club contacts,
+    optionally constarined within a list of system numbers
+
+    Args:
+        club (Organisation): the club
+        target_list (list): system numbers to narrow the query
+    """
+
+    qs = MemberClubDetails.objects.filter(
+        club=club,
+        membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+    )
+
+    if target_list:
+        qs = qs.filter(system_number__in=target_list)
+
+    return qs.values_list("system_number", flat=True)
 
 
 def get_club_members(
@@ -914,9 +1007,13 @@ def add_member(
     club,
     system_number,
     membership_type,
-    annual_fee=None,
-    grace_period_days=None,
-    is_paid=False,
+    requester,
+    fee=None,
+    start_date=None,
+    end_date=None,
+    due_date=None,
+    is_paid=True,
+    email=None,
 ):
     """Add a new member and initial membership to a club.
     The person must be an existing user or unregistered user, but not a member of this club.
@@ -926,14 +1023,86 @@ def add_member(
         system_number (int): the member's system number
         membership_type (MembershipType): the membership type to be linked to
         annual_fee (Decimal): optional fee to override the default from the membership type
-        grace_period_days (int): optional payment grace period to override the default from the membership type
+        start_date (Date): the start date of the membership
+        end_date (Date): the end date of the membership
+        due_date (Date): due date of payment
         is_paid (bool): has the fee been paid
+        email (str): club specific email
 
     Returns:
         bool: success
         string: explanatory message or None
     """
-    pass
+
+    today = timezone.now().date()
+
+    # build the new membership record
+    new_membership = MemberMembershipType()
+    new_membership.system_number = system_number
+    new_membership.last_modified_by = requester
+    new_membership.membership_type = membership_type
+    new_membership.fee = fee if fee else membership_type.annual_fee
+    new_membership.start_date = start_date if start_date else today
+    if membership_type.does_not_renew:
+        new_membership.end_date = None
+    else:
+        new_membership.end_date = end_date if end_date else club.current_end_date
+    if is_paid or new_membership.fee == 0:
+        new_membership.due_date = None
+        new_membership.paid_until_date = new_membership.end_date
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+    else:
+        new_membership.due_date = (
+            due_date
+            if due_date
+            else new_membership.start_date
+            + timedelta(days=membership_type.grace_period_days)
+        )
+        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
+        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+
+    # last minute validatation
+
+    if new_membership.start_date > today:
+        return (False, "Start date cannot be in the future")
+
+    if new_membership.start_date and new_membership.end_date:
+        if new_membership.start_date > new_membership.end_date:
+            return (False, "End date must be after start date")
+
+    new_membership.save()
+
+    # create a new member details record
+
+    member_details = MemberClubDetails()
+    member_details.system_number = system_number
+    member_details.club = club
+    member_details.latest_membership = new_membership
+
+    if email:
+        member_details.email = email
+
+    # JPG to do : defaulting of details from User record?
+
+    member_details.membership_status = new_membership.membership_state
+    member_details.joined_date = today
+
+    member_details.save()
+
+    # and log it
+    message = f"Joined club ({membership_type.name})"
+
+    if is_paid and new_membership.paid_until_date:
+        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+
+    log_member_change(
+        club,
+        system_number,
+        requester,
+        message,
+    )
+
+    return (True, message)
 
 
 # -------------------------------------------------------------------------------------
@@ -1651,7 +1820,7 @@ def convert_contact_to_member(
     start_date=None,
     end_date=None,
     due_date=None,
-    is_paid=False,
+    is_paid=True,
 ):
     """Convert a club contact to a member with the supplied parameters.
 

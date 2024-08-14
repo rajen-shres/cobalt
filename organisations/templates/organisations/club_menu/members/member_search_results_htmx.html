@@ -72,19 +72,28 @@
                                     <i class="material-icons text-info">info</i></a>
                                 Already a Member
                             {% endif %}
+                            {% if user.source == "contact" %}
+                                <a href="javascript:void(0)"
+                                    onclick='user_type_help(
+                                    "Already A Contact",
+                                    "This user is already a contact of this club.");'
+                                >
+                                    <i class="material-icons text-info">info</i></a>
+                                Already a Contact
+                            {% endif %}
                         </td>
                         <td>
-                            {% if user.source == "member" %}
+                            {% if user.source == "member" or user.source == "contact" %}
                                 <button class="btn btn-sm btn-primary" disabled>Add</button>
-                            {% elif user.source == "mpc" %}
-                                <button class="btn btn-sm btn-primary" id="id_show_add_mpc_modal_{{ user.system_number }}" onclick="show_add_mpc_modal({{ user.system_number }}, '{{ user.first_name|escapejs }}', '{{ user.last_name|escapejs }}', '{{ user.mpc_email|default_if_none:"" }}')">
-                                    Add</button>
-                            {% elif user.source == "registered" %}
-                                <button class="btn btn-sm btn-primary" onclick="show_add_member_modal({{ user.system_number }}, '{{ user.first_name|escapejs }}', '{{ user.last_name|escapejs }}')">
-                                    Add</button>
-                            {% elif user.source == "unregistered" %}
-                                <button class="btn btn-sm btn-primary" id="id_show_add_un_reg_modal_{{ user.system_number }}" onclick="show_add_un_reg_modal({{ user.system_number }}, '{{ user.first_name|escapejs }}', '{{ user.last_name|escapejs }}', '{{ user.mpc_email|default_if_none:"" }}')">
-                                    Add</button>
+                            {% elif user.source == "registered" or user.source == "unregistered" or user.source == "mpc" %}
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    hx-post="{% url 'organisations:club_admin_add_member_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                    hx-vars='{ "club_id": {{ club_id }}, "system_number": {{ user.system_number }} }'
+                                >
+                                    Add
+                                </button>
                             {% endif %}
                         </td>
                     </tr>

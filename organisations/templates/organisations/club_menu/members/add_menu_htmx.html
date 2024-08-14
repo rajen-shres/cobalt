@@ -9,6 +9,10 @@
 
     <div class="card-body" id="id_member_add_tab">
 
+        {% if message %}
+            <h3>{{ message }}</h3>
+        {% endif %}
+
         <h3>{{ club }} has {{ total_members|intcomma }} Member{{ total_members|pluralize }}. Here you can add more.</h3>
 
         <div class="table-responsive">

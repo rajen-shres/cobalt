@@ -37,8 +37,8 @@
                     <tr>
                         <td>
                             <button class="btn bg-primary btn-block"
-                                hx-post="{% url 'organisations:club_admin_add_contact_upload_csv_htmx' %}"
-                                hx-target="#id_contact_add_tab"
+                                hx-post="{% url 'organisations:club_menu_tab_contacts_upload_csv' %}"
+                                hx-target="#id_panel_contacts"
                                 hx-vars="club_id:{{ club.id }}"
                             >CSV Upload</button>
                         </td>

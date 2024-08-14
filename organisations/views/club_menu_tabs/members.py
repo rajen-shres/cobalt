@@ -12,6 +12,7 @@ from django.utils import timezone
 
 import organisations.views.club_menu_tabs.utils
 from accounts.views.admin import invite_to_join
+from accounts.views.core import add_un_registered_user_with_mpc_data
 from accounts.views.api import search_for_user_in_cobalt_and_mpc
 from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser, UserAdditionalInfo
@@ -22,6 +23,11 @@ from cobalt.settings import (
     COBALT_HOSTNAME,
     GLOBAL_CURRENCY_SYMBOL,
 )
+from masterpoints.views import (
+    search_mpc_users_by_name,
+    user_summary,
+)
+from masterpoints.factories import masterpoint_query_row
 from notifications.models import UnregisteredBlockedEmail, BatchID
 from notifications.views.core import (
     custom_sender,
@@ -31,17 +37,23 @@ from notifications.views.core import (
     get_emails_sent_to_address,
 )
 from organisations.club_admin_core import (
-    get_member_details,
-    get_club_members,
-    get_member_log,
-    renew_membership,
+    add_member,
+    can_perform_action,
     change_membership,
-    member_details_description,
+    club_email_for_member,
+    club_has_unregistered_members,
+    get_club_members,
+    get_contact_system_numbers,
+    get_member_count,
+    get_member_details,
+    get_member_log,
+    get_member_system_numbers,
     get_valid_actions,
     get_valid_activities,
-    can_perform_action,
-    perform_simple_action,
     log_member_change,
+    member_details_description,
+    perform_simple_action,
+    renew_membership,
     MEMBERSHIP_STATES_TERMINAL,
 )
 from organisations.decorators import check_club_menu_access
@@ -165,7 +177,7 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
 
 
 @check_club_menu_access()
-def add_htmx(request, club):
+def add_htmx(request, club, message=None):
     """Add sub menu"""
 
     if not MembershipType.objects.filter(organisation=club).exists():
@@ -173,20 +185,12 @@ def add_htmx(request, club):
             "<h4>Your club has no membership types defined. You cannot add a member until you fix this.</h4>"
         )
 
-    total_members = organisations.views.club_menu_tabs.utils.get_member_count(club)
+    total_members = get_member_count(club)
 
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
     has_errors = _check_member_errors(club)
-
-    # Check for unregistered
-    members = MemberMembershipType.objects.filter(
-        membership_type__organisation=club
-    ).values("system_number")
-    has_unregistered = UnregisteredUser.objects.filter(
-        system_number__in=members
-    ).exists()
 
     return render(
         request,
@@ -196,7 +200,8 @@ def add_htmx(request, club):
             "total_members": total_members,
             "member_admin": member_admin,
             "has_errors": has_errors,
-            "has_unregistered": has_unregistered,
+            "has_unregistered": club_has_unregistered_members(club),
+            "message": message,
         },
     )
 
@@ -221,6 +226,125 @@ def reports_htmx(request, club):
     )
 
 
+@login_required()
+def club_admin_report_all_csv(request, club_id):
+    """CSV of all members. We can't use the decorator as I can't get HTMX to treat this as a CSV"""
+
+    # Get all ABF Numbers for members
+
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    # Check for club level access - most common
+    club_role = f"orgs.members.{club.id}.edit"
+    if not rbac_user_has_role(request.user, club_role):
+
+        # Check for state level access or global
+        rbac_model_for_state = get_rbac_model_for_state(club.state)
+        state_role = f"orgs.state.{rbac_model_for_state}.edit"
+        if not rbac_user_has_role(request.user, state_role) and not rbac_user_has_role(
+            request.user, "orgs.admin.edit"
+        ):
+            return rbac_forbidden(request, club_role)
+
+    # get members
+    club_members = get_club_members(club, active_only=False)
+
+    # create dict of system number to membership type name
+    membership_type_dict = {}
+    club_members_list = []
+    for club_member in club_members:
+        system_number = club_member.system_number
+        membership_type = club_member.latest_membership.membership_type.name
+        membership_type_dict[system_number] = membership_type
+        club_members_list.append(system_number)
+
+    # Get tags and turn into dictionary
+    tags = MemberClubTag.objects.filter(
+        system_number__in=club_members_list, club_tag__organisation=club
+    )
+    tags_dict = {}
+    for tag in tags:
+        if tag.system_number not in tags_dict:
+            tags_dict[tag.system_number] = []
+        tags_dict[tag.system_number].append(tag.club_tag.tag_name)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="members.csv"'
+
+    now = timezone.now()
+
+    writer = csv.writer(response)
+    writer.writerow([club.name, f"Downloaded by {request.user.full_name}", now])
+    writer.writerow(
+        [
+            f"{GLOBAL_ORG} Number",
+            "Club Membership Number",
+            "First Name",
+            "Last Name",
+            f"{GLOBAL_TITLE} User Type",
+            "Membership Type",
+            "Membership Status",
+            "Membership Start Date",
+            "Membership End Date",
+            "Paid Unit Date",
+            "Due Date",
+            "Fee",
+            "Email",
+            "Joined Date",
+            "Left Date",
+            "Address 1",
+            "Address 2",
+            "State",
+            "Post Code",
+            "Mobile",
+            "Other Phone",
+            "Date of Birth",
+            "Emergency Contact",
+            "Tags",
+            "Notes",
+        ]
+    )
+
+    def format_date_or_none(a_date):
+        return a_date.strftime("%d/%m/%Y") if a_date else ""
+
+    for member in club_members:
+        member_tags = tags_dict.get(member.system_number, "")
+
+        writer.writerow(
+            [
+                member.system_number,
+                member.club_membership_number,
+                member.first_name,
+                member.last_name,
+                member.user_type,
+                membership_type_dict.get(member.system_number, ""),
+                member.get_membership_status_display(),
+                format_date_or_none(member.latest_membership.start_date),
+                format_date_or_none(member.latest_membership.end_date),
+                format_date_or_none(member.latest_membership.paid_until_date),
+                format_date_or_none(member.latest_membership.due_date),
+                member.latest_membership.fee,
+                member.email,
+                format_date_or_none(member.joined_date),
+                format_date_or_none(member.left_date),
+                member.address1,
+                member.address2,
+                member.state,
+                member.postcode,
+                member.mobile,
+                member.other_phone,
+                member.dob,
+                member.emergency_contact,
+                member_tags,
+                member.notes,
+            ]
+        )
+
+    return response
+
+
+# JPG deprecated - replaced
 @login_required()
 def report_all_csv(request, club_id):
     """CSV of all members. We can't use the decorator as I can't get HTMX to treat this as a CSV"""
@@ -394,218 +518,218 @@ def delete_member_htmx(request, club):
 
 
 # JPG deprecate
-# def _un_reg_edit_htmx_process_form(
-#     request, un_reg, club, membership, user_form, club_email_form, club_membership_form
-# ):
-#     """Sub process to handle form for un_reg_edit_htmx"""
+def _un_reg_edit_htmx_process_form(
+    request, un_reg, club, membership, user_form, club_email_form, club_membership_form
+):
+    """Sub process to handle form for un_reg_edit_htmx"""
 
-#     # Assume the worst
-#     message = "Errors found on Form"
+    # Assume the worst
+    message = "Errors found on Form"
 
-#     if user_form.is_valid():
-#         new_un_reg = user_form.save()
+    if user_form.is_valid():
+        new_un_reg = user_form.save()
 
-#         message = "Data Saved"
-#         ClubLog(
-#             organisation=club,
-#             actor=request.user,
-#             action=f"Updated details for {new_un_reg}",
-#         ).save()
+        message = "Data Saved"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Updated details for {new_un_reg}",
+        ).save()
 
-#     if club_membership_form.is_valid():
-#         membership.home_club = club_membership_form.cleaned_data["home_club"]
-#         membership_type = MembershipType.objects.get(
-#             pk=club_membership_form.cleaned_data["membership_type"]
-#         )
-#         membership.membership_type = membership_type
-#         membership.save()
+    if club_membership_form.is_valid():
+        membership.home_club = club_membership_form.cleaned_data["home_club"]
+        membership_type = MembershipType.objects.get(
+            pk=club_membership_form.cleaned_data["membership_type"]
+        )
+        membership.membership_type = membership_type
+        membership.save()
 
-#         message = "Data Saved"
-#         ClubLog(
-#             organisation=club,
-#             actor=request.user,
-#             action=f"Updated details for {membership.system_number}",
-#         ).save()
+        message = "Data Saved"
+        ClubLog(
+            organisation=club,
+            actor=request.user,
+            action=f"Updated details for {membership.system_number}",
+        ).save()
 
-#     if club_email_form.is_valid():
-#         club_email = club_email_form.cleaned_data["email"]
+    if club_email_form.is_valid():
+        club_email = club_email_form.cleaned_data["email"]
 
-#         # If the club email was used but is now empty, delete the record
-#         if not club_email:
-#             club_email_entry = MemberClubEmail.objects.filter(
-#                 organisation=club, system_number=un_reg.system_number
-#             )
-#             if club_email_entry:
-#                 club_email_entry.delete()
-#                 message = "Local email address deleted"
-#                 ClubLog(
-#                     organisation=club,
-#                     actor=request.user,
-#                     action=f"Removed club email address for {un_reg}",
-#                 ).save()
+        # If the club email was used but is now empty, delete the record
+        if not club_email:
+            club_email_entry = MemberClubEmail.objects.filter(
+                organisation=club, system_number=un_reg.system_number
+            )
+            if club_email_entry:
+                club_email_entry.delete()
+                message = "Local email address deleted"
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Removed club email address for {un_reg}",
+                ).save()
 
-#         else:
+        else:
 
-#             # See if we have an email for this user and club
-#             club_email_entry = MemberClubEmail.objects.filter(
-#                 organisation=club, system_number=un_reg.system_number
-#             ).first()
-#             if not club_email_entry:
-#                 club_email_entry = MemberClubEmail(
-#                     organisation=club, system_number=un_reg.system_number
-#                 )
+            # See if we have an email for this user and club
+            club_email_entry = MemberClubEmail.objects.filter(
+                organisation=club, system_number=un_reg.system_number
+            ).first()
+            if not club_email_entry:
+                club_email_entry = MemberClubEmail(
+                    organisation=club, system_number=un_reg.system_number
+                )
 
-#             club_email_entry.email = club_email
-#             club_email_entry.save()
-#             message = "Data Saved"
-#             ClubLog(
-#                 organisation=club,
-#                 actor=request.user,
-#                 action=f"Updated club email address for {un_reg}",
-#             ).save()
+            club_email_entry.email = club_email
+            club_email_entry.save()
+            message = "Data Saved"
+            ClubLog(
+                organisation=club,
+                actor=request.user,
+                action=f"Updated club email address for {un_reg}",
+            ).save()
 
-#             # See if we have a bounce on this user and clear it
-#             if club_email_entry.email_hard_bounce:
-#                 club_email_entry.email_hard_bounce = False
-#                 club_email_entry.email_hard_bounce_reason = None
-#                 club_email_entry.email_hard_bounce_date = None
-#                 club_email_entry.save()
+            # See if we have a bounce on this user and clear it
+            if club_email_entry.email_hard_bounce:
+                club_email_entry.email_hard_bounce = False
+                club_email_entry.email_hard_bounce_reason = None
+                club_email_entry.email_hard_bounce_date = None
+                club_email_entry.save()
 
-#                 ClubLog(
-#                     organisation=club,
-#                     actor=request.user,
-#                     action=f"Cleared email hard bounce for {un_reg} by editing email address",
-#                 ).save()
+                ClubLog(
+                    organisation=club,
+                    actor=request.user,
+                    action=f"Cleared email hard bounce for {un_reg} by editing email address",
+                ).save()
 
-#     return message, un_reg, membership
+    return message, un_reg, membership
 
 
 # JPG deprecate
-# def _un_reg_edit_htmx_common(
-#     request,
-#     club,
-#     un_reg,
-#     message,
-#     user_form,
-#     club_email_form,
-#     club_membership_form,
-#     member_details,
-#     club_email_entry,
-# ):
-#     """Common part of editing un registered user, used whether form was filled in or not"""
+def _un_reg_edit_htmx_common(
+    request,
+    club,
+    un_reg,
+    message,
+    user_form,
+    club_email_form,
+    club_membership_form,
+    member_details,
+    club_email_entry,
+):
+    """Common part of editing un registered user, used whether form was filled in or not"""
 
-#     member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
-#         club_tag__organisation=club, system_number=un_reg.system_number
-#     )
-#     used_tags = member_tags.values("club_tag__tag_name")
-#     available_tags = ClubTag.objects.filter(organisation=club).exclude(
-#         tag_name__in=used_tags
-#     )
+    member_tags = MemberClubTag.objects.prefetch_related("club_tag").filter(
+        club_tag__organisation=club, system_number=un_reg.system_number
+    )
+    used_tags = member_tags.values("club_tag__tag_name")
+    available_tags = ClubTag.objects.filter(organisation=club).exclude(
+        tag_name__in=used_tags
+    )
 
-#     email_address = active_email_for_un_reg(un_reg, club)
+    email_address = active_email_for_un_reg(un_reg, club)
 
-#     emails = get_emails_sent_to_address(email_address, club, request.user)
+    emails = get_emails_sent_to_address(email_address, club, request.user)
 
-#     # See if there are blocks on either email address - we don't just look for this user
-#     if club_email_entry:
-#         private_email_blocked = UnregisteredBlockedEmail.objects.filter(
-#             email=club_email_entry.email
-#         ).exists()
-#     else:
-#         private_email_blocked = False
+    # See if there are blocks on either email address - we don't just look for this user
+    if club_email_entry:
+        private_email_blocked = UnregisteredBlockedEmail.objects.filter(
+            email=club_email_entry.email
+        ).exists()
+    else:
+        private_email_blocked = False
 
-#     return render(
-#         request,
-#         "organisations/club_menu/members/edit_un_reg_htmx.html",
-#         {
-#             "club": club,
-#             "un_reg": un_reg,
-#             "user_form": user_form,
-#             "club_email_form": club_email_form,
-#             "club_membership_form": club_membership_form,
-#             "member_details": member_details,
-#             "member_tags": member_tags,
-#             "available_tags": available_tags,
-#             "hx_delete": reverse(
-#                 "organisations:club_menu_tab_member_delete_un_reg_htmx"
-#             ),
-#             "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
-#             "message": message,
-#             "email_address": email_address,
-#             "emails": emails,
-#             "private_email_blocked": private_email_blocked,
-#         },
-#     )
+    return render(
+        request,
+        "organisations/club_menu/members/edit_un_reg_htmx.html",
+        {
+            "club": club,
+            "un_reg": un_reg,
+            "user_form": user_form,
+            "club_email_form": club_email_form,
+            "club_membership_form": club_membership_form,
+            "member_details": member_details,
+            "member_tags": member_tags,
+            "available_tags": available_tags,
+            "hx_delete": reverse(
+                "organisations:club_menu_tab_member_delete_un_reg_htmx"
+            ),
+            "hx_args": f"club_id:{club.id},un_reg_id:{un_reg.id}",
+            "message": message,
+            "email_address": email_address,
+            "emails": emails,
+            "private_email_blocked": private_email_blocked,
+        },
+    )
 
 
 # JPG deprecate ?
-# @check_club_menu_access(check_members=True)
-# def un_reg_edit_htmx(request, club):
-#     """Edit unregistered member details"""
+@check_club_menu_access(check_members=True)
+def un_reg_edit_htmx(request, club):
+    """Edit unregistered member details"""
 
-#     un_reg_id = request.POST.get("un_reg_id")
-#     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
+    un_reg_id = request.POST.get("un_reg_id")
+    un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
-#     # Get first membership record for this user and this club
-#     membership = MemberMembershipType.objects.filter(
-#         system_number=un_reg.system_number, membership_type__organisation=club
-#     ).first()
+    # Get first membership record for this user and this club
+    membership = MemberMembershipType.objects.filter(
+        system_number=un_reg.system_number, membership_type__organisation=club
+    ).first()
 
-#     message = ""
-#     club_email_entry = None
+    message = ""
+    club_email_entry = None
 
-#     if "save" in request.POST:
-#         # We got form data - process it
-#         user_form = UnregisteredUserForm(request.POST, instance=un_reg)
-#         club_email_form = MemberClubEmailForm(request.POST, prefix="club")
-#         club_membership_form = UnregisteredUserMembershipForm(
-#             request.POST, club=club, system_number=un_reg.system_number, prefix="member"
-#         )
+    if "save" in request.POST:
+        # We got form data - process it
+        user_form = UnregisteredUserForm(request.POST, instance=un_reg)
+        club_email_form = MemberClubEmailForm(request.POST, prefix="club")
+        club_membership_form = UnregisteredUserMembershipForm(
+            request.POST, club=club, system_number=un_reg.system_number, prefix="member"
+        )
 
-#         message, un_reg, membership = _un_reg_edit_htmx_process_form(
-#             request,
-#             un_reg,
-#             club,
-#             membership,
-#             user_form,
-#             club_email_form,
-#             club_membership_form,
-#         )
+        message, un_reg, membership = _un_reg_edit_htmx_process_form(
+            request,
+            un_reg,
+            club,
+            membership,
+            user_form,
+            club_email_form,
+            club_membership_form,
+        )
 
-#     else:
-#         # No form data so build up what we need to show user
-#         club_email_entry = MemberClubEmail.objects.filter(
-#             organisation=club, system_number=un_reg.system_number
-#         ).first()
-#         user_form = UnregisteredUserForm(instance=un_reg)
-#         club_email_form = MemberClubEmailForm(prefix="club")
-#         club_membership_form = UnregisteredUserMembershipForm(
-#             club=club, system_number=un_reg.system_number, prefix="member"
-#         )
+    else:
+        # No form data so build up what we need to show user
+        club_email_entry = MemberClubEmail.objects.filter(
+            organisation=club, system_number=un_reg.system_number
+        ).first()
+        user_form = UnregisteredUserForm(instance=un_reg)
+        club_email_form = MemberClubEmailForm(prefix="club")
+        club_membership_form = UnregisteredUserMembershipForm(
+            club=club, system_number=un_reg.system_number, prefix="member"
+        )
 
-#         # Set initial values for membership form
-#         #        club_membership_form.initial["home_club"] = membership.home_club
-#         if membership:
-#             club_membership_form.initial[
-#                 "membership_type"
-#             ] = membership.membership_type_id
+        # Set initial values for membership form
+        #        club_membership_form.initial["home_club"] = membership.home_club
+        if membership:
+            club_membership_form.initial[
+                "membership_type"
+            ] = membership.membership_type_id
 
-#         # Set initial value for email if record exists
-#         if club_email_entry:
-#             club_email_form.initial["email"] = club_email_entry.email
+        # Set initial value for email if record exists
+        if club_email_entry:
+            club_email_form.initial["email"] = club_email_entry.email
 
-#     # Common parts
-#     return _un_reg_edit_htmx_common(
-#         request,
-#         club,
-#         un_reg,
-#         message,
-#         user_form,
-#         club_email_form,
-#         club_membership_form,
-#         membership,
-#         club_email_entry,
-#     )
+    # Common parts
+    return _un_reg_edit_htmx_common(
+        request,
+        club,
+        un_reg,
+        message,
+        user_form,
+        club_email_form,
+        club_membership_form,
+        membership,
+        club_email_entry,
+    )
 
 
 @check_club_menu_access(check_members=True)
@@ -761,6 +885,8 @@ def add_member_search_htmx(request):
 
     """
 
+    # JPG to do - review use by club_sessions. Note addition of 'contact' user source
+
     first_name_search = request.POST.get("member_first_name_search")
     last_name_search = request.POST.get("member_last_name_search")
     club_id = request.POST.get("club_id")
@@ -783,15 +909,16 @@ def add_member_search_htmx(request):
 
     club = get_object_or_404(Organisation, pk=club_id)
 
-    member_list = (
-        MemberMembershipType.objects.filter(system_number__in=user_list_system_numbers)
-        .filter(membership_type__organisation=club)
-        .values_list("system_number", flat=True)
+    member_list = get_member_system_numbers(club, target_list=user_list_system_numbers)
+    contact_list = get_contact_system_numbers(
+        club, target_list=user_list_system_numbers
     )
 
     for user in user_list:
         if user["system_number"] in member_list:
             user["source"] = "member"
+        elif user["system_number"] in contact_list:
+            user["source"] = "contact"
 
     if edit_session_entry:
         template = "club_sessions/manage/edit_entry/member_search_results_htmx.html"
@@ -1443,7 +1570,7 @@ def recent_sessions_for_member_htmx(request, club):
 
 
 @check_club_menu_access(check_members=True)
-def club_admin_edit_member_htmx(request, club):
+def club_admin_edit_member_htmx(request, club, message=None):
     """
     Edit member for full club admin, htmx endpoint version
 
@@ -1451,7 +1578,8 @@ def club_admin_edit_member_htmx(request, club):
     """
 
     system_number = request.POST.get("system_number", None)
-    message = request.POST.get("message", None)
+    if not message:
+        message = request.POST.get("message", None)
     saving = request.POST.get("save", "NO") == "YES"
     editing = request.POST.get("edit", "NO") == "YES"
 
@@ -1613,8 +1741,7 @@ def club_admin_edit_member_change_htmx(request, club):
         HttpResponse: the response
     """
 
-    if request.method == "POST":
-        system_number = request.POST.get("system_number")
+    system_number = request.POST.get("system_number")
 
     member_details = get_member_details(club, system_number)
 
@@ -1665,9 +1792,7 @@ def club_admin_edit_member_change_htmx(request, club):
         return response
 
     if "save" in request.POST:
-        form = MembershipChangeTypeForm(
-            request.POST, membership_choices=membership_choices
-        )
+        form = MembershipChangeTypeForm(request.POST, club=club)
         if form.is_valid():
 
             membership_type = get_object_or_404(
@@ -1705,9 +1830,7 @@ def club_admin_edit_member_change_htmx(request, club):
             # "due_date": fees_and_due_dates[f"{membership_choices[0][0]}"]['due_date'],
             "is_paid": False,
         }
-        form = MembershipChangeTypeForm(
-            initial=initial_data, membership_choices=membership_choices
-        )
+        form = MembershipChangeTypeForm(initial=initial_data, club=club)
 
     return render(
         request,
@@ -1825,3 +1948,205 @@ def club_admin_edit_member_extend_htmx(request, club):
             "message": message,
         },
     )
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_add_member_htmx(request, club):
+    """Add a member to the club
+
+    Handles registered users, unregistered users and MPC imports
+
+    Renders the wrapper HTML that triggers an HTMX load of the shared
+    club_admin_edit_member_change_htmx.html
+
+    System number of new member is passed in the POST
+    """
+
+    system_number = request.POST.get("system_number")
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+    has_errors = _check_member_errors(club)
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_add_member_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "member_admin": member_admin,
+            "has_errors": has_errors,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_add_member_detail_htmx(request, club):
+    """End point for handling the shared club_admin_edit_member_change_htmx.html
+    when adding a new club member"""
+
+    # JPG Detail
+    print("club_admin_add_member_detail_htmx")
+
+    system_number = request.POST.get("system_number")
+
+    user = User.objects.filter(
+        system_number=system_number,
+    ).last()
+
+    mpc_details = None
+    if user:
+        user_type = "REG"
+    else:
+        user = UnregisteredUser.objects.filter(
+            system_number=system_number,
+        ).last()
+        if user:
+            user_type = "UNR"
+        else:
+            user_type = "MPC"
+            mpc_details = get_mpc_details(club, system_number)
+
+    # When the user selects a type in the form the corresponding fee and dates need to be set
+    # Note: end_date is not set for types which do not renew (eg Life membership)
+    # Note: values are converted to types that JavaScript can ingest
+
+    message = None
+
+    membership_types = MembershipType.objects.filter(organisation=club).all()
+
+    if len(membership_types) == 0:
+        # no choices so go back to the add menu
+        return add_htmx(
+            request, message="You need to create membership types before adding members"
+        )
+
+    today = timezone.now().date()
+    fees_and_due_dates = {
+        f"{mt.id}": {
+            "annual_fee": float(mt.annual_fee),
+            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%Y-%m-%d"),
+            "end_date": " "
+            if mt.does_not_renew
+            else club.current_end_date.strftime("%Y-%m-%d"),
+            "perpetual": "Y" if mt.does_not_renew else "N",
+        }
+        for mt in membership_types
+    }
+
+    welcome_pack = WelcomePack.objects.filter(organisation=club).exists()
+
+    if "save" in request.POST:
+        form = MembershipChangeTypeForm(request.POST, club=club)
+        if form.is_valid():
+
+            # JPG debug
+            print("=== form is valid")
+
+            if (
+                form.cleaned_data["send_welcome_pack"]
+                and user_type != "REG"
+                and not form.cleaned_data["new_email"]
+            ):
+                message = "An email address is required to send a welcome pack"
+            else:
+                membership_type = get_object_or_404(
+                    MembershipType, pk=int(form.cleaned_data["membership_type"])
+                )
+
+                if user_type == "MPC":
+                    # need to create an unregistered user from the MCP data
+                    user_type, details = add_un_registered_user_with_mpc_data(
+                        system_number, club, request.user
+                    )
+
+                success, message = add_member(
+                    club,
+                    system_number,
+                    membership_type,
+                    request.user,
+                    fee=form.cleaned_data["fee"],
+                    start_date=form.cleaned_data["start_date"],
+                    end_date=form.cleaned_data["end_date"],
+                    due_date=form.cleaned_data["due_date"],
+                    is_paid=form.cleaned_data["is_paid"],
+                    email=form.cleaned_data["new_email"],
+                )
+
+                if success:
+
+                    # JPG debug
+                    print("=== post successfull")
+
+                    if form.cleaned_data["send_welcome_pack"]:
+                        email = club_email_for_member(club, system_number)
+                        if email:
+                            resp = _send_welcome_pack(
+                                club, user.first_name, email, request.user, False
+                            )
+                            message = f"{message}. {resp}"
+
+                    return _refresh_edit_member(request, club, system_number, message)
+
+        else:
+            message = "Error with the form"
+
+    else:
+        initial_data = {
+            "membership_type": membership_types.first().id,
+            "start_date": today.strftime("%Y-%m-%d"),
+            "is_paid": False,
+        }
+        if mpc_details and mpc_details["EmailAddress"]:
+            initial_data["new_email"] = mpc_details["EmailAddress"]
+
+        form = MembershipChangeTypeForm(initial=initial_data, club=club)
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_change_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "form": form,
+            "fees_and_dates": f"{fees_and_due_dates}",
+            "adding": True,
+            "message": message,
+            "user": user,
+            "welcome_pack": welcome_pack,
+            "mpc_details": mpc_details,
+        },
+    )
+
+
+def get_mpc_details(club, system_number):
+    """Return the MCP details for the player, including an email address if the
+    player is a home club member. Also includes home club name
+
+    NOTE: This matches home clubs based on club name rather than testing
+    Organisaton.org_id against the MPC ClubNumber. This is because the details
+    returned by the MPC for a player includes the home club id (not number),
+    and it is not clear how to associate the id with a number other than through
+    the club name.
+    """
+
+    details = user_summary(system_number)
+
+    home_club_details = masterpoint_query_row(f'club/{details["HomeClubID"]}')
+    details["HomeClubName"] = home_club_details["ClubName"]
+
+    if club.name == home_club_details["ClubName"]:
+        # is a home club member, so get the email address
+
+        matches = search_mpc_users_by_name(details["GivenNames"], details["Surname"])
+
+        mpc_email = None
+        for match in matches:
+            if match["ABFNumber"] == system_number:
+                if "EmailAddress" in match and match["EmailAddress"]:
+                    mpc_email = match["EmailAddress"]
+                break
+        details["EmailAddress"] = mpc_email
+
+    else:
+        details["EmailAddress"] = None
+
+    return details

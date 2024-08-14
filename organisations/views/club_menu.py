@@ -33,8 +33,10 @@ from organisations.views.club_menu_tabs.access import access_basic, access_advan
 from organisations.views.club_menu_tabs.utils import (
     _menu_rbac_has_access,
     _user_is_uber_admin,
-    get_member_count,
     get_members_balance,
+)
+from organisations.club_admin_core import (
+    get_member_count,
 )
 from payments.models import UserPendingPayment
 from payments.views.core import org_balance

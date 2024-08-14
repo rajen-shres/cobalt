@@ -1,3 +1,4 @@
+import csv
 from datetime import date, timedelta
 
 from django.contrib.auth.decorators import login_required
@@ -12,6 +13,10 @@ from accounts.models import (
     UnregisteredUser,
 )
 from accounts.views.api import search_for_user_in_cobalt_and_mpc
+from cobalt.settings import (
+    GLOBAL_ORG,
+    GLOBAL_TITLE,
+)
 from organisations.club_admin_core import (
     add_contact_with_system_number,
     convert_contact_to_member,
@@ -33,12 +38,17 @@ from organisations.forms import (
 from organisations.views.club_menu_tabs.members import (
     _refresh_edit_member,
 )
+from organisations.views.general import (
+    get_rbac_model_for_state,
+)
 from organisations.models import (
     MemberClubDetails,
+    MemberClubTag,
     MembershipType,
     Organisation,
 )
 from rbac.core import rbac_user_has_role
+from rbac.views import rbac_forbidden
 from utils.utils import cobalt_paginator
 
 
@@ -300,9 +310,7 @@ def convert_htmx(request, club):
         )
 
     if request.POST.get("save", "NO") == "YES":
-        form = MembershipChangeTypeForm(
-            request.POST, membership_choices=membership_choices
-        )
+        form = MembershipChangeTypeForm(request.POST, club=club)
         if form.is_valid():
 
             membership_type = get_object_or_404(
@@ -346,9 +354,7 @@ def convert_htmx(request, club):
             "start_date": today.strftime("%Y-%m-%d"),
             "is_paid": False,
         }
-        form = MembershipChangeTypeForm(
-            initial=initial_data, membership_choices=membership_choices
-        )
+        form = MembershipChangeTypeForm(initial=initial_data, club=club)
 
     return render(
         request,
@@ -374,6 +380,8 @@ def add_contact_manual_htmx(request, club):
         an existing unregistered user or an MPC member who is not on Cobalt at all.
     2.  Entering first and last name, with no system number
     """
+
+    message = None
 
     if "save" in request.POST:
 
@@ -567,7 +575,115 @@ def add_individual_internal_htmx(request, club):
     )
 
 
+# JPG not required - in import_data.py
 @check_club_menu_access()
 def upload_csv_htmx(request, club):
 
     return HttpResponse("Contact CSV upload coming soon")
+
+
+@check_club_menu_access()
+def reports_htmx(request, club):
+    """Reports sub menu"""
+
+    # Check level of access
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
+    return render(
+        request,
+        "organisations/club_menu/contacts/reports_htmx.html",
+        {
+            "club": club,
+            "member_admin": member_admin,
+        },
+    )
+
+
+@login_required()
+def club_admin_report_all_csv(request, club_id):
+    """CSV of all contacts. We can't use the decorator as I can't get HTMX to treat this as a CSV"""
+
+    # Get all ABF Numbers for members
+
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    # Check for club level access - most common
+    club_role = f"orgs.members.{club.id}.edit"
+    if not rbac_user_has_role(request.user, club_role):
+
+        # Check for state level access or global
+        rbac_model_for_state = get_rbac_model_for_state(club.state)
+        state_role = f"orgs.state.{rbac_model_for_state}.edit"
+        if not rbac_user_has_role(request.user, state_role) and not rbac_user_has_role(
+            request.user, "orgs.admin.edit"
+        ):
+            return rbac_forbidden(request, club_role)
+
+    # get members
+    club_contacts = get_club_contacts(club)
+    club_contacts_list = [contact.system_number for contact in club_contacts]
+
+    # Get tags and turn into dictionary
+    tags = MemberClubTag.objects.filter(
+        system_number__in=club_contacts_list, club_tag__organisation=club
+    )
+    tags_dict = {}
+    for tag in tags:
+        if tag.system_number not in tags_dict:
+            tags_dict[tag.system_number] = []
+        tags_dict[tag.system_number].append(tag.club_tag.tag_name)
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="contacts.csv"'
+
+    now = timezone.now()
+
+    writer = csv.writer(response)
+    writer.writerow([club.name, f"Downloaded by {request.user.full_name}", now])
+    writer.writerow(
+        [
+            f"{GLOBAL_ORG} Number",
+            "First Name",
+            "Last Name",
+            f"{GLOBAL_TITLE} User Type",
+            "Email",
+            "Address 1",
+            "Address 2",
+            "State",
+            "Post Code",
+            "Mobile",
+            "Other Phone",
+            "Date of Birth",
+            "Emergency Contact",
+            "Tags",
+            "Notes",
+        ]
+    )
+
+    def format_date_or_none(a_date):
+        return a_date.strftime("%d/%m/%Y") if a_date else ""
+
+    for contact in club_contacts:
+        contact_tags = tags_dict.get(contact.system_number, "")
+
+        writer.writerow(
+            [
+                contact.system_number,
+                contact.first_name,
+                contact.last_name,
+                contact.user_type,
+                contact.email,
+                contact.address1,
+                contact.address2,
+                contact.state,
+                contact.postcode,
+                contact.mobile,
+                contact.other_phone,
+                contact.dob,
+                contact.emergency_contact,
+                contact_tags,
+                contact.notes,
+            ]
+        )
+
+    return response
