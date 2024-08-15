@@ -43,6 +43,8 @@ from organisations.club_admin_core import (
     club_email_for_member,
     club_has_unregistered_members,
     get_club_members,
+    get_club_member_list,
+    get_club_member_list_email_match,
     get_contact_system_numbers,
     get_member_count,
     get_member_details,
@@ -1391,86 +1393,89 @@ def add_misc_payment_pay(request, club, member, amount, misc_description):
     return "Payment successful"
 
 
-@check_club_menu_access(check_members=True)
-def member_search_tab_htmx(request, club):
-    """member search tab"""
+#  jpg clean-up
+# @check_club_menu_access(check_members=True)
+# def member_search_tab_htmx(request, club):
+#     """member search tab"""
 
-    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+#     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 
-    return render(
-        request,
-        "organisations/club_menu/members/member_search_tab_htmx.html",
-        {"member_admin": member_admin, "club": club},
-    )
-
-
-@check_club_menu_access()
-def member_search_tab_name_htmx(request, club):
-    """Search function for searching for a member by name"""
-
-    first_name_search = request.POST.get("member_first_name_search")
-    last_name_search = request.POST.get("member_last_name_search")
-
-    # if there is nothing to search for, don't search
-    if not first_name_search and not last_name_search:
-        return HttpResponse()
-
-    member_list = MemberMembershipType.objects.filter(
-        membership_type__organisation=club
-    ).values_list("system_number", flat=True)
-
-    # Users
-    users = User.objects.filter(system_number__in=member_list)
-
-    if first_name_search:
-        users = users.filter(first_name__istartswith=first_name_search)
-
-    if last_name_search:
-        users = users.filter(last_name__istartswith=last_name_search)
-
-    # Unregistered
-    un_regs = UnregisteredUser.objects.filter(system_number__in=member_list)
-
-    if first_name_search:
-        un_regs = un_regs.filter(first_name__istartswith=first_name_search)
-
-    if last_name_search:
-        un_regs = un_regs.filter(last_name__istartswith=last_name_search)
-
-    user_list = list(chain(users, un_regs))
-
-    return render(
-        request,
-        "organisations/club_menu/members/member_search_tab_name_htmx.html",
-        {"user_list": user_list, "club": club},
-    )
+#     return render(
+#         request,
+#         "organisations/club_menu/members/member_search_tab_htmx.html",
+#         {"member_admin": member_admin, "club": club},
+#     )
 
 
-@check_club_menu_access()
-def member_search_tab_email_htmx(request, club):
-    """Search function for searching for a member by email"""
+# @check_club_menu_access()
+# def member_search_tab_name_htmx(request, club):
+#     """Search function for searching for a member by name"""
 
-    email_search = request.POST.get("member_email_search")
+#     first_name_search = request.POST.get("member_first_name_search")
+#     last_name_search = request.POST.get("member_last_name_search")
 
-    # if there is nothing to search for, don't search
-    if not email_search:
-        return HttpResponse()
+#     # if there is nothing to search for, don't search
+#     if not first_name_search and not last_name_search:
+#         return HttpResponse()
 
-    # Unregistered Only
-    member_club_system_number_list = (
-        MemberClubEmail.objects.filter(email__icontains=email_search)
-        .filter(organisation=club)
-        .values("system_number")
-    )
-    un_regs = UnregisteredUser.objects.filter(
-        system_number__in=member_club_system_number_list
-    )
+#     member_list = get_club_member_list(club)
 
-    return render(
-        request,
-        "organisations/club_menu/members/member_search_tab_name_htmx.html",
-        {"user_list": un_regs, "club": club},
-    )
+#     # Users
+#     users = User.objects.filter(system_number__in=member_list)
+
+#     if first_name_search:
+#         users = users.filter(first_name__istartswith=first_name_search)
+
+#     if last_name_search:
+#         users = users.filter(last_name__istartswith=last_name_search)
+
+#     # Unregistered
+#     un_regs = UnregisteredUser.objects.filter(system_number__in=member_list)
+
+#     if first_name_search:
+#         un_regs = un_regs.filter(first_name__istartswith=first_name_search)
+
+#     if last_name_search:
+#         un_regs = un_regs.filter(last_name__istartswith=last_name_search)
+
+#     user_list = list(chain(users, un_regs))
+
+#     return render(
+#         request,
+#         "organisations/club_menu/members/member_search_tab_name_htmx.html",
+#         {"user_list": user_list, "club": club},
+#     )
+
+
+# @check_club_menu_access()
+# def member_search_tab_email_htmx(request, club):
+#     """Search function for searching for a member by email"""
+
+#     email_search = request.POST.get("member_email_search")
+
+#     # if there is nothing to search for, don't search
+#     if not email_search:
+#         return HttpResponse()
+
+#     member_club_system_number_list = get_club_member_list_email_match(club, email_search)
+
+#     # JPG clean up
+#     # Unregistered Only
+#     # member_club_system_number_list = (
+#     #     MemberClubEmail.objects.filter(email__icontains=email_search)
+#     #     .filter(organisation=club)
+#     #     .values("system_number")
+#     # )
+
+#     un_regs = UnregisteredUser.objects.filter(
+#         system_number__in=member_club_system_number_list
+#     )
+
+#     return render(
+#         request,
+#         "organisations/club_menu/members/member_search_tab_name_htmx.html",
+#         {"user_list": un_regs, "club": club},
+#     )
 
 
 @check_club_menu_access(check_members=True)
@@ -1759,9 +1764,10 @@ def club_admin_edit_member_change_htmx(request, club):
     # When the user selects a type in the form the corresponding fee and dates need to be set
     # Note: end_date is not set for types which do not renew (eg Life membership)
     # Note: values are converted to types that JavaScript can ingest
+    # Note: allow a change to teh same type to allow details to be changed
     membership_types = (
         MembershipType.objects.filter(organisation=club)
-        .exclude(id=member_details.latest_membership.membership_type.id)
+        # .exclude(id=member_details.latest_membership.membership_type.id)
         .all()
     )
     membership_choices = [(mt.id, mt.name) for mt in membership_types]
@@ -1780,16 +1786,25 @@ def club_admin_edit_member_change_htmx(request, club):
 
     if len(membership_choices) == 0:
         # no choices so go back to the main view
-        response = HttpResponse()
-        response["hx-redirect"] = reverse(
-            "organisations:club_admin_edit_member",
-            kwargs={
-                "club_id": club.id,
-                "system_number": system_number,
-                "message": "Unable to change type, no alternatives available",
-            },
+
+        return _refresh_edit_member(
+            request,
+            club,
+            system_number,
+            "Unable to change type, no alternatives available",
         )
-        return response
+
+        # JPG Clean up
+        # response = HttpResponse()
+        # response["hx-redirect"] = reverse(
+        #     "organisations:club_admin_edit_member_htmx",
+        #     kwargs={
+        #         "club_id": club.id,
+        #         "system_number": system_number,
+        #         "message": "Unable to change type, no alternatives available",
+        #     },
+        # )
+        # return response
 
     if "save" in request.POST:
         form = MembershipChangeTypeForm(request.POST, club=club)

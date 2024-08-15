@@ -1,0 +1,35 @@
+{#-------------------------------------------------------------------------------#}
+{#                                                                               #}
+{#  Search list returned when the member or contact search tab gets input        #}
+{#                                                                               #}
+{#-------------------------------------------------------------------------------#}
+{% load cobalt_tags %}
+
+{% if user_list %}
+
+    <h3>Results</h3>
+    <ul>
+        {% for user in user_list %}
+            <li>
+                <a href="javascript:void(0)"
+                    {% if mode == 'members' %}
+                        hx-post="{% url "organisations:club_admin_edit_member_htmx" %}"
+                        hx-target="#id_panel_members"
+                    {% else %}
+                        hx-post="{% url "organisations:club_admin_tab_edit_contact_htmx" %}"
+                        hx-target="#id_panel_contacts"
+                    {% endif %}
+                    hx-vars="club_id:{{ club.id }},system_number:{{ user.system_number }}"
+                    hx-push-url="{{ club.id }}"
+                >
+                    {{ user }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+{% else %}
+    <h3>
+        No matches found
+    </h3>
+{% endif %}

@@ -4,7 +4,11 @@ Club Administration Shared Views
 Vies used by both members and contacts.
 """
 
+# jpg debug
+from django.template.loader import render_to_string
+
 from datetime import datetime
+from itertools import chain
 
 from django.http import HttpResponse
 from django.shortcuts import (
@@ -40,6 +44,10 @@ from organisations.club_admin_core import (
     club_email_for_member,
     get_member_details,
     get_valid_activities,
+    get_club_contact_list,
+    get_club_member_list,
+    get_club_member_list_email_match,
+    get_club_contact_list_email_match,
 )
 from organisations.models import (
     ClubLog,
@@ -478,4 +486,112 @@ def activity_none_htmx(request, club):
             "system_number": member_details.system_number,
             "permitted_activities": get_valid_activities(member_details),
         },
+    )
+
+
+# -----------------------------------------------------------------------------------------
+#  Member and Contact Search
+# -----------------------------------------------------------------------------------------
+
+
+@check_club_menu_access(check_members=True)
+def search_tab_htmx(request, club):
+    """Display a search page"""
+
+    mode = request.POST.get("mode", "members")
+
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+
+    return render(
+        request,
+        "organisations/club_admin/search_tab_htmx.html",
+        {"member_admin": member_admin, "club": club, "mode": mode},
+    )
+
+
+@check_club_menu_access()
+def search_tab_name_htmx(request, club):
+    """Search function for searching for a member or contact by name"""
+
+    mode = request.POST.get("mode", "members")
+    first_name_search = request.POST.get("first_name_search")
+    last_name_search = request.POST.get("last_name_search")
+
+    # jpg debug
+    print(f"search_tab_name_htmx {mode} '{first_name_search}' '{last_name_search}'' ")
+
+    # if there is nothing to search for, don't search
+    if not first_name_search and not last_name_search:
+        return HttpResponse()
+
+    if mode == "members":
+        system_number_list = get_club_member_list(club)
+    else:
+        system_number_list = get_club_contact_list(club)
+
+    # jpg debug
+    # print(f"system numbers = {system_number_list}")
+
+    # Users
+    users = User.objects.filter(system_number__in=system_number_list)
+
+    if first_name_search:
+        users = users.filter(first_name__istartswith=first_name_search)
+
+    if last_name_search:
+        users = users.filter(last_name__istartswith=last_name_search)
+
+    # Unregistered
+    un_regs = UnregisteredUser.objects.filter(system_number__in=system_number_list)
+
+    if first_name_search:
+        un_regs = un_regs.filter(first_name__istartswith=first_name_search)
+
+    if last_name_search:
+        un_regs = un_regs.filter(last_name__istartswith=last_name_search)
+
+    user_list = list(chain(users, un_regs))
+
+    # jpg debug
+    # print(f"user_list len={len(user_list)}")
+
+    # debug_str= render_to_string(
+    #     "organisations/club_admin/search_tab_results_htmx.html",
+    #     {"user_list": user_list, "club": club, "mode": mode},
+    # )
+    # print(debug_str)
+
+    return render(
+        request,
+        "organisations/club_admin/search_tab_results_htmx.html",
+        {"user_list": user_list, "club": club, "mode": mode},
+    )
+
+
+@check_club_menu_access()
+def search_tab_email_htmx(request, club):
+    """Search function for searching for a member or contact by email"""
+
+    mode = request.POST.get("mode", "members")
+    email_search = request.POST.get("email_search")
+
+    # if there is nothing to search for, don't search
+    if not email_search:
+        return HttpResponse()
+
+    if mode == "members":
+        system_number_list = get_club_member_list_email_match(club, email_search)
+    else:
+        system_number_list = get_club_contact_list_email_match(club, email_search)
+
+    users = User.objects.filter(system_number__in=system_number_list)
+
+    un_regs = UnregisteredUser.objects.filter(system_number__in=system_number_list)
+
+    user_list = list(chain(users, un_regs))
+
+    return render(
+        request,
+        "organisations/club_admin/search_tab_results_htmx.html",
+        {"user_list": user_list, "club": club, "mode": mode},
     )

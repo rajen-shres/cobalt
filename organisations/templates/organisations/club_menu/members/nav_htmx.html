@@ -64,7 +64,8 @@
         style="outline: 0; outline-offset: 0; box-shadow: none;"
     {% endif %}
     type="button"
-    hx-post="{% url "organisations:member_search_tab_htmx" %}"
+    hx-post="{% url "organisations:search_tab_htmx" %}"
+    hx-vars="mode: 'members'"
     hx-target="#id_panel_members"
     hx-indicator=".htmx-indicator"
 >

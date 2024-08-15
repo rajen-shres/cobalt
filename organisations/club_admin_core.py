@@ -530,6 +530,43 @@ def get_club_member_list(
     return members.values_list("system_number", flat=True)
 
 
+def get_club_member_list_email_match(
+    club,
+    search_str,
+    active_only=True,
+    exclude_contacts=True,
+    exclude_deceased=True,
+):
+    """Return a list of member's system numbers, matching on email address
+
+    Note that this only searches on the member's email, not the email in the user record"""
+
+    members = MemberClubDetails.objects.filter(club=club)
+
+    if active_only:
+        members = members.filter(
+            membership_status__in=[
+                MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+                MemberClubDetails.MEMBERSHIP_STATUS_DUE,
+                MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+            ]
+        )
+
+    if exclude_contacts:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+        )
+
+    if exclude_deceased:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
+        )
+
+    members = members.filter(email__icontains=search_str)
+
+    return members.values_list("system_number", flat=True)
+
+
 def get_club_contact_list(
     club,
 ):
@@ -538,6 +575,21 @@ def get_club_contact_list(
     return MemberClubDetails.objects.filter(
         club=club,
         membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+    ).values_list("system_number", flat=True)
+
+
+def get_club_contact_list_email_match(
+    club,
+    search_str,
+):
+    """Return a list of system numbers of club contacts, matching on email address
+
+    Note that this only searches on the member's email, not the email in the user record"""
+
+    return MemberClubDetails.objects.filter(
+        club=club,
+        membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+        email__icontains=search_str,
     ).values_list("system_number", flat=True)
 
 
@@ -795,7 +847,7 @@ def can_mark_as_paid(member_details):
 
     if (
         member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
-        and member_details.end_date < today
+        and member_details.latest_membership.end_date < today
     ):
         return (False, "Lapsed members cannot pay after the end date")
 

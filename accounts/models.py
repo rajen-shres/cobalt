@@ -240,7 +240,10 @@ class UnregisteredUser(models.Model):
         super(UnregisteredUser, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.full_name} ({GLOBAL_ORG}: {self.system_number})"
+        if self.internal_system_number:
+            return f"{self.full_name} (No {GLOBAL_ORG} number)"
+        else:
+            return f"{self.full_name} ({GLOBAL_ORG}: {self.system_number})"
 
     @property
     def full_name(self):

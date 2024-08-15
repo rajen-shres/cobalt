@@ -722,21 +722,22 @@ urlpatterns = [
         organisations.views.club_menu_tabs.finance.transaction_congress_details_htmx,
         name="transaction_congress_details_htmx",
     ),
-    path(
-        "member/search-tab",
-        organisations.views.club_menu_tabs.members.member_search_tab_htmx,
-        name="member_search_tab_htmx",
-    ),
-    path(
-        "member/search-tab-name",
-        organisations.views.club_menu_tabs.members.member_search_tab_name_htmx,
-        name="member_search_tab_name_htmx",
-    ),
-    path(
-        "member/search-tab-email",
-        organisations.views.club_menu_tabs.members.member_search_tab_email_htmx,
-        name="member_search_tab_email_htmx",
-    ),
+    # JPG clean up
+    # path(
+    #     "member/search-tab",
+    #     organisations.views.club_menu_tabs.members.member_search_tab_htmx,
+    #     name="member_search_tab_htmx",
+    # ),
+    # path(
+    #     "member/search-tab-name",
+    #     organisations.views.club_menu_tabs.members.member_search_tab_name_htmx,
+    #     name="member_search_tab_name_htmx",
+    # ),
+    # path(
+    #     "member/search-tab-email",
+    #     organisations.views.club_menu_tabs.members.member_search_tab_email_htmx,
+    #     name="member_search_tab_email_htmx",
+    # ),
     path(
         "sessions/refresh-sessions-tab",
         organisations.views.club_menu_tabs.sessions.refresh_sessions_tab,
@@ -786,6 +787,24 @@ urlpatterns = [
         "settings/toggle-use-last-payment-method-for-player-sessions",
         organisations.views.club_menu_tabs.settings.toggle_use_last_payment_method_for_player_sessions_htmx,
         name="club_menu_tab_settings_use_last_payment_method_for_player_sessions_htmx",
+    ),
+    # -----------------------------------------------------------------------------------
+    #   Club admin
+    # -----------------------------------------------------------------------------------
+    path(
+        "club-admin/search-tab",
+        organisations.views.club_admin.search_tab_htmx,
+        name="search_tab_htmx",
+    ),
+    path(
+        "club-admin/search-tab-name",
+        organisations.views.club_admin.search_tab_name_htmx,
+        name="search_tab_name_htmx",
+    ),
+    path(
+        "club-admin/search-tab-email",
+        organisations.views.club_admin.search_tab_email_htmx,
+        name="search_tab_email_htmx",
     ),
     # -----------------------------------------------------------------------------------
     #   Club admin - Edit member

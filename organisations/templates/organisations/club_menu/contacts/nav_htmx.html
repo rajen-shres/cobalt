@@ -31,6 +31,22 @@
 </button>
 
 <button
+    {% if selected == "search" %}
+        class="btn bg-light text-dark"
+    {% else %}
+        class="btn bg-transparent"
+        style="outline: 0; outline-offset: 0; box-shadow: none;"
+    {% endif %}
+    type="button"
+    hx-post="{% url "organisations:search_tab_htmx" %}"
+    hx-vars="mode: 'contacts'"
+    hx-target="#id_panel_contacts"
+    hx-indicator=".htmx-indicator"
+>
+    Search
+</button>
+
+<button
     {% if selected == "reports" %}
         class="btn bg-light text-dark float-right"
     {% else %}

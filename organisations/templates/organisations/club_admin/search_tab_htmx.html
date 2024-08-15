@@ -1,6 +1,6 @@
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
-{# Search panel                                                           #}
+{# Contact or Member search panel                                         #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
 
@@ -8,12 +8,19 @@
 
     <!-- SUB-LEVEL NAVIGATION -->
 
-    <div class="card-header card-header-info">
-        <h2>Members</h2>
-        {% include "organisations/club_menu/members/nav_htmx.html" with selected="search" %}
-    </div>
+    {% if mode == "members" %}
+        <div class="card-header card-header-info">
+            <h2>Members</h2>
+            {% include "organisations/club_menu/members/nav_htmx.html" with selected="search" %}
+        </div>
+    {% else %}
+        <div class="card-header card-header-success">
+            <h2>Contacts</h2>
+            {% include "organisations/club_menu/contacts/nav_htmx.html" with selected="search" %}
+        </div>
+    {% endif %}
 
-    <div class="card-body" id="id_member_list_tab">
+    <div class="card-body" id="id_list_tab">
         <div class="container">
 
             <!-- LAST NAME -->
@@ -22,15 +29,15 @@
                 <div class="col-md-8">
                     <div class="form-group">
                         <input type="text"
-                            id="id_member_last_name_search"
-                            name="member_last_name_search"
+                            id="id_last_name_search"
+                            name="last_name_search"
                             placeholder="Last Name"
                             class="form-control"
-                            hx-post="{% url "organisations:member_search_tab_name_htmx" %}"
+                            hx-post="{% url "organisations:search_tab_name_htmx" %}"
                             hx-trigger="keyup changed delay:100ms"
-                            hx-target="#member-search-results"
-                            hx-include="[id='id_member_first_name_search']"
-                            hx-vars="club_id: {{ club.id }}"
+                            hx-target="#search-results"
+                            hx-include="[id='id_first_name_search']"
+                            hx-vars="club_id: {{ club.id }}, mode: '{{ mode }}'"
                             autofocus="autofocus"
                         >
                     </div>
@@ -42,15 +49,15 @@
                 <div class="col-md-8">
                     <div class="form-group">
                         <input type="text"
-                            id="id_member_first_name_search"
-                            name="member_first_name_search"
+                            id="id_first_name_search"
+                            name="first_name_search"
                             placeholder="First Name"
                             class="form-control"
-                            hx-post="{% url "organisations:member_search_tab_name_htmx" %}"
+                            hx-post="{% url "organisations:search_tab_name_htmx" %}"
                             hx-trigger="keyup changed delay:100ms"
-                            hx-target="#member-search-results"
-                            hx-include="[id='id_member_last_name_search']"
-                            hx-vars="club_id: {{ club.id }}"
+                            hx-target="search-results"
+                            hx-include="[id='id_last_name_search']"
+                            hx-vars="club_id: {{ club.id }}, mode: '{{ mode }}'"
                         >
                     </div>
                 </div>
@@ -61,21 +68,21 @@
                 <div class="col-md-8">
                     <div class="form-group">
                         <input type="text"
-                            id="id_member_email_search"
-                            name="member_email_search"
-                            placeholder="Club Email Address (unregistered members only)"
+                            id="id_email_search"
+                            name="email_search"
+                            placeholder="Club Email Address"
                             class="form-control"
-                            hx-post="{% url "organisations:member_search_tab_email_htmx" %}"
+                            hx-post="{% url "organisations:search_tab_email_htmx" %}"
                             hx-trigger="keyup changed delay:100ms"
-                            hx-target="#member-search-results"
-                            hx-vars="club_id: {{ club.id }}"
+                            hx-target="#search-results"
+                            hx-vars="club_id: {{ club.id }}, mode: '{{ mode }}'"
                         >
                     </div>
                 </div>
             </div>
 
             <div class="row"></div>
-            <div class="col" id="member-search-results"></div>
+            <div class="col" id="search-results"></div>
 
         </div>
     </div>
