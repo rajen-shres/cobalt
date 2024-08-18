@@ -25,7 +25,9 @@ from organisations.club_admin_core import (
     get_club_contact_list,
     get_club_member_list,
     get_contact_details,
+    get_contact_system_numbers,
     get_member_log,
+    get_member_system_numbers,
     get_valid_activities,
     log_member_change,
 )
@@ -257,6 +259,53 @@ def delete_htmx(request, club):
 
 
 @check_club_menu_access()
+def convert_select_system_number_htmx(request, club):
+    """
+    Search function for converting a member (registered, unregistered or from MPC)
+    """
+
+    system_number = request.POST.get("system_number", None)
+    contact_details = get_contact_details(club, system_number)
+
+    if not contact_details.internal:
+        # not an internal system number, so just go to the next stage
+
+        request.POST = request.POST.copy()
+        request.POST["new_system_number"] = system_number
+        return convert_htmx(request)
+
+    user_list, is_more = search_for_user_in_cobalt_and_mpc(
+        contact_details.first_name,
+        contact_details.last_name,
+    )
+
+    # Now highlight users who are already club members
+    user_list_system_numbers = [user["system_number"] for user in user_list]
+
+    member_list = get_member_system_numbers(club, target_list=user_list_system_numbers)
+    contact_list = get_contact_system_numbers(
+        club, target_list=user_list_system_numbers
+    )
+
+    for user in user_list:
+        if user["system_number"] in member_list:
+            user["source"] = "member"
+        elif user["system_number"] in contact_list:
+            user["source"] = "contact"
+
+    return render(
+        request,
+        "organisations/club_menu/contacts/convert_system_number_select_htmx.html",
+        {
+            "club": club,
+            "contact_details": contact_details,
+            "user_list": user_list,
+            "is_more": is_more,
+        },
+    )
+
+
+@check_club_menu_access()
 def convert_htmx(request, club):
     """Convert a contact to a member.
 
@@ -277,6 +326,7 @@ def convert_htmx(request, club):
 
     message = None
     system_number = request.POST.get("system_number")
+    new_system_number = request.POST.get("new_system_number")
 
     contact_details = get_contact_details(club, system_number)
 
@@ -306,11 +356,15 @@ def convert_htmx(request, club):
             request,
             club,
             system_number,
-            "Unable to change type, no alternatives available",
+            "Unable to convert, no membership types available",
         )
 
     if request.POST.get("save", "NO") == "YES":
-        form = MembershipChangeTypeForm(request.POST, club=club)
+        form = MembershipChangeTypeForm(
+            request.POST,
+            club=club,
+            registered=(contact_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
         if form.is_valid():
 
             membership_type = get_object_or_404(
@@ -333,7 +387,7 @@ def convert_htmx(request, club):
                 start_date=form.cleaned_data["start_date"],
                 end_date=form.cleaned_data["end_date"],
                 due_date=form.cleaned_data["due_date"],
-                is_paid=form.cleaned_data["is_paid"],
+                payment_method_id=int(form.cleaned_data["payment_method"]),
             )
 
             if success:
@@ -352,9 +406,14 @@ def convert_htmx(request, club):
         initial_data = {
             "membership_type": membership_choices[0][0],
             "start_date": today.strftime("%Y-%m-%d"),
-            "is_paid": False,
+            "new_system_number": new_system_number,
+            "payment_method": -1,
         }
-        form = MembershipChangeTypeForm(initial=initial_data, club=club)
+        form = MembershipChangeTypeForm(
+            initial=initial_data,
+            club=club,
+            registered=(contact_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
 
     return render(
         request,

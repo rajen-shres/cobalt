@@ -1,0 +1,160 @@
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+
+<div class="card-body">
+    <div class="card">
+        <div class="card-header card-header-primary">
+            Convert Contact to Member
+        </div>
+        <div class="container">
+            <div class="card-body">
+
+                {% if user_list %}
+
+                    <div class="row">
+                        <div class="col">
+
+                            {% if user_list|length > 1%}
+                                <h4>
+                                    Multiple {{ GLOBAL_ORG }} players match this contact's name. Please select the correct match. If none are correct ensure that they have an active {{ GLOBAL_ORG }} number in the Masterpoint Centre, and that the contact's name matches the name in the Masterpoint Centre.
+                                </h4>
+                            {% else %}
+                                <h4>
+                                    Only one {{ GLOBAL_ORG }} player matches this contact's name. Please select the match if it correct. If this is not the contact ensure that they have an active {{ GLOBAL_ORG }} number in the Masterpoint Centre, and that the contact's name matches the name in the Masterpoint Centre.
+                                </h4>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <thead>
+                                        <tr class="text-primary">
+                                            <th class="text-left">Member</th>
+                                            <th class="text-left">Home Club</th>
+                                            <th class="text-left">Source</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in user_list %}
+                                            <tr>
+
+                                                <td class="text-left">
+                                                    {{ user.first_name }} {{ user.last_name }} ({{ user.system_number }})
+                                                </td>
+                                                <td class="text-left">
+                                                    {{ user.home_club|default_if_none:"-" }}
+                                                </td>
+                                                <td class="text-left">
+                                                    {% if user.source == "registered" %}
+                                                        <a href="javascript:void(0)"
+                                                            onclick='user_type_help(
+                                                            "Registered User",
+                                                            "This user has registered with {{ GLOBAL_TITLE }}. " +
+                                                            "They can enjoy all of the benefits of the system."
+                                                            );'
+                                                        >
+                                                            <i class="material-icons text-info">info</i></a>
+                                                        Registered
+                                                    {% endif %}
+                                                    {% if user.source == "unregistered" %}
+                                                        <a href="javascript:void(0)"
+                                                            onclick='user_type_help(
+                                                            "Unregistered User",
+                                                            "This user has not registered with {{ GLOBAL_TITLE }}. " +
+                                                            "They can join any time themselves, or by being invited by an administrator."
+                                                            );'
+                                                        >
+                                                            <i class="material-icons text-info">info</i></a>
+                                                        Unregistered
+                                                    {% endif %}
+                                                    {% if user.source == "mpc" %}
+                                                        <a href="javascript:void(0)"
+                                                            onclick='user_type_help(
+                                                            "MasterPoint Centre (MPC) User",
+                                                            "This user has not registered with {{ GLOBAL_TITLE }}. " +
+                                                            "They are valid {{ GLOBAL_ORG }} members and can be added to the system."
+                                                            );'
+                                                        >
+                                                            <i class="material-icons text-info">info</i></a>
+                                                        MPC
+                                                    {% endif %}
+                                                    {% if user.source == "member" %}
+                                                        <a href="javascript:void(0)"
+                                                            onclick='user_type_help(
+                                                            "Already A Member",
+                                                            "This user is already a member of this club.");'
+                                                        >
+                                                            <i class="material-icons text-info">info</i></a>
+                                                        Already a Member
+                                                    {% endif %}
+                                                    {% if user.source == "contact" %}
+                                                        <a href="javascript:void(0)"
+                                                            onclick='user_type_help(
+                                                            "Already A Contact",
+                                                            "This user is already a contact of this club.");'
+                                                        >
+                                                            <i class="material-icons text-info">info</i></a>
+                                                        Already a Contact
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if user.source == "member" or user.source == "contact" %}
+                                                        <button class="btn btn-sm btn-primary" disabled>Select</button>
+                                                    {% elif user.source == "registered" or user.source == "unregistered" or user.source == "mpc" %}
+                                                        <button
+                                                            class="btn btn-sm btn-primary"
+                                                            hx-post="{% url 'organisations:club_admin_edit_covert_contact_htmx' %}"
+                                                            hx-target="#id_contact_action_pane"
+                                                            hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ contact_details.system_number }}, "new_system_number": {{ user.system_number }}, "save": "NO" }'
+                                                        >
+                                                            Select
+                                                        </button>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-right">
+                            <button
+                                class="btn btn-sm btn-info"
+                                hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                hx-target="#id_panel_contacts"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}"
+                                hx-trigger="click"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <h4>
+                        No {{ GLOBAL_ORG }} player matches this contact's name. Ensure that they have an active {{ GLOBAL_ORG }} number in the Masterpoint Centre, and that the contact's name matches the name in the Masterpoint Centre.
+                    </h4>
+                    <div class="row">
+                        <div class="col text-right">
+                            <button
+                                class="btn btn-sm btn-info"
+                                hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                hx-target="#id_panel_contacts"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}"
+                                hx-trigger="click"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

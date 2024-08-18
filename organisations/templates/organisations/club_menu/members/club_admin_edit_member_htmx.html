@@ -138,7 +138,7 @@
                                 <tbody>
                                     {% for mmt in member_history %}
                                         <tr
-                                            {% if forloop.first %}
+                                            {% if forloop.counter0 == current_index %}
                                                 class="font-weight-bold"
                                             {% else %}
                                                 class="text-muted"
@@ -147,8 +147,14 @@
                                             <td class="text-left">{{ mmt.membership_type.name }}</td>
                                             <td class="text-left">{{ mmt.get_membership_state_display }}</td>
                                             <td class="text-left">{{ mmt.start_date }}</td>
-                                            {% if mmt_fee %}
-                                                <td class="text-left {% if forloop.first and mmt.paid_until_date != mmt.end_date %} text-danger{% endif %}">
+                                            {% if mmt.fee %}
+                                                <td class="text-left
+                                                    {% if  mmt.paid_until_date != mmt.end_date %}
+                                                        {% if forloop.counter0 == current_index or mmt.membership_state == 'FUT'%}
+                                                            text-danger
+                                                        {% endif %}
+                                                    {% endif %}"
+                                                >
                                                     {{ mmt.fee }}
                                                 </td>
                                             {% else %}
@@ -213,7 +219,16 @@
                             {% endif %}
 
                             <!-- PAID -->
-                            {% include 'organisations/club_menu/members/club_admin_edit_member_action_button.html' with action_name='paid' label='Mark as Paid' %}
+                            {% if 'paid' in valid_actions %}
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    hx-post="{% url 'organisations:club_admin_edit_member_payment_htmx' %}"
+                                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
+                                    hx-target="#id_action_pane"
+                                >
+                                    Make Payment
+                                </button>
+                            {% endif %}
 
                             <!-- EXTEND-->
                             {% if 'extend' in valid_actions %}
@@ -223,7 +238,7 @@
                                     hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
                                     hx-target="#id_action_pane"
                                 >
-                                    Extend Membership
+                                    Renew Membership
                                 </button>
                             {% endif %}
 

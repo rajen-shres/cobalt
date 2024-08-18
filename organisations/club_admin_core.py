@@ -27,9 +27,14 @@ from accounts.models import (
     UnregisteredUser,
     UserAdditionalInfo,
 )
-from cobalt.settings import GLOBAL_TITLE
+from cobalt.settings import (
+    GLOBAL_TITLE,
+    BRIDGE_CREDITS,
+)
 
 from notifications.models import Recipient
+
+from payments.models import OrgPaymentMethod
 
 from .models import (
     Organisation,
@@ -140,9 +145,14 @@ def description_for_status(status):
 def member_details_description(member_details):
     """A comprehensive descriptive string of the type, status and relevant dates"""
 
-    period = f"from {member_details.latest_membership.start_date:%d %b %Y}"
-    if member_details.latest_membership.end_date:
-        period += f" to {member_details.latest_membership.end_date:%d %b %Y}"
+    contiguous_start, contiguous_end = member_details.current_type_dates
+
+    # JPG debug
+    print(f"Contigous dates = {contiguous_start} - {contiguous_end}")
+
+    period = f"from {contiguous_start:%d %b %Y}"
+    if contiguous_end:
+        period += f" to {contiguous_end:%d %b %Y}"
 
     joined_and_left = (
         f"Joined {member_details.joined_date:%d %b %Y}"
@@ -753,7 +763,7 @@ def club_email_for_member(club, system_number):
     except User.DoesNotExist:
         return (None, False)
 
-    # check for additional infor for bounce status
+    # check for additional info for bounce status
     additional_info = UserAdditionalInfo.objects.filter(user=user).last()
 
     return (user.email, additional_info.email_hard_bounce if additional_info else False)
@@ -833,28 +843,54 @@ def can_mark_as_deceased(member_details):
     return (True, None)
 
 
+def get_outstanding_memberships(club, system_number):
+    """Return all memberships with outstanding fees to pay"""
+
+    return MemberMembershipType.objects.filter(
+        membership_type__organisation=club,
+        system_number=system_number,
+        is_paid=False,
+        fee__gte=0,
+        membership_state__in=[
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+        ],
+    )
+
+
 def can_mark_as_paid(member_details):
     """Can the member validly be marked as paid?"""
 
-    if not (
-        member_details.is_active_status
-        or member_details.membership_status
-        == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
-    ):
-        return (False, "Member must be in an active state to be marked as paid")
+    os_memberships = get_outstanding_memberships(
+        member_details.club, member_details.system_number
+    )
 
-    today = timezone.now().date()
+    if os_memberships.count() > 0:
+        return (True, None)
+    else:
+        return "No outstanding membership fees able to be paid"
 
-    if (
-        member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
-        and member_details.latest_membership.end_date < today
-    ):
-        return (False, "Lapsed members cannot pay after the end date")
+    # JPG clean-up
+    # if not (
+    #     member_details.is_active_status
+    #     or member_details.membership_status
+    #     == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+    # ):
+    #     return (False, "Member must be in an active state to be marked as paid")
 
-    if member_details.latest_membership.is_paid:
-        return (False, "Membership is already paid")
+    # today = timezone.now().date()
 
-    return (True, None)
+    # if (
+    #     member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
+    #     and member_details.latest_membership.end_date < today
+    # ):
+    #     return (False, "Lapsed members cannot pay after the end date")
+
+    # if member_details.latest_membership.is_paid:
+    #     return (False, "Membership is already paid")
+
+    # return (True, None)
 
 
 def can_extend_membership(member_details):
@@ -1058,14 +1094,16 @@ def mark_player_as_deceased(system_number):
 def add_member(
     club,
     system_number,
+    is_registered_user,
     membership_type,
     requester,
     fee=None,
     start_date=None,
     end_date=None,
     due_date=None,
-    is_paid=True,
+    payment_method_id=-1,
     email=None,
+    process_payment=True,
 ):
     """Add a new member and initial membership to a club.
     The person must be an existing user or unregistered user, but not a member of this club.
@@ -1073,13 +1111,15 @@ def add_member(
     Args:
         club (Organisation): the club
         system_number (int): the member's system number
+        is_registered_user (bbol): is there a User onject for this person?
         membership_type (MembershipType): the membership type to be linked to
         annual_fee (Decimal): optional fee to override the default from the membership type
         start_date (Date): the start date of the membership
         end_date (Date): the end date of the membership
         due_date (Date): due date of payment
-        is_paid (bool): has the fee been paid
+        payment_method_id (int): pk of OrgPaymentMethod or -1 if none selected
         email (str): club specific email
+        process_payment (bool): attempt to make a bridge credit payment if selected payment method
 
     Returns:
         bool: success
@@ -1089,63 +1129,62 @@ def add_member(
     today = timezone.now().date()
 
     # build the new membership record
-    new_membership = MemberMembershipType()
-    new_membership.system_number = system_number
-    new_membership.last_modified_by = requester
-    new_membership.membership_type = membership_type
-    new_membership.fee = fee if fee else membership_type.annual_fee
-    new_membership.start_date = start_date if start_date else today
+    new_membership = MemberMembershipType(
+        system_number=system_number,
+        last_modified_by=requester,
+        membership_type=membership_type,
+        fee=fee if fee else membership_type.annual_fee,
+        start_date=start_date if start_date else today,
+    )
+    new_membership.due_date = (
+        due_date
+        if due_date
+        else new_membership.start_date
+        + timedelta(days=membership_type.grace_period_days)
+    )
     if membership_type.does_not_renew:
         new_membership.end_date = None
     else:
         new_membership.end_date = end_date if end_date else club.current_end_date
-    if is_paid or new_membership.fee == 0:
-        new_membership.due_date = None
-        new_membership.paid_until_date = new_membership.end_date
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
-    else:
-        new_membership.due_date = (
-            due_date
-            if due_date
-            else new_membership.start_date
-            + timedelta(days=membership_type.grace_period_days)
-        )
-        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
 
     # last minute validatation
-
-    if new_membership.start_date > today:
-        return (False, "Start date cannot be in the future")
 
     if new_membership.start_date and new_membership.end_date:
         if new_membership.start_date > new_membership.end_date:
             return (False, "End date must be after start date")
 
+    # proceed with payment
+
+    payment_success, payment_message = _process_membership_payment(
+        club,
+        is_registered_user,
+        new_membership,
+        payment_method_id,
+        "New membership",
+        process_payment=process_payment,
+    )
+
     new_membership.save()
 
     # create a new member details record
 
-    member_details = MemberClubDetails()
-    member_details.system_number = system_number
-    member_details.club = club
-    member_details.latest_membership = new_membership
+    member_details = MemberClubDetails(
+        system_number=system_number,
+        club=club,
+        latest_membership=new_membership,
+        membership_status=new_membership.membership_state,
+        joined_date=new_membership.start_date,
+    )
 
     if email:
         member_details.email = email
 
     # JPG to do : defaulting of details from User record?
 
-    member_details.membership_status = new_membership.membership_state
-    member_details.joined_date = today
-
     member_details.save()
 
     # and log it
-    message = f"Joined club ({membership_type.name})"
-
-    if is_paid and new_membership.paid_until_date:
-        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+    message = f"Joined club ({membership_type.name}) " + payment_message
 
     log_member_change(
         club,
@@ -1155,6 +1194,141 @@ def add_member(
     )
 
     return (True, message)
+
+
+def _process_membership_payment(
+    club,
+    is_registered_user,
+    membership,
+    payment_method_id,
+    description,
+    process_payment=True,
+):
+    """
+    Common processing of membership payments. On successful completion the following membership fields
+    will be updated:
+    - payment_method: None if none specified or nothing to pay
+    - is_paid: False if Bridge Credits payment failed or not processed, True even if fee is zero
+    - paid_until_date: will be None if not paid, or set to the start_date if paid (or zero fee)
+    - membership_state: based on payment status, effectiove dates and due date
+
+    Args:
+        club (Organisation): the club
+        is_registered_user (bool): is there a User object for this person
+        membership (MemberClubDetails): Must have the system_number, fee, membership_type and end_date set
+        payment_method_id (int): pk for the OrgPaymentMethod to be used, -1 if none selected
+        description (str): description to be used on the payment transactions
+        process_payments (bool): should a Bridge Credit payment be processed (if the select method)?
+
+    Returns:
+        bool: False if unable to process the Bridge Credits, the payment method is invalid or already paid
+        str: a status message
+
+    Note:
+    - Does not save the membership, this must be done by the caller
+    - Returns immediately if is_paid already set.
+    - Logs errors if issues with Bridge Credits payments
+    """
+
+    from payments.views.payments_api import payment_api_batch
+
+    message = ""
+    success = True
+
+    if membership.is_paid:
+        return (False, "Already paid")
+
+    def _has_paid(ok):
+        """Updates when paid status is known"""
+        membership.is_paid = ok
+        membership.paid_until_date = membership.end_date if ok else None
+
+        today = timezone.now().date()
+        if ok:
+            if membership.is_in_effect:
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+                )
+            elif membership.start_date > today:
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_FUTURE
+                )
+            else:
+                # should never happen (creating a membership in the past) ...
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_LAPSED
+                )
+        else:
+            if membership.due_date >= today:
+                membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+            else:
+                # something has gone wrong, past due but not paid successfully
+                # make due date today to give a chance of recovery
+                # JPG - perhaps should have an "overdue" status as well as lapsed?
+                membership.due_date = today
+                membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+
+    if membership.fee == 0:
+        # nothing to pay so ignore everything else
+        membership.payment_method = None
+        _has_paid(True)
+        return (True, "Nothing to pay")
+
+    # get and check the payment method
+    if payment_method_id >= 0:
+        payment_method = OrgPaymentMethod.objects.get(
+            pk=payment_method_id,
+            organisation=club,
+        )
+        if payment_method.payment_method == "Bridge Credits" and not is_registered_user:
+            membership.payment_method = None
+            _has_paid(False)
+            logger.error(
+                f"Unregistered {membership.system_number} cannot pay with {BRIDGE_CREDITS}"
+            )
+            return (False, f"Only registered users can use {BRIDGE_CREDITS}")
+    else:
+        payment_method = None
+
+    membership.payment_method = payment_method
+
+    if payment_method:
+        if payment_method.payment_method == "Bridge Credits":
+
+            if process_payment:
+                # try to make the payment
+
+                user = User.objects.get(system_number=membership.system_number)
+
+                if payment_api_batch(
+                    member=user,
+                    description=description,
+                    amount=membership.fee,
+                    organisation=club,
+                    payment_type="Club Membership",
+                    book_internals=True,
+                ):
+                    # Payment successful
+                    _has_paid(True)
+                    message = f"Paid by {BRIDGE_CREDITS}"
+                else:
+                    # Payment failed, leave as unpaid
+                    logger.error("Error processing Bridge Credits payment")
+                    _has_paid(False)
+                    success = False
+                    message = f"{BRIDGE_CREDITS} payment UNSUCCESSFUL"
+            else:
+                _has_paid(False)
+                message = f"{BRIDGE_CREDITS} payment not attempted"
+        else:
+            # off system payment, always mark as paid
+            _has_paid(True)
+            message = f"Paid by {payment_method.payment_method}"
+    else:
+        _has_paid(False)
+        message = "No payment method specified"
+
+    return (success, message)
 
 
 # -------------------------------------------------------------------------------------
@@ -1498,16 +1672,66 @@ def perform_simple_action(action_name, club, system_number, requester=None):
 # -------------------------------------------------------------------------------------
 
 
+def make_membership_payment(
+    club,
+    membership,
+    payment_method_id,
+    requester=None,
+):
+    """Make (or record) a payment for a membership
+
+    Args:
+        club (Organisation): the club
+        membership (MemberMembershipType): the membership to pay
+        payment_method_id (int): pk of OrgPaymentMethod
+
+    Returns:
+        bool: success
+        str: message
+    """
+
+    if membership.membership_state not in [
+        MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+        MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        MemberMembershipType.MEMBERSHIP_STATE_DUE,
+    ]:
+        return (False, "Can only make payments for current, due or future memberships")
+
+    user_check = User.objects.filter(system_number=membership.system_number).last()
+
+    payment_success, payment_message = _process_membership_payment(
+        club,
+        (user_check is not None),
+        membership,
+        payment_method_id,
+        f"Membership fee ({membership.membership_type.name})",
+    )
+
+    membership.save()
+
+    log_member_change(
+        club,
+        membership.system_number,
+        requester,
+        payment_message,
+    )
+
+    return (payment_success, payment_message)
+
+
 def renew_membership(
     club,
     system_number,
     new_end_date,
     new_fee,
     new_due_date,
-    is_paid=False,
+    payment_method_id=-1,
+    process_payment=False,
     requester=None,
 ):
-    """Extend the members current membership to a new end date.
+    """Extend the members current membership type for a new period.
+    Uses the current membership type and start date is continued from current
+    emd date.
 
     Args:
         club (Organisation): the club
@@ -1515,7 +1739,8 @@ def renew_membership(
         new_end_date (Date): the extended end date
         new_fee (Decimal): the fee associated with the renewal
         new_due_date (Date): the fee payment due date
-        is_paid (bool): has the new fee been paid
+        payment_method_id: OrgPaymentMethod id or -1 if none
+        process_payment: attempt to process the payment of Bridge Credits
         requester (User): the user requesting the change
 
     Returns:
@@ -1544,41 +1769,52 @@ def renew_membership(
     if new_end_date <= member_details.latest_membership.end_date:
         return (False, "New end date must be later than the current end date")
 
-    old_end_date = member_details.latest_membership.end_date
-    member_details.latest_membership.end_date = new_end_date
-    member_details.latest_membership.fee = new_fee
-    member_details.latest_membership.due_date = new_due_date
-    if is_paid:
-        member_details.latest_membership.paid_until_date = new_end_date
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_CURRENT
-        )
-    else:
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_DUE
-        )
-    member_details.membership_status = member_details.latest_membership.membership_state
+    # create a new membership record
 
-    member_details.latest_membership.save()
-    member_details.save()
+    _, contiguous_end = member_details.current_type_dates
+
+    new_membership = MemberMembershipType(
+        system_number=system_number,
+        membership_type=member_details.latest_membership.membership_type,
+        start_date=contiguous_end + timedelta(days=1),
+        due_date=new_due_date,
+        end_date=new_end_date,
+        fee=new_fee,
+        last_modified_by=requester,
+        membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+    )
+
+    payment_success, payment_message = _process_membership_payment(
+        club,
+        (member_details.user_type != f"{GLOBAL_TITLE} User"),
+        new_membership,
+        payment_method_id,
+        "Membership renewal",
+        process_payment=process_payment,
+    )
+
+    new_membership.save()
+
+    # NOTE: assuming that renewals always occur while the current membership is active
+    # nothin needs to be done to the current membership details or membership
 
     log_member_change(
         club,
         system_number,
         requester,
         f"{member_details.latest_membership.membership_type.name} membership extended from "
-        + f"{old_end_date.strftime('%d-%m-%Y')} to {new_end_date.strftime('%d-%m-%Y')}",
+        + f"{new_membership.start_date.strftime('%d-%m-%Y')} to {new_end_date.strftime('%d-%m-%Y')}",
     )
 
-    if is_paid:
+    if new_membership.is_paid:
         log_member_change(
             club,
             system_number,
             requester,
-            f"Membership marked as paid to {new_end_date.strftime('%d-%m-%Y')}",
+            f"Membership paid using {new_membership.payment_method.payment_method}",
         )
 
-    return (True, "Membership extended")
+    return (True, "Membership extended" + message)
 
 
 def change_membership(
@@ -1590,7 +1826,8 @@ def change_membership(
     start_date=None,
     end_date=None,
     due_date=None,
-    is_paid=False,
+    payment_method_id=-1,
+    process_payment=False,
 ):
     """Change the membership type for an existing club member by adding a new MemberMembershipType.
     The member may have a current membership, or may have lapsed, resigned etc.
@@ -1617,15 +1854,7 @@ def change_membership(
 
     today = timezone.now().date()
 
-    # get the member data and latest membership
-    member_details = (
-        MemberClubDetails.objects.filter(
-            club=club,
-            system_number=system_number,
-        )
-        .select_related("latest_membership")
-        .last()
-    )
+    member_details = get_member_details(club, system_number)
 
     if not member_details:
         raise CobaltMemberNotFound(club, system_number)
@@ -1635,61 +1864,86 @@ def change_membership(
     if not permitted_action:
         return (False, message)
 
+    # allow any start date. Work out when to end the current
+
+    start_date_for_new = start_date if start_date else today
+    is_after_current = start_date_for_new >= (
+        member_details.latest_membership.end_date + timedelta(days=1)
+    )
+
+    if is_after_current:
+        # no change
+        end_date_for_current = member_details.latest_membership.end_date
+    else:
+        end_date_for_current = start_date_for_new - timedelta(days=1)
+        if end_date_for_current < member_details.latest_membership.start_date:
+            # would be odd to back-date before the start of the current, but handle it sensibly anyway
+            end_date_for_current = member_details.latest_membership.start_date
+
     # build the new membership record
-    new_membership = MemberMembershipType()
-    new_membership.system_number = system_number
-    new_membership.last_modified_by = requester
-    new_membership.membership_type = membership_type
-    new_membership.fee = fee if fee else membership_type.annual_fee
-    new_membership.start_date = start_date if start_date else today
+    new_membership = MemberMembershipType(
+        system_number=system_number,
+        last_modified_by=requester,
+        membership_type=membership_type,
+        fee=fee if fee is not None else membership_type.annual_fee,
+        start_date=start_date_for_new,
+    )
+
     if membership_type.does_not_renew:
         new_membership.end_date = None
     else:
         new_membership.end_date = end_date if end_date else club.current_end_date
-    if is_paid or new_membership.fee == 0:
-        new_membership.due_date = None
-        new_membership.paid_until_date = new_membership.end_date
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
-    else:
-        new_membership.due_date = (
-            due_date
-            if due_date
-            else new_membership.start_date
-            + timedelta(days=membership_type.grace_period_days)
-        )
-        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+
+    new_membership.due_date = (
+        due_date
+        if due_date
+        else new_membership.start_date
+        + timedelta(days=membership_type.grace_period_days)
+    )
 
     # last minute validatation
-
-    if new_membership.start_date > today:
-        return (False, "Start date cannot be in the future")
-
     if new_membership.start_date and new_membership.end_date:
         if new_membership.start_date > new_membership.end_date:
             return (False, "End date must be after start date")
 
-    # update the member record and the previous membership record
+    # try to process payment
+    payment_success, payment_message = _process_membership_payment(
+        club,
+        (member_details.user_type != f"{GLOBAL_TITLE} User"),
+        new_membership,
+        payment_method_id,
+        "Membership",
+        process_payment=process_payment,
+    )
+
     new_membership.save()
 
-    if member_details.latest_membership.membership_state in MEMBERSHIP_STATES_ACTIVE:
-        member_details.latest_membership.membership_state = (
-            MemberMembershipType.MEMBERSHIP_STATE_ENDED
-        )
-        member_details.latest_membership.end_date = (
-            new_membership.start_date - timedelta(days=1)
-        )
+    # update the member record and the previous membership record
+
+    if (
+        member_details.latest_membership.membership_state in MEMBERSHIP_STATES_ACTIVE
+        and not is_after_current
+    ):
+        member_details.latest_membership.end_date = end_date_for_current
+        if end_date_for_current < today:
+            # old membership is now over
+            member_details.latest_membership.membership_state = (
+                MemberMembershipType.MEMBERSHIP_STATE_ENDED
+            )
         member_details.latest_membership.save()
 
-    member_details.latest_membership = new_membership
-    member_details.membership_status = new_membership.membership_state
-    member_details.save()
+    if end_date_for_current < today:
+        if new_membership.start_date <= today:
+            # new membership takes effect
+            member_details.latest_membership = new_membership
+            member_details.membership_status = new_membership.membership_state
+        else:
+            # old one has ended, new one has not start (odd condition but anyway)
+            member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_ENDED
+        member_details.save()
 
     # and log it
-    message = f"Membership changed to {membership_type.name}"
-
-    if is_paid and new_membership.paid_until_date:
-        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+    message = f"Membership changed to {membership_type.name} " + payment_message
 
     log_member_change(
         club,
@@ -1739,7 +1993,11 @@ def convert_existing_membership(club, membership):
         membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DECEASED
     else:
         # assume that the membership is current and paid until the end of the current membership year
-        membership.end_date = club.current_end_date
+        membership.is_paid = True
+        if membership.membership_type.does_not_renew:
+            membership.end_date = None
+        else:
+            membership.end_date = club.current_end_date
         membership.paid_until_date = membership.end_date
         membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
 
@@ -1758,7 +2016,7 @@ def convert_existing_membership(club, membership):
     member_details.system_number = membership.system_number
     member_details.club = club
     member_details.latest_membership = membership
-    member_details.joined_date = membership.start_date
+    member_details.joined_date = None
 
     if deceased:
         member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
@@ -1779,7 +2037,7 @@ def convert_existing_membership(club, membership):
             member_details.email_hard_bounce_date = club_email.email_hard_bounce_date
         elif is_user and user.share_with_clubs:
             member_details.email = user.email
-            additional_info = UserAdditionalInfo.objects.fileter(user=user).last()
+            additional_info = UserAdditionalInfo.objects.filter(user=user).last()
             if additional_info:
                 member_details.email_hard_bounce = additional_info.email_hard_bounce
                 member_details.email_hard_bounce_reason = (
@@ -1825,7 +2083,7 @@ def convert_existing_memberships_for_club(club):
         except UnregisteredUser.DoesNotExist:
             error_count += 1
             logger.error(
-                f"Unable to conver MemberMembershipType {membership} for {club}, no matching user"
+                f"Unable to convert MemberMembershipType {membership} for {club}, no matching user"
             )
 
     return (ok_count, error_count)
@@ -1872,7 +2130,8 @@ def convert_contact_to_member(
     start_date=None,
     end_date=None,
     due_date=None,
-    is_paid=True,
+    payment_method_id=-1,
+    process_payment=True,
 ):
     """Convert a club contact to a member with the supplied parameters.
 
@@ -1881,15 +2140,16 @@ def convert_contact_to_member(
 
     Args:
         club (Organisation): the club
-        system_number (int): the member's system number
-        contact (MemberClubDetails): the contact member record
-        membership_type (MembershipType): the new membership type to be linked to
+        old_system_number (int): the contact's current system number (could be internal)
+        system_number (int): the system number to be used as the member (must not be internal)
+        membership_type (MembershipType): the membership type to be linked to
         requester (User): the user making teh change, required for the new record
         fee (Decimal): optional fee to override the default from the membership type
         start_date (Date): optional start date, otherwise will use today
         end_date (Date): optional end date, otherwise will use the club default or None if perpetual
-        due_date (Date): optional due_date, otherwise use the payment type grace period if a fees is set
-        is_paid (bool): has the fee been paid, used to set the paid until date
+        due_date (Date): optional due_date, otherwise use the payment type grace period
+        payment_method_id (int): pk for OrgPaymentMethod or -1 if none specified
+        process_payment (bool): attempt to process Bridge Credit payment
 
     Returns:
         bool: success
@@ -1898,81 +2158,92 @@ def convert_contact_to_member(
 
     today = timezone.now().date()
 
+    start_date_actual = start_date if start_date else today
+    if membership_type.does_not_renew:
+        end_date_actual = None
+    else:
+        end_date_actual = end_date if end_date else club.current_end_date
+
+    # do validatation before hitting the database
+
+    if start_date_actual > today:
+        return (False, "Start date cannot be in the future")
+
+    if end_date_actual:
+        if start_date_actual > end_date_actual:
+            return (False, "End date must be after start date")
+
+    # ok to proceeed
+
     member_details = MemberClubDetails.objects.get(
         club=club,
         system_number=old_system_number,
     )
 
-    contact_unreg_user = UnregisteredUser.all_objects.filter(
-        system_number=old_system_number
-    ).last()
-
-    # check if converting an internal system number unreg user contact
-    if contact_unreg_user and contact_unreg_user.internal_system_number:
-
-        # check whether the new system number is already in use
-        check_user = User.objects.filter(
-            system_number=system_number,
+    def _get_user_or_unreg(a_system_number):
+        """look for a user or unregistered user from a system number"""
+        u_or_u = User.objects.filter(
+            system_number=a_system_number,
         ).last()
-
-        if check_user:
-            # system number is in use by a registered user
-            contact_unreg_user.delete()
-
-        else:
-            check_unreg = UnregisteredUser.objects.filter(
-                system_number=system_number,
+        if not u_or_u:
+            u_or_u = UnregisteredUser.all_objects.filter(
+                system_number=a_system_number
             ).last()
+        return u_or_u
 
-            if check_unreg:
-                # system number is in use by an unreg user
-                contact_unreg_user.delete()
+    # can only be changing system numbers because current is internal
+    is_real_system_number = system_number == old_system_number
 
-            else:
-                # system number not in use, so convert to unreg user
-                contact_unreg_user.system_number = system_number
-                contact_unreg_user.internal_system_number = False
-                contact_unreg_user.save()
+    # there will always be an existing unreg at least for the old_system number
+    existing_user_or_unreg = _get_user_or_unreg(old_system_number)
+    if is_real_system_number:
+        new_user_or_unreg = existing_user_or_unreg
+    else:
+        # check for an existing user or unreg with the new number
+        new_user_or_unreg = _get_user_or_unreg(system_number)
 
-        # now have either a user or unreg user with the new system number
-        # so update the contact and any other uses of the old system number
+    if not is_real_system_number:
+        # deal with a contact with an internal system number
+
+        if new_user_or_unreg:
+            # actual user is on the system so can delete the old internal unreg
+            existing_user_or_unreg.delete()
+        else:
+            # actual user not on the system so convert the existing unreg user
+            existing_user_or_unreg.system_number = system_number
+            existing_user_or_unreg.internal_system_number = False
+            existing_user_or_unreg.save()
+            new_user_or_unreg = existing_user_or_unreg
+
         member_details.system_number = system_number
-
         _replace_internal_system_number(old_system_number, system_number)
 
+    # now have a User or UnregisteredUser for the new number
+
     # build the new membership record
-    new_membership = MemberMembershipType()
-    new_membership.system_number = system_number
-    new_membership.last_modified_by = requester
-    new_membership.membership_type = membership_type
-    new_membership.fee = fee if fee else membership_type.annual_fee
-    new_membership.start_date = start_date if start_date else today
-    if membership_type.does_not_renew:
-        new_membership.end_date = None
-    else:
-        new_membership.end_date = end_date if end_date else club.current_end_date
-    if is_paid or new_membership.fee == 0:
-        new_membership.due_date = None
-        new_membership.paid_until_date = new_membership.end_date
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
-    else:
-        new_membership.due_date = (
-            due_date
-            if due_date
-            else new_membership.start_date
-            + timedelta(days=membership_type.grace_period_days)
-        )
-        new_membership.paid_until_date = new_membership.start_date - timedelta(days=1)
-        new_membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+    new_membership = MemberMembershipType(
+        system_number=system_number,
+        last_modified_by=requester,
+        membership_type=membership_type,
+        fee=fee if fee else membership_type.annual_fee,
+        start_date=start_date_actual,
+        end_date=end_date_actual,
+    )
+    new_membership.due_date = (
+        due_date
+        if due_date
+        else new_membership.start_date
+        + timedelta(days=membership_type.grace_period_days)
+    )
 
-    # last minute validatation
-
-    if new_membership.start_date > today:
-        return (False, "Start date cannot be in the future")
-
-    if new_membership.start_date and new_membership.end_date:
-        if new_membership.start_date > new_membership.end_date:
-            return (False, "End date must be after start date")
+    payment_success, paymnet_message = _process_membership_payment(
+        club,
+        (type(new_user_or_unreg) == User),
+        new_membership,
+        payment_method_id,
+        "New membership",
+        process_payment=process_payment,
+    )
 
     new_membership.save()
 
@@ -1980,15 +2251,12 @@ def convert_contact_to_member(
 
     member_details.latest_membership = new_membership
     member_details.membership_status = new_membership.membership_state
-    member_details.joined_date = today
+    member_details.joined_date = new_membership.start_date
 
     member_details.save()
 
     # and log it
-    message = f"Contact converted to member ({membership_type.name})"
-
-    if is_paid and new_membership.paid_until_date:
-        message += f", paid to {new_membership.paid_until_date.strftime('%d-%m-%Y')}"
+    message = f"Contact converted to member ({membership_type.name}) " + paymnet_message
 
     log_member_change(
         club,

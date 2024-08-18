@@ -46,6 +46,27 @@ def membership_type_choices(club):
     ]
 
 
+def membership_payment_method_choices(club, registered, allow_none=True):
+    """Return membership payment method choices for a club
+
+    Adds a null choice with value -1, and removes IOU as a valid choice
+    Removes bridge credits if not registered.
+    """
+
+    all_methods = OrgPaymentMethod.objects.filter(
+        organisation=club,
+        active=True,
+    ).values_list("id", "payment_method")
+
+    method_choices = [(-1, "-")] if allow_none else []
+
+    for id, desc in all_methods:
+        if desc != "IOU" and not (desc == "Bridge Credits" and not registered):
+            method_choices.append((id, desc))
+
+    return method_choices
+
+
 # TODO: Replace when club admin work complete
 class OrgFormOld(forms.ModelForm):
     class Meta:
@@ -254,7 +275,31 @@ class MembershipExtendForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
-    is_paid = forms.BooleanField(label="Mark as paid", required=False)
+    payment_method = forms.ChoiceField(label="Payment method", required=True)
+    # JPG clean up
+    # is_paid = forms.BooleanField(label="Mark as paid", required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        registered = kwargs.pop("registered")
+        super(MembershipExtendForm, self).__init__(*args, **kwargs)
+        self.fields["payment_method"].choices = membership_payment_method_choices(
+            self.club, registered
+        )
+
+
+class MembershipPaymentForm(forms.Form):
+    """Form for paying membership fees. Does not provide a no selection option for the payment method"""
+
+    payment_method = forms.ChoiceField(label="Payment method", required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        registered = kwargs.pop("registered")
+        super(MembershipPaymentForm, self).__init__(*args, **kwargs)
+        self.fields["payment_method"].choices = membership_payment_method_choices(
+            self.club, registered, allow_none=False
+        )
 
 
 class MembershipChangeTypeForm(forms.Form):
@@ -285,15 +330,22 @@ class MembershipChangeTypeForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
-    is_paid = forms.BooleanField(label="Mark as paid", required=False)
+    # JPG clean up
+    # is_paid = forms.BooleanField(label="Mark as paid", required=False)
+    payment_method = forms.ChoiceField(label="Payment method", required=True)
 
     send_welcome_pack = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
+        registered = kwargs.pop("registered")
         super(MembershipChangeTypeForm, self).__init__(*args, **kwargs)
         self.fields["membership_type"].choices = membership_type_choices(self.club)
+        self.fields["payment_method"].choices = membership_payment_method_choices(
+            self.club, registered
+        )
 
+        # JPG clean up
         # If this club doesn't have a membership pack then don't show on form
         # if not WelcomePack.objects.filter(organisation=self.club).exists():
         #     del self.fields["send_welcome_email"]

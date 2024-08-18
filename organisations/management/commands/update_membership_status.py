@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from organisations.models import (
     MemberClubDetails,
+    MemberMembershipType,
     Organisation,
 )
 from organisations.club_admin_core import (
@@ -32,6 +33,37 @@ class Command(BaseCommand):
             club = Organisation.objects.get(pk=club_id)
             self.club_cache[club_id] = club
         return self.club_cache[club_id]
+
+    def activate_future_dated(self, membership_id):
+        """Process a future dated membership,
+        known to have a start date of today or earlier"""
+
+        membership = MemberMembershipType.objects.get(pk=membership_id)
+
+        member_details = MemberClubDetails.objects.filter(
+            club=membership.membership_type.organisation,
+            system_number=membership.system_number,
+        ).last()
+
+        if membership.end_date is None or membership.end_date >= today:
+            if membership.is_paid:
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+                )
+            elif membership.due_date >= today:
+                membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
+            else:
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_LAPSED
+                )
+        else:
+            membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_LAPSED
+
+        membership.save()
+
+        member_details.latest_membership = membership
+        member_details.membership_status = membership.membership_state
+        member_details.save()
 
     def handle(self, *args, **options):
 
@@ -87,6 +119,31 @@ class Command(BaseCommand):
             except Exception as e:
                 logger.error(
                     f"Exception lapsing expired {system_number} of {self.get_club(club_id)}: {e}"
+                )
+                errored += 1
+
+        # check for any future dated memberships that should become active
+
+        future_membership_list = (
+            MemberMembershipType.objects.filter(
+                membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+                start_date__lte=today,
+            )
+            .order_by("start_date")
+            .values_list(
+                "id",
+                flat=True,
+            )
+        )
+
+        for membership_id in future_membership_list:
+            try:
+                with transaction.atomic():
+                    self.activate_future_dated(membership_id)
+                processed += 1
+            except Exception as e:
+                logger.error(
+                    f"Exception processing future dated membership id: {membership_id}: {e}"
                 )
                 errored += 1
 

@@ -249,7 +249,9 @@ class Organisation(models.Model):
         """the end date of the forthcoming annual renewal cycle
         One year on from the current_renewal_date"""
         current_end = self.next_renewal_date
-        return date(current_end.year + 1, current_end.month, current_end.day)
+        return date(
+            current_end.year + 1, current_end.month, current_end.day
+        ) - timedelta(days=1)
 
     @property
     def settlement_fee_percent(self):
@@ -297,6 +299,25 @@ class Organisation(models.Model):
         return self.name
 
 
+class OrgVenue(models.Model):
+    """Used by clubs that have multiple venues so we can identify sessions properly"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    venue = models.CharField(max_length=15)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.organisation} - {self.venue}"
+
+
+class MiscPayType(models.Model):
+    """Labels for different kinds of miscellaneous payments for clubs. eg. Parking, books"""
+
+    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+    description = models.CharField(max_length=30)
+    default_amount = models.DecimalField(default=0, decimal_places=2, max_digits=8)
+
+
 class MembershipType(models.Model):
     """Clubs can have multiple membership types. A member can only belong to one membership type per club at one time"""
 
@@ -342,6 +363,8 @@ class MemberMembershipType(models.Model):
     membership status for the person.
     """
 
+    from payments.models import OrgPaymentMethod
+
     system_number = models.IntegerField("%s Number" % GLOBAL_ORG, blank=True)
 
     # Note: deleting a MembershipType that has any references will cause an exception
@@ -349,7 +372,7 @@ class MemberMembershipType(models.Model):
 
     home_club = models.BooleanField("Is Member's Home Club", default=False)
 
-    start_date = models.DateField("Started At", auto_now_add=True)
+    start_date = models.DateField("Started At")
 
     end_date = models.DateField("Ends At", blank=True, null=True, default=None)
     """ Membership end date, None if membershipy type is perpetual """
@@ -365,9 +388,21 @@ class MemberMembershipType(models.Model):
     fee = models.DecimalField(
         "Fee", max_digits=12, decimal_places=2, blank=True, null=True
     )
-    """ The last fee payable """
+    """ The fee payable """
+
+    payment_method = models.ForeignKey(
+        OrgPaymentMethod, blank=True, null=True, default=None, on_delete=models.PROTECT
+    )
+    """ The payment method used, if any """
+
+    is_paid = models.BooleanField(
+        "Is Paid",
+        default=False,
+    )
+    """ Has payment been made successfully (or is the membership free) """
 
     MEMBERSHIP_STATE_CURRENT = "CUR"
+    MEMBERSHIP_STATE_FUTURE = "FUT"
     MEMBERSHIP_STATE_DUE = "DUE"
     MEMBERSHIP_STATE_ENDED = "END"
     MEMBERSHIP_STATE_LAPSED = "LAP"
@@ -377,6 +412,7 @@ class MemberMembershipType(models.Model):
 
     MEMBERSHIP_STATE = [
         (MEMBERSHIP_STATE_CURRENT, "Current"),
+        (MEMBERSHIP_STATE_FUTURE, "Future"),
         (MEMBERSHIP_STATE_DUE, "Due"),
         (MEMBERSHIP_STATE_ENDED, "Ended"),
         (MEMBERSHIP_STATE_LAPSED, "Lapsed"),
@@ -398,13 +434,14 @@ class MemberMembershipType(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
-    @property
-    def is_paid(self):
-        """Has the membership been paid?"""
-        if not self.end_date:
-            # A perpetual membership type
-            return True
-        return self.paid_until_date == self.end_date
+    # JPG clean up
+    # @property
+    # def is_paid(self):
+    #     """Has the membership been paid?"""
+    #     if not self.end_date:
+    #         # A perpetual membership type
+    #         return True
+    #     return self.paid_until_date == self.end_date
 
     @property
     def is_active_state(self):
@@ -413,6 +450,12 @@ class MemberMembershipType(models.Model):
             self.MEMBERSHIP_STATE_CURRENT,
             self.MEMBERSHIP_STATE_DUE,
         ]
+
+    @property
+    def is_in_effect(self):
+        """Is this currently in the effective date range"""
+        today = timezone.now().date()
+        return (self.start_date <= today) and (self.end_date >= today)
 
     def refresh_state(self, as_at_date=None, commit=True):
         """Ensure that the membership state is correct.
@@ -440,17 +483,6 @@ class MemberMembershipType(models.Model):
             if self.membership_state != old_state and commit:
                 self.save()
         return self.membership_state != old_state
-
-    # JPG clean-up after testing, should not be used
-    # @property
-    # def active(self):
-    #     """Get if this is active or not"""
-    #     now = timezone.now()
-    #     if self.start_date > now:
-    #         return False
-    #     # if self.end_date < now:
-    #     #     return False
-    #     return True
 
     def __str__(self):
         return (
@@ -493,6 +525,7 @@ class MemberClubDetails(models.Model):
     """ The most recent MemberMembershipRecord for this member, may not be current """
 
     MEMBERSHIP_STATUS_CURRENT = "CUR"
+    MEMBERSHIP_STATUS_FUTURE = "FUT"
     MEMBERSHIP_STATUS_DUE = "DUE"
     MEMBERSHIP_STATUS_ENDED = "END"
     MEMBERSHIP_STATUS_LAPSED = "LAP"
@@ -503,6 +536,7 @@ class MemberClubDetails(models.Model):
 
     MEMBERSHIP_STATUS = [
         (MEMBERSHIP_STATUS_CURRENT, "Current"),
+        (MEMBERSHIP_STATUS_FUTURE, "Future"),
         (MEMBERSHIP_STATUS_DUE, "Due"),
         (MEMBERSHIP_STATUS_ENDED, "Ended"),
         (MEMBERSHIP_STATUS_LAPSED, "Lapsed"),
@@ -646,6 +680,55 @@ class MemberClubDetails(models.Model):
             self.save()
 
         return changed
+
+    @property
+    def current_type_dates(self):
+        """The start and end dates for the current membership type
+        aggregated over contiguous memberships surrounding the current,
+        including future dated renewals"""
+
+        history = MemberMembershipType.objects.filter(
+            system_number=self.system_number,
+            membership_type__organisation=self.club,
+            membership_type=self.latest_membership.membership_type,
+        ).order_by("start_date")
+
+        # JPG debug
+        # print(" ============ scanning history =============")
+
+        #  scan the history looking for the contigous block containin the current
+        earliest_start = None
+        latest_end = None
+        current_found = False
+        for mmt in history:
+
+            # JPG debug
+            # print(f" {mmt.start_date} - {mmt.end_date} {'*' if mmt == self.latest_membership else ''}")
+
+            if not earliest_start:
+                earliest_start = mmt.start_date
+                latest_end = mmt.end_date
+                current_found = mmt == self.latest_membership
+                continue
+
+            if mmt.start_date != latest_end + timedelta(days=1):
+                # have found a break
+                if current_found:
+                    return (earliest_start, latest_end)
+                earliest_start = mmt.start_date
+                current_found = mmt == self.latest_membership
+
+            latest_end = mmt.end_date
+            current_found = current_found or mmt == self.latest_membership
+
+        # JPG debug
+        # print(" ============= end of history ==============")
+
+        if current_found:
+            return (earliest_start, latest_end)
+        else:
+            # should never happen, would indicate an issue with the latest membership pointer
+            return (None, None)
 
     @property
     def is_active_status(self):
@@ -832,25 +915,6 @@ class OrganisationFrontPage(models.Model):
             )
 
         super(OrganisationFrontPage, self).save(*args, **kwargs)
-
-
-class MiscPayType(models.Model):
-    """Labels for different kinds of miscellaneous payments for clubs. eg. Parking, books"""
-
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    description = models.CharField(max_length=30)
-    default_amount = models.DecimalField(default=0, decimal_places=2, max_digits=8)
-
-
-class OrgVenue(models.Model):
-    """Used by clubs that have multiple venues so we can identify sessions properly"""
-
-    organisation = models.ForeignKey(Organisation, on_delete=models.CASCADE)
-    venue = models.CharField(max_length=15)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.organisation} - {self.venue}"
 
 
 class OrgEmailTemplate(models.Model):

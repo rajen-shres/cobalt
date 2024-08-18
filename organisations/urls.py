@@ -845,6 +845,11 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.club_admin_edit_member_extend_htmx,
         name="club_admin_edit_member_extend_htmx",
     ),
+    path(
+        "club-admin/edit-member/payment/",
+        organisations.views.club_menu_tabs.members.club_admin_edit_member_payment_htmx,
+        name="club_admin_edit_member_payment_htmx",
+    ),
     # -----------------------------------------------------------------------------------
     #   Club admin - Recent activity views - common to members and contacts
     # -----------------------------------------------------------------------------------
@@ -910,6 +915,11 @@ urlpatterns = [
         "club-menu/tabs/contacts/delete",
         organisations.views.club_menu_tabs.contacts.delete_htmx,
         name="club_admin_delete_contact_htmx",
+    ),
+    path(
+        "club-menu/tabs/contacts/convert-select",
+        organisations.views.club_menu_tabs.contacts.convert_select_system_number_htmx,
+        name="club_admin_edit_covert_contact_select_htmx",
     ),
     path(
         "club-menu/tabs/contacts/convert",

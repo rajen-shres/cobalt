@@ -50,9 +50,11 @@ from organisations.club_admin_core import (
     get_member_details,
     get_member_log,
     get_member_system_numbers,
+    get_outstanding_memberships,
     get_valid_actions,
     get_valid_activities,
     log_member_change,
+    make_membership_payment,
     member_details_description,
     perform_simple_action,
     renew_membership,
@@ -67,6 +69,7 @@ from organisations.forms import (
     MemberClubDetailsForm,
     MembershipExtendForm,
     MembershipChangeTypeForm,
+    MembershipPaymentForm,
 )
 from organisations.models import (
     MemberMembershipType,
@@ -1606,6 +1609,15 @@ def club_admin_edit_member_htmx(request, club, message=None):
         .order_by("-created_at")
     )
 
+    # work out the index of the current membership for highlighting
+    # in the history list
+
+    current_index = None
+    for index, mmt in enumerate(member_history):
+        if mmt == member_details.latest_membership:
+            current_index = index
+            break
+
     # get the members log history
     log_history = get_member_log(club, system_number)
 
@@ -1668,6 +1680,9 @@ def club_admin_edit_member_htmx(request, club, message=None):
     # which recent activities should be shown?
     permitted_activities = get_valid_activities(member_details)
 
+    # JPG debug
+    print(f"Current index = {current_index}")
+
     return render(
         request,
         "organisations/club_menu/members/club_admin_edit_member_htmx.html",
@@ -1675,6 +1690,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "club": club,
             "member_details": member_details,
             "member_history": member_history,
+            "current_index": current_index,
             "log_history": log_history[:20],
             "form": form,
             "valid_actions": valid_actions,
@@ -1764,10 +1780,10 @@ def club_admin_edit_member_change_htmx(request, club):
     # When the user selects a type in the form the corresponding fee and dates need to be set
     # Note: end_date is not set for types which do not renew (eg Life membership)
     # Note: values are converted to types that JavaScript can ingest
-    # Note: allow a change to teh same type to allow details to be changed
+    # Note: allow a change to the same type to allow details to be changed
     membership_types = (
         MembershipType.objects.filter(organisation=club)
-        # .exclude(id=member_details.latest_membership.membership_type.id)
+        .exclude(id=member_details.latest_membership.membership_type.id)
         .all()
     )
     membership_choices = [(mt.id, mt.name) for mt in membership_types]
@@ -1794,20 +1810,12 @@ def club_admin_edit_member_change_htmx(request, club):
             "Unable to change type, no alternatives available",
         )
 
-        # JPG Clean up
-        # response = HttpResponse()
-        # response["hx-redirect"] = reverse(
-        #     "organisations:club_admin_edit_member_htmx",
-        #     kwargs={
-        #         "club_id": club.id,
-        #         "system_number": system_number,
-        #         "message": "Unable to change type, no alternatives available",
-        #     },
-        # )
-        # return response
-
     if "save" in request.POST:
-        form = MembershipChangeTypeForm(request.POST, club=club)
+        form = MembershipChangeTypeForm(
+            request.POST,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
         if form.is_valid():
 
             membership_type = get_object_or_404(
@@ -1824,7 +1832,8 @@ def club_admin_edit_member_change_htmx(request, club):
                 start_date=form.cleaned_data["start_date"],
                 end_date=form.cleaned_data["end_date"],
                 due_date=form.cleaned_data["due_date"],
-                is_paid=form.cleaned_data["is_paid"],
+                payment_method_id=int(form.cleaned_data["payment_method"]),
+                process_payment=True,
             )
 
             if success:
@@ -1840,12 +1849,18 @@ def club_admin_edit_member_change_htmx(request, club):
         initial_data = {
             "membership_type": membership_choices[0][0],
             "start_date": today.strftime("%Y-%m-%d"),
+            "payment_method": -1,
+            # JPG clean up
             # "end_date": club.current_end_date.strftime("%Y-%m-%d"),
             # "fee": fees_and_due_dates[f"{membership_choices[0][0]}"]['annual_fee'],
             # "due_date": fees_and_due_dates[f"{membership_choices[0][0]}"]['due_date'],
-            "is_paid": False,
+            # "is_paid": False,
         }
-        form = MembershipChangeTypeForm(initial=initial_data, club=club)
+        form = MembershipChangeTypeForm(
+            initial=initial_data,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
 
     return render(
         request,
@@ -1893,7 +1908,83 @@ def club_admin_edit_member_membership_action_htmx(request, club):
 
 
 @check_club_menu_access(check_members=True)
+def club_admin_edit_member_payment_htmx(request, club):
+    """
+    Get payment details
+    """
+
+    system_number = request.POST.get("system_number", None)
+    member_details = get_member_details(club, system_number)
+
+    membership_to_pay = get_outstanding_memberships(
+        club,
+        system_number,
+    ).last()
+
+    if not membership_to_pay:
+        # nothing to pay, should not have been called
+
+        return _refresh_edit_member(
+            request,
+            club,
+            system_number,
+            "No membership fees to pay",
+        )
+
+    message = None
+
+    if "save" in request.POST:
+
+        form = MembershipPaymentForm(
+            request.POST,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
+
+        form.is_valid()
+
+        payment_success, payment_message = make_membership_payment(
+            club, membership_to_pay, int(form.cleaned_data["payment_method"])
+        )
+
+        if payment_success:
+
+            return _refresh_edit_member(
+                request,
+                club,
+                system_number,
+                payment_message,
+                requester=request.user,
+            )
+
+        else:
+            message = payment_message
+
+    else:
+
+        form = MembershipPaymentForm(
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_payment_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "membership": membership_to_pay,
+            "form": form,
+            "message": message,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
 def club_admin_edit_member_extend_htmx(request, club):
+    """
+    Handle the extend membership sub-view
+    """
 
     system_number = request.POST.get("system_number", None)
     if not system_number:
@@ -1908,7 +1999,7 @@ def club_admin_edit_member_extend_htmx(request, club):
 
     permitted_action, message = can_perform_action("extend", member_details)
     if not permitted_action:
-        # should be here - redirect with an error message
+        # should not be here - redirect with an error message
         return _refresh_edit_member(
             request,
             club,
@@ -1918,7 +2009,11 @@ def club_admin_edit_member_extend_htmx(request, club):
 
     if "save" in request.POST:
 
-        form = MembershipExtendForm(request.POST)
+        form = MembershipExtendForm(
+            request.POST,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
         if form.is_valid():
 
             success, message = renew_membership(
@@ -1927,7 +2022,8 @@ def club_admin_edit_member_extend_htmx(request, club):
                 form.cleaned_data["new_end_date"],
                 form.cleaned_data["fee"],
                 form.cleaned_data["due_date"],
-                is_paid=form.cleaned_data["is_paid"],
+                payment_method_id=int(form.cleaned_data["payment_method"]),
+                process_payment=True,
                 requester=request.user,
             )
 
@@ -1949,9 +2045,13 @@ def club_admin_edit_member_extend_htmx(request, club):
             "new_end_date": club.next_end_date.strftime("%Y-%m-%d"),
             "fee": member_details.latest_membership.membership_type.annual_fee,
             "due_date": default_due_date.strftime("%Y-%m-%d"),
-            "is_paid": False,
+            "payment_method": -1,
         }
-        form = MembershipExtendForm(initial=initial_data)
+        form = MembershipExtendForm(
+            initial=initial_data,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
 
     return render(
         request,
@@ -2050,7 +2150,11 @@ def club_admin_add_member_detail_htmx(request, club):
     welcome_pack = WelcomePack.objects.filter(organisation=club).exists()
 
     if "save" in request.POST:
-        form = MembershipChangeTypeForm(request.POST, club=club)
+        form = MembershipChangeTypeForm(
+            request.POST,
+            club=club,
+            registered=(user_type == "REG"),
+        )
         if form.is_valid():
 
             # JPG debug
@@ -2076,13 +2180,14 @@ def club_admin_add_member_detail_htmx(request, club):
                 success, message = add_member(
                     club,
                     system_number,
+                    (user_type == "REG"),
                     membership_type,
                     request.user,
                     fee=form.cleaned_data["fee"],
                     start_date=form.cleaned_data["start_date"],
                     end_date=form.cleaned_data["end_date"],
                     due_date=form.cleaned_data["due_date"],
-                    is_paid=form.cleaned_data["is_paid"],
+                    payment_method_id=int(form.cleaned_data["payment_method"]),
                     email=form.cleaned_data["new_email"],
                 )
 
@@ -2108,12 +2213,16 @@ def club_admin_add_member_detail_htmx(request, club):
         initial_data = {
             "membership_type": membership_types.first().id,
             "start_date": today.strftime("%Y-%m-%d"),
-            "is_paid": False,
+            "payment_method": -1,
         }
         if mpc_details and mpc_details["EmailAddress"]:
             initial_data["new_email"] = mpc_details["EmailAddress"]
 
-        form = MembershipChangeTypeForm(initial=initial_data, club=club)
+        form = MembershipChangeTypeForm(
+            initial=initial_data,
+            club=club,
+            registered=(user_type == "REG"),
+        )
 
     return render(
         request,
