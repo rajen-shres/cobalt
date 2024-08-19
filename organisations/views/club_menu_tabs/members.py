@@ -70,6 +70,7 @@ from organisations.forms import (
     MembershipExtendForm,
     MembershipChangeTypeForm,
     MembershipPaymentForm,
+    MembershipRawEditForm,
 )
 from organisations.models import (
     MemberMembershipType,
@@ -87,7 +88,11 @@ from organisations.views.general import (
     active_email_for_un_reg,
     get_rbac_model_for_state,
 )
-from payments.models import MemberTransaction, UserPendingPayment
+from payments.models import (
+    MemberTransaction,
+    UserPendingPayment,
+    OrgPaymentMethod,
+)
 from payments.views.core import (
     get_balance,
     org_balance,
@@ -1586,10 +1591,14 @@ def club_admin_edit_member_htmx(request, club, message=None):
     """
 
     system_number = request.POST.get("system_number", None)
-    if not message:
-        message = request.POST.get("message", None)
+    post_message = request.POST.get("message", None)
+    if message and post_message:
+        message = f"{message}. {post_message}"
+    elif post_message:
+        message = post_message
     saving = request.POST.get("save", "NO") == "YES"
     editing = request.POST.get("edit", "NO") == "YES"
+    show_history = request.POST.get("show_history", "NO") == "YES"
 
     if not system_number:
         # JPG to do - this call will not work. perhaps raise an exception instead
@@ -1701,6 +1710,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "member_description": member_description,
             "system_number": member_details.system_number,
             "permitted_activities": permitted_activities,
+            "show_history": show_history,
         },
     )
 
@@ -1717,7 +1727,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
 # ----------------------------------------------------------------------------------
 
 
-def _refresh_edit_member(request, club, system_number, message):
+def _refresh_edit_member(request, club, system_number, message, show_history=False):
     """Refreshes the edit member view from within the view
     ie. call as the result of an htmx end point to refresh the view
     """
@@ -1729,6 +1739,7 @@ def _refresh_edit_member(request, club, system_number, message):
             "club_id": club.id,
             "system_number": system_number,
             "message": message,
+            "show_history_str": "YES" if show_history else "NO",
         },
     )
 
@@ -2237,6 +2248,178 @@ def club_admin_add_member_detail_htmx(request, club):
             "user": user,
             "welcome_pack": welcome_pack,
             "mpc_details": mpc_details,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_edit_member_edit_mmt_htmx(request, club):
+
+    system_number = request.POST.get("system_number")
+    mmt = get_object_or_404(MemberMembershipType, pk=int(request.POST.get("mmt_id")))
+
+    member_details = get_member_details(club, system_number)
+
+    message = None
+
+    if request.POST.get("save", "NO") == "YES":
+
+        form = MembershipRawEditForm(
+            request.POST,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
+
+        if form.is_valid():
+
+            error = False
+
+            membership_type_id = int(form.cleaned_data["membership_type"])
+            new_membership_type = (
+                MembershipType.objects.get(pk=membership_type_id)
+                if membership_type_id >= 0
+                else None
+            )
+
+            if (
+                new_membership_type
+                and not new_membership_type.does_not_renew
+                and not form.cleaned_data["end_date"]
+            ):
+                error = True
+                message = (
+                    f"Membership type {new_membership_type.name} requires an end date"
+                )
+
+            if (
+                new_membership_type
+                and new_membership_type.does_not_renew
+                and form.cleaned_data["end_date"]
+            ):
+                error = True
+                message = f"Membership type {new_membership_type.name} cannot have an end date"
+
+            payment_method_id = int(form.cleaned_data["payment_method"])
+            new_payment_method = (
+                OrgPaymentMethod.objects.get(pk=payment_method_id)
+                if payment_method_id >= 0
+                else None
+            )
+
+            if (
+                not error
+                and new_payment_method
+                and new_payment_method.payment_method == "Bridge Credits"
+                and member_details.user_type != f"{GLOBAL_TITLE} User"
+            ):
+                error = True
+                message = "User must be registered to use Bridge Credits"
+
+            if (
+                not error
+                and form.cleaned_data["start_date"]
+                and form.cleaned_data["end_date"]
+                and form.cleaned_data["start_date"] > form.cleaned_data["end_date"]
+            ):
+                error = True
+                message = "End date cannot be before start date"
+
+            if not error:
+
+                mmt.membership_type = new_membership_type
+                mmt.payment_method = new_payment_method
+                mmt.membership_state = form.cleaned_data["membership_state"]
+                mmt.start_date = form.cleaned_data["start_date"]
+                mmt.end_date = (
+                    form.cleaned_data["end_date"]
+                    if form.cleaned_data["end_date"]
+                    else None
+                )
+                mmt.paid_until_date = (
+                    form.cleaned_data["paid_until_date"]
+                    if form.cleaned_data["paid_until_date"]
+                    else None
+                )
+                mmt.due_date = (
+                    form.cleaned_data["due_date"]
+                    if form.cleaned_data["due_date"]
+                    else None
+                )
+                mmt.fee = form.cleaned_data["fee"]
+                mmt.is_paid = form.cleaned_data["is_paid"]
+                mmt.last_modified_by = request.user
+                mmt.save()
+
+                if mmt == member_details.latest_membership:
+                    member_details.membership_status = mmt.membership_state
+                    member_details.save()
+
+                return _refresh_edit_member(
+                    request, club, system_number, "Changes saved", show_history=True
+                )
+
+        else:
+            message = "Error on form"
+
+    else:
+
+        initial_data = {
+            "membership_type": mmt.membership_type.id if mmt.membership_type else -1,
+            "payment_method": mmt.payment_method.id if mmt.payment_method else -1,
+        }
+
+        form = MembershipRawEditForm(
+            instance=mmt,
+            initial=initial_data,
+            club=club,
+            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+        )
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_edit_mmt_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "mmt": mmt,
+            "form": form,
+            "message": message,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def club_admin_edit_member_delete_mmt_htmx(request, club):
+
+    system_number = request.POST.get("system_number")
+    mmt = get_object_or_404(MemberMembershipType, pk=int(request.POST.get("mmt_id")))
+    message = ""
+
+    if request.POST.get("delete", "NO") == "YES":
+
+        mmt.delete()
+
+        request.POST = request.POST.copy()
+        del request.POST["delete"]
+        return _refresh_edit_member(
+            request, club, system_number, "Membership record deleted", show_history=True
+        )
+
+    refund_warning = (
+        mmt.is_paid
+        and mmt.payment_method
+        and mmt.payment_method.payment_method == "Bridge Credits"
+    )
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_edit_member_delete_mmt_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "mmt": mmt,
+            "refund_warning": refund_warning,
+            "message": message,
         },
     )
 

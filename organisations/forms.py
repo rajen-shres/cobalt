@@ -302,6 +302,40 @@ class MembershipPaymentForm(forms.Form):
         )
 
 
+class MembershipRawEditForm(forms.ModelForm):
+    """Form for raw editing of a membership record"""
+
+    membership_type = forms.ChoiceField(label="Membership Type", required=True)
+
+    payment_method = forms.ChoiceField(label="Payment method", required=True)
+
+    membership_state = forms.ChoiceField(
+        label="Membership State",
+        choices=MemberMembershipType.MEMBERSHIP_STATE,
+        required=True,
+    )
+
+    class Meta:
+        model = MemberMembershipType
+        exclude = [
+            "system_number",
+            "home_club",
+            "last_modified_by",
+            "membership_type",
+            "payment_method",
+            "membership_state",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        registered = kwargs.pop("registered")
+        super(MembershipRawEditForm, self).__init__(*args, **kwargs)
+        self.fields["membership_type"].choices = membership_type_choices(self.club)
+        self.fields["payment_method"].choices = membership_payment_method_choices(
+            self.club, registered
+        )
+
+
 class MembershipChangeTypeForm(forms.Form):
     """Form for changing or creating a new membership
     Membership type options are derived from the club parameter"""

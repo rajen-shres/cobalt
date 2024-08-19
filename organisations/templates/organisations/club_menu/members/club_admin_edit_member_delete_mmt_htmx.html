@@ -1,0 +1,63 @@
+{% load static %}
+{% load cobalt_tags %}
+
+<div class="card-body">
+    <div class="card mt-5">
+        <div class="card-header card-header-danger">
+            Delete Membership
+        </div>
+        <div class="container">
+            <div class="card-body">
+
+                <div class="row justify-content-center pb-2">
+                    <div class="col-auto pt-3 text-center">
+                        <h4 class="text-danger font-weight-bold">
+                            WARNING
+                        </h4>
+                        <h4 class="text-danger">
+                            Deleting a membership record may have unexpected consequences.
+                        </h4>
+                        {% if refund_warning %}
+                            <h4 class="text-danger">
+                                This membership record has a Bridge Credits payment associated with it. Deleting <b>will not</b> initiate a refund.
+                            </h4>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if message %}
+                    <div class="row justify-content-center pb-2">
+                        <div class="col-auto">
+                            <h3 class="text-danger">{{ message }}</h3>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="row pb-2">
+                    <div class="col">
+                        <button
+                            class="btn btn-sm btn-danger"
+                            hx-post="{% url 'organisations:club_admin_edit_member_delete_mmt_htmx' %}"
+                            hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ system_number }}, "mmt_id": {{ mmt.id }}, "delete": "YES" }'
+                            hx-target="#id_action_pane"
+                            hx-trigger="click"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                    <div class="col text-right">
+                        <button
+                            class="btn btn-sm btn-info"
+                            hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                            hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, save:'NO', show_history:'YES'"
+                            hx-target="#id_panel_members"
+                            hx-trigger="click"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

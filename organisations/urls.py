@@ -850,6 +850,16 @@ urlpatterns = [
         organisations.views.club_menu_tabs.members.club_admin_edit_member_payment_htmx,
         name="club_admin_edit_member_payment_htmx",
     ),
+    path(
+        "club-admin/edit-member/membership/edit",
+        organisations.views.club_menu_tabs.members.club_admin_edit_member_edit_mmt_htmx,
+        name="club_admin_edit_member_edit_mmt_htmx",
+    ),
+    path(
+        "club-admin/edit-member/membership/delete",
+        organisations.views.club_menu_tabs.members.club_admin_edit_member_delete_mmt_htmx,
+        name="club_admin_edit_member_delete_mmt_htmx",
+    ),
     # -----------------------------------------------------------------------------------
     #   Club admin - Recent activity views - common to members and contacts
     # -----------------------------------------------------------------------------------

@@ -1,0 +1,185 @@
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+<div class="card-body">
+    <div class="card mt-5">
+        <div class="card-header card-header-danger">
+            Edit Membership
+        </div>
+        <div class="container">
+            <div class="card-body">
+                <form
+                    hx-post="{% url 'organisations:club_admin_edit_member_edit_mmt_htmx' %}"
+                    hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ system_number }}, "mmt_id": {{ mmt.id }}, "save": "YES" }'
+                    hx-target="#id_action_pane"
+                >
+                    {% csrf_token %}
+
+                    <div class="row justify-content-center pb-2">
+                        <div class="col-auto pt-3 text-center">
+                            <h4 class="text-danger font-weight-bold">
+                                WARNING
+                            </h4>
+                            <h4 class="text-danger">
+                                Directly editing a membership record may have unexpected consequences.
+                            </h4>
+                            <h4 class="text-danger">
+                                No payments or refunds will result from changes made here.
+                            </h4>
+                        </div>
+                    </div>
+
+                    {% if message %}
+                        <div class="row justify-content-center pb-2">
+                            <div class="col-auto">
+                                <h3 class="text-danger">{{ message }}</h3>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row pb-2">
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Membership Type
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_membership_type" class="form-group">
+                                <span class="cobalt-form-error" id="id_membership_type_errors">
+                                    {{ form.membership_type.errors|striptags }}
+                                </span>
+                                {% render_field form.membership_type class+="form-control" %}
+                            </div>
+                        </div>
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Membership State
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_membership_state" class="form-group">
+                                <span class="cobalt-form-error" id="id_membership_state_errors">
+                                    {{ form.membership_state.errors|striptags }}
+                                </span>
+                                {% render_field form.membership_state class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pb-2">
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Start date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_start_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_start_date_errors">
+                                    {{ form.start_date.errors|striptags }}
+                                </span>
+                                {% render_field form.start_date class+="form-control" %}
+                            </div>
+                        </div>
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            End date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_end_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_end_date_errors">
+                                    {{ form.end_date.errors|striptags }}
+                                </span>
+                                {% render_field form.end_date class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pb-2">
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Fee
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_fee" class="form-group">
+                                <span class="cobalt-form-error" id="id_fee_errors">
+                                    {{ form.new_end_date.errors|striptags }}
+                                </span>
+                                {% render_field form.fee class+="form-control" %}
+                            </div>
+                        </div>
+
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Payment method
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_payment_method" class="form-group">
+                                <span class="cobalt-form-error" id="id_is_paid_errors">
+                                    {{ form.payment_method.errors|striptags }}
+                                </span>
+                                {% render_field form.payment_method class+="form-control" %}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row pb-2">
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Due date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_due_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_due_date_errors">
+                                    {{ form.due_date.errors|striptags }}
+                                </span>
+                                {% render_field form.due_date class+="form-control" %}
+                            </div>
+                        </div>
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Paid until date
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_paid_until_date" class="form-group">
+                                <span class="cobalt-form-error" id="id_paid_until_date_errors">
+                                    {{ form.paid_until_date.errors|striptags }}
+                                </span>
+                                {% render_field form.paid_until_date class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row pb-2">
+                        <div class="col-2 justify-content-center align-self-center pt-3">
+                            Is paid
+                        </div>
+                        <div class="col-3">
+                            <div id="div_id_is_paid" class="form-group">
+                                <span class="cobalt-form-error" id="id_is_paid_errors">
+                                    {{ form.is_paid.errors|striptags }}
+                                </span>
+                                {% render_field form.is_paid class+="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row pb-2">
+                        <div class="col">
+                            <button
+                                type="Save"
+                                class="btn btn-sm btn-success cobalt-save"
+                            >
+                                Save
+                            </button>
+                        </div>
+                        <div class="col text-right">
+                            <button
+                                class="btn btn-sm btn-info"
+                                hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, save:'NO', show_history:'YES'"
+                                hx-target="#id_panel_members"
+                                hx-trigger="click"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
