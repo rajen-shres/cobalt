@@ -10,7 +10,7 @@
             {% if member_of_clubs %}
                 {#  Use our data about club membership first, otherwise use MPC #}
                 {% for membership in member_of_clubs %}
-                    <h4>{{ membership.organisation }}</h4>
+                    <h4>{{ membership.club }}</h4>
                 {% endfor %}
 
             {% else %}

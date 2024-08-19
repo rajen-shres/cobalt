@@ -202,6 +202,7 @@ class OrgDatesForm(forms.ModelForm):
         fields = (
             "membership_renewal_date_day",
             "membership_renewal_date_month",
+            "full_club_admin",
         )
 
     def clean(self):

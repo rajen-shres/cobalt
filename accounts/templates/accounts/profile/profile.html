@@ -158,7 +158,7 @@
                         <div class="card-body">
                             <ul>
                                 {% for membership in member_of_clubs %}
-                                    <li><a href="{% url "organisations:general_org_profile" org_id=membership.organisation.id %}">{{ membership.organisation }}</a></li>
+                                    <li><a href="{% url "organisations:general_org_profile" org_id=membership.club.id %}">{{ membership.club }}</a></li>
                                 {% endfor %}
                             </ul>
                         </div>

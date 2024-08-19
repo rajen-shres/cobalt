@@ -8,7 +8,13 @@ from accounts.models import UserAdditionalInfo, TeamMate, User
 from accounts.views.core import _check_duplicate_email
 from forums.models import Post, Comment1, Comment2
 from masterpoints.views import user_summary
-from organisations.views.general import get_clubs_for_player
+
+# JPG clen up
+# from organisations.views.general import get_clubs_for_player
+from organisations.club_admin_core import (
+    share_user_data_with_clubs,
+    get_club_memberships_for_person,
+)
 from payments.views.core import get_user_pending_payments
 from rbac.core import rbac_user_has_role
 from support.models import Incident
@@ -33,6 +39,8 @@ def profile(request):
     if request.method == "POST" and form.is_valid():
 
         form.save()
+        feedback = "Profile Updated"
+
         if "email" in form.changed_data:
             if _check_duplicate_email(request.user):
                 messages.warning(
@@ -51,9 +59,12 @@ def profile(request):
                 user_additional_info.email_hard_bounce_reason = None
                 user_additional_info.save()
 
-        messages.success(
-            request, "Profile Updated", extra_tags="cobalt-message-success"
-        )
+            if request.user.share_with_clubs:
+                updated_clubs = share_user_data_with_clubs(request.user)
+                if updated_clubs:
+                    feedback += f", {updated_clubs} club membership{'s' if updated_clubs>1 else ''} updated"
+
+        messages.success(request, feedback, extra_tags="cobalt-message-success")
 
         # Reload form or dates don't work
         form = UserUpdateForm(instance=request.user)
@@ -68,7 +79,9 @@ def profile(request):
     user_additional_info = UserAdditionalInfo.objects.filter(user=request.user).first()
 
     # Get clubs
-    member_of_clubs = get_clubs_for_player(request.user)
+    # JPG Clean up
+    # member_of_clubs = get_clubs_for_player(request.user)
+    member_of_clubs = get_club_memberships_for_person(request.user.system_number)
 
     # Get any outstanding debt
     user_pending_payments = get_user_pending_payments(request.user.system_number)
@@ -212,7 +225,9 @@ def public_profile(request, pk):
     user_additional_info = UserAdditionalInfo.objects.filter(user=pub_profile).first()
 
     # Get clubs
-    member_of_clubs = get_clubs_for_player(pub_profile)
+    # JPG clean-up
+    # member_of_clubs = get_clubs_for_player(pub_profile)
+    member_of_clubs = get_club_memberships_for_person(pub_profile.system_number)
 
     return render(
         request,

@@ -237,11 +237,13 @@
     // set up to change date and fees when the membership type selection changes
     function initialiseHTMXForm() {
 
+        console.log("-- initialiseHTMXForm --")
+
         const membershipTypeField = document.getElementById('id_membership_type');
         const feeField = document.getElementById('id_fee');
         const dueDateField = document.getElementById('id_due_date');
         const endDateField = document.getElementById('id_end_date');
-        const isPaidField = document.getElementById('id_is_paid')
+        // const isPaidField = document.getElementById('id_is_paid')
         const endDateDiv = document.getElementById('id_optional_end_date');
         const dueDateDiv = document.getElementById('id_optional_due_date');
 
@@ -271,13 +273,15 @@
             }
         });
 
-        isPaidField.addEventListener('change', function() {
-            if (feeField.value == 0 || this.checked) {
-                dueDateDiv.style.display = 'none';
-            } else {
-                dueDateDiv.style.display = 'block';
-            }
-        });
+        // isPaidField.addEventListener('change', function() {
+        //     if (feeField.value == 0 || this.checked) {
+        //         dueDateDiv.style.display = 'none';
+        //     } else {
+        //         dueDateDiv.style.display = 'block';
+        //     }
+        // });
+
+        console.log("--- sending initising change events ---")
 
         // Trigger change event on page load to set initial values
         membershipTypeField.dispatchEvent(new Event('change'));

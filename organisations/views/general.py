@@ -260,14 +260,15 @@ def is_admin_for_organisation(user, club):
     return False
 
 
-def get_clubs_for_player(player):
-    """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
+# JPG deprecate
+# def get_clubs_for_player(player):
+#     """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
 
-    memberships = MemberMembershipType.objects.filter(
-        system_number=player.system_number
-    ).values_list("membership_type")
+#     memberships = MemberMembershipType.objects.filter(
+#         system_number=player.system_number
+#     ).values_list("membership_type")
 
-    return MembershipType.objects.filter(id__in=memberships)
+#     return MembershipType.objects.filter(id__in=memberships)
 
 
 def get_membership_type_for_players(system_number_list, club):

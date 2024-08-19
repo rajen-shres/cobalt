@@ -237,38 +237,42 @@
                                                         </div>
                                                     </div>
 
-                                                    <!-- <div class="col-md-12">
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" value="" checked="Checked">
-                            Show MP Percentage on Dashboard
-                            <span class="form-check-sign">
-                                <span class="check"></span>
-                            </span>
-                        </label>
-                    </div>
-                  </div>
-
-                  <div class="col-md-12">
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input class="form-check-input" type="checkbox" value="" checked="Checked">
-                            Only if above 50%
-                            <span class="form-check-sign">
-                                <span class="check"></span>
-                            </span>
-                        </label>
-                    </div>
-                  </div> -->
-
-
-
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- End Site Settings -->
+
+                                    <!-- Data Sharing -->
+
+                                    <div class="card">
+                                        <div class="card-header card-header-primary">
+                                            <h4 class="card-title">Data Sharing</h4>
+                                            <p class="card-category">Preferences</p>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12">
+
+                                                    <div class="col-md-12">
+                                                        <div class="form-check">
+                                                            <label class="form-check-label">
+                                                                <input class="form-check-input" id="id_share_with_clubs" name="share_with_clubs" type="checkbox" {% if form.share_with_clubs.value %}checked="Checked" {% endif %}>
+                                                                Share your email, mobile and date of birth with clubs where you are a member
+                                                                <span class="form-check-sign">
+                                                                    <span class="check"></span>
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Data Sharing -->
+
 
                                     <!-- Club -->
 

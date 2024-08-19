@@ -1179,8 +1179,6 @@ def add_member(
     if email:
         member_details.email = email
 
-    # JPG to do : defaulting of details from User record?
-
     member_details.save()
 
     # and log it
@@ -1192,6 +1190,11 @@ def add_member(
         requester,
         message,
     )
+
+    if is_registered_user:
+        user = User.objects.get(system_number=system_number)
+        if user.share_with_clubs:
+            share_user_data_with_clubs(user, this_membership=member_details)
 
     return (True, message)
 
@@ -1955,6 +1958,79 @@ def change_membership(
     return (True, message)
 
 
+def get_club_memberships_for_person(system_number):
+    """Return active membership details records for this user
+
+    Args:
+        system_number (int): the member's system number
+    """
+
+    return MemberClubDetails.objects.filter(
+        system_number=system_number,
+        membership_status__in=MEMBERSHIP_STATES_ACTIVE,
+    )
+
+
+def share_user_data_with_clubs(user, this_membership=None, overwrite=False):
+    """Share user personal information with clubs of which they are a member
+
+    Args:
+        user (User): the user electing to share information
+        this_membership (MemberClubDetails): only update this membership
+        overwrite (bool): replace any club values with the user's
+
+    Returns:
+        int: number of clubs updated
+    """
+
+    if not user.share_with_clubs:
+        return 0
+
+    additional_info = user.useradditionalinfo_set.last()
+
+    if this_membership:
+        memberships = [this_membership]
+    else:
+        memberships = get_club_memberships_for_person(user.system_number)
+
+    updated_clubs = 0
+    for membership in memberships:
+        updated = False
+
+        # update any fields
+        for field_name in ["email", "dob", "mobile"]:
+            if getattr(user, field_name) and (
+                not getattr(membership, field_name) or overwrite
+            ):
+                setattr(membership, field_name, getattr(user, field_name))
+                updated = True
+
+        # if the club is using the same email make sure that the email bounce data
+        # is synchronised
+        if (
+            additional_info
+            and membership.email == user.email
+            and membership.email_hard_bounce != additional_info.email_hard_bounce
+        ):
+            membership.email_hard_bounce = additional_info.email_hard_bounce
+            membership.email_hard_bounce_reason = (
+                additional_info.email_hard_bounce_reason
+            )
+            membership.email_hard_bounce_date = additional_info.email_hard_bounce_date
+
+        if updated:
+            membership.save()
+            log_member_change(
+                membership.club,
+                user.system_number,
+                user,
+                "Updated with data shared by member",
+            )
+            updated_clubs += 1
+
+    return updated_clubs
+
+
 # -------------------------------------------------------------------------------------
 # Data conversion functions
 # -------------------------------------------------------------------------------------
@@ -2035,23 +2111,11 @@ def convert_existing_membership(club, membership):
                 club_email.email_hard_bounce_reason
             )
             member_details.email_hard_bounce_date = club_email.email_hard_bounce_date
-        elif is_user and user.share_with_clubs:
-            member_details.email = user.email
-            additional_info = UserAdditionalInfo.objects.filter(user=user).last()
-            if additional_info:
-                member_details.email_hard_bounce = additional_info.email_hard_bounce
-                member_details.email_hard_bounce_reason = (
-                    additional_info.email_hard_bounce_reason
-                )
-                member_details.email_hard_bounce_date = (
-                    additional_info.email_hard_bounce_date
-                )
-
-        if is_user and user.share_with_clubs:
-            member_details.dob = user.dob
-            member_details.mobile = user.mobile
 
     member_details.save()
+
+    if is_user and user.share_with_clubs:
+        share_user_data_with_clubs(user.system_number, this_membership=member_details)
 
 
 def convert_existing_memberships_for_club(club):
@@ -2264,6 +2328,11 @@ def convert_contact_to_member(
         requester,
         message,
     )
+
+    if type(new_user_or_unreg) == User and new_user_or_unreg.share_with_clubs:
+        share_user_data_with_clubs(
+            new_user_or_unreg.system_number, this_membership=new_membership
+        )
 
     return (True, message)
 

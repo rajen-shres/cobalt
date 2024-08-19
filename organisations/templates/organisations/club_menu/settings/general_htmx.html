@@ -5,7 +5,10 @@
 {# Allows user to edit venues or choose default_secondary_payment_method  #}
 {#                                                                        #}
 {#------------------------------------------------------------------------#}
+{% load static %}
 {% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
 
 <!-- SET ALL TABS TO AT LEAST 800PX TO IT DOESN'T JUMP MOVING BETWEEN THEM IF SCROLLED DOWN -->
 <div class="card" style="min-height: 800px; height: auto">
@@ -19,6 +22,8 @@
         <h3 class="text-info font-weight-bold settings_message" id="settings_message">{{ message }}</h3>
 
         <div class="container">
+
+            <!-- USE LAST PAYMENT METHOD -->
 
             <div class="row">
                 <div class="col-md-6 mb-4">
@@ -43,6 +48,65 @@
                     <div>If this is checked then we will default the payment method for sessions to be whatever the player used last time which may not be {{ BRIDGE_CREDITS }} or your secondary payment method. Only applies to sessions.</div>
                 </div>
             </div>
+
+            <!-- CLUB ADMIN -->
+
+            <form
+                hx-post="{% url 'organisations:club_menu_tab_settings_general_htmx' %}"
+                hx-vars='{ "club_id": {{ club.id }},  "save": "YES" }'
+                hx-target="#id_panel_settings"
+            >
+
+                <div class="row pb-2">
+                    <div class="col-4 justify-content-center align-self-center pt-3">
+                        Annual membership renewal date - day
+                    </div>
+                    <div class="col-2">
+                        <div id="div_id_membership_renewal_date_day" class="form-group">
+                            <span class="cobalt-form-error" id="id_mmembership_renewal_date_day_errors">
+                                {{ form.membership_renewal_date_day.errors|striptags }}
+                            </span>
+                            {% render_field form.membership_renewal_date_day class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-4 justify-content-center align-self-center pt-3">
+                        Annual membership renewal date - month
+                    </div>
+                    <div class="col-2">
+                        <div id="div_id_membership_renewal_date_month" class="form-group">
+                            <span class="cobalt-form-error" id="id_membership_renewal_date_month_errors">
+                                {{ form.membership_renewal_date_month.errors|striptags }}
+                            </span>
+                            {% render_field form.membership_renewal_date_month class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row pb-4">
+                    <div class="col-4 justify-content-center align-self-center pt-3">
+                        Use full club administration
+                    </div>
+                    <div class="col-2">
+                        <div id="div_id_full_club_admin" class="form-group">
+                            <span class="cobalt-form-error" id="id_full_club_admin_errors">
+                                {{ form.full_club_admin.errors|striptags }}
+                            </span>
+                            {% render_field form.full_club_admin class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="row pb-2">
+                    <div class="col-6 text-right">
+                        <button
+                            type="Save"
+                            class="btn btn-sm btn-success cobalt-save"
+                        >
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </form>
 
             <!-- VENUES -->
             <div class="row">
