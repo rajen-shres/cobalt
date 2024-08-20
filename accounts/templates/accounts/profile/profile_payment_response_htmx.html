@@ -1,0 +1,20 @@
+{#  HTMX membership fee response snippet #}
+{#  Replaces the initially hidden message row, #}
+{#  and optionally disables the payment button via an out of band swap#}
+
+<tr
+    id="id_payment_message_{{ mmt.id }}"
+>
+    {{ message }}
+</tr>
+
+{% if disable_payment_button %}
+    <button
+        class="btn btn-sm btn-success"
+        id="id-payment-button-{{ mmt.id }}"
+        hx-swap-oob="true"
+        disabled
+    >
+        Pay now
+    </button>
+{% endif %}

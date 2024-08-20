@@ -331,7 +331,12 @@ class MembershipType(models.Model):
         "Annual Fee", max_digits=12, decimal_places=2, blank=True, null=True
     )
 
-    grace_period_days = models.IntegerField("Payment Grace Period (days)", default=31)
+    grace_period_days = models.IntegerField(
+        "Payment period (days from start of period)",
+        default=31,
+        null=False,
+        blank=False,
+    )
 
     is_default = models.BooleanField("Default Membership Type", default=False)
 

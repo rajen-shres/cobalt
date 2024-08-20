@@ -971,4 +971,17 @@ urlpatterns = [
         organisations.views.club_menu_tabs.contacts.club_admin_report_all_csv,
         name="club_menu_tab_contacts_report_all_csv",
     ),
+    # -----------------------------------------------------------------------------------
+    #   Club admin - Renewals
+    # -----------------------------------------------------------------------------------
+    path(
+        "club-admin/user-initiated-payment/<int:mmt_id>/",
+        organisations.views.club_admin.user_initiated_payment,
+        name="club_admin_user_initiated_payment",
+    ),
+    path(
+        "club-admin/user-initiated-payment-success/<int:mmt_id>/",
+        organisations.views.club_admin.user_initiated_payment_success_htmx,
+        name="club_admin_user_initiated_payment_success_htmx",
+    ),
 ]

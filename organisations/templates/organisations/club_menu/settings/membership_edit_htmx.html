@@ -30,7 +30,13 @@
                     hx-vars="membership_type_id:{{ membership_type.id }}"
                 >Delete</a>
             {% else %}
-                <p class="font-italic">This is your only membership type and cannot be deleted.</p>
+                <p class="font-italic">
+                    {% if is_in_use %}
+                        This membership type is in use and cannot be deleted.
+                    {% else %}
+                        This is your only membership type and cannot be deleted.
+                    {% endif %}
+                </p>
             {% endif %}
         </form>
 

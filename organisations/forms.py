@@ -184,6 +184,7 @@ class MembershipTypeForm(forms.ModelForm):
             "description",
             "annual_fee",
             "is_default",
+            "grace_period_days",
             "does_not_pay_session_fees",
             "does_not_renew",
         )

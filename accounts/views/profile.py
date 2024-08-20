@@ -14,6 +14,7 @@ from masterpoints.views import user_summary
 from organisations.club_admin_core import (
     share_user_data_with_clubs,
     get_club_memberships_for_person,
+    get_outstanding_membership_fees_for_user,
 )
 from payments.views.core import get_user_pending_payments
 from rbac.core import rbac_user_has_role
@@ -83,6 +84,8 @@ def profile(request):
     # member_of_clubs = get_clubs_for_player(request.user)
     member_of_clubs = get_club_memberships_for_person(request.user.system_number)
 
+    outstanding_fees = get_outstanding_membership_fees_for_user(request.user)
+
     # Get any outstanding debt
     user_pending_payments = get_user_pending_payments(request.user.system_number)
 
@@ -101,6 +104,7 @@ def profile(request):
             "member_of_clubs": member_of_clubs,
             "user_pending_payments": user_pending_payments,
             "tour": tour,
+            "outstanding_fees": outstanding_fees,
         },
     )
 

@@ -59,6 +59,9 @@ from organisations.views.club_menu_tabs.utils import (
     get_club_members_from_system_number_list,
     get_members_for_club,
 )
+from organisations.club_admin_core import (
+    get_count_for_membership_type,
+)
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
 from rbac.core import rbac_user_has_role
@@ -358,9 +361,11 @@ def membership_htmx(request, club):
     # JPG review - will need update
     # Add in number of members
     for membership_type in membership_types:
-        membership_type.get_member_count = MemberMembershipType.objects.filter(
+        membership_type.member_count = MemberMembershipType.objects.filter(
             membership_type=membership_type
         ).count()
+
+        membership_type.member_count = get_count_for_membership_type(membership_type)
 
     return render(
         request,
@@ -424,7 +429,12 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
         del form.fields["is_default"]
 
     # Don't allow delete for last membership type
-    allow_delete = MembershipType.objects.filter(organisation=club).count() > 1
+    is_last_one = MembershipType.objects.filter(organisation=club).count() == 1
+
+    # Don't allow delete for any membership type in use
+    is_in_use = get_count_for_membership_type(membership_type, active_only=False) > 0
+
+    allow_delete = not is_last_one and not is_in_use
 
     return render(
         request,
@@ -434,6 +444,8 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
             "membership_type": membership_type,
             "form": form,
             "message": message,
+            "is_last_one": is_last_one,
+            "is_in_use": is_in_use,
             "allow_delete": allow_delete,
         },
     )

@@ -10,13 +10,17 @@ from django.template.loader import render_to_string
 from datetime import datetime
 from itertools import chain
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import (
-    render,
     get_object_or_404,
+    redirect,
+    render,
 )
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from accounts.models import (
     User,
@@ -28,6 +32,7 @@ from cobalt.settings import (
     GLOBAL_TITLE,
     COBALT_HOSTNAME,
     GLOBAL_CURRENCY_SYMBOL,
+    BRIDGE_CREDITS,
 )
 from events.models import (
     EventEntryPlayer,
@@ -48,16 +53,21 @@ from organisations.club_admin_core import (
     get_club_member_list,
     get_club_member_list_email_match,
     get_club_contact_list_email_match,
+    log_member_change,
 )
 from organisations.models import (
     ClubLog,
     ClubTag,
     MemberClubDetails,
     MemberClubTag,
+    MemberMembershipType,
     MiscPayType,
 )
 from payments.models import MemberTransaction
-from payments.views.payments_api import payment_api_batch
+from payments.views.payments_api import (
+    payment_api_batch,
+    payment_api_interactive,
+)
 from payments.views.core import (
     get_balance,
     org_balance,
@@ -595,3 +605,112 @@ def search_tab_email_htmx(request, club):
         "organisations/club_admin/search_tab_results_htmx.html",
         {"user_list": user_list, "club": club, "mode": mode},
     )
+
+
+@login_required()
+def user_initiated_payment(request, mmt_id):
+    """User wants to pay a membership fee by Bridge Credits."""
+
+    def refresh_with_warning(message):
+
+        messages.warning(
+            request,
+            message,
+            extra_tags="cobalt-message-warning",
+        )
+
+        return redirect("accounts:user_profile")
+
+    mmt = (
+        MemberMembershipType.objects.filter(pk=mmt_id)
+        .select_related("membership_type", "membership_type__organisation")
+        .last()
+    )
+
+    if not mmt:
+        return HttpResponse("Error: record no longer exists")
+
+    if mmt.system_number != request.user.system_number:
+        return refresh_with_warning("Error: not your fee to pay")
+
+    if (
+        mmt.fee == 0
+        or mmt.is_paid
+        or mmt.membership_state
+        not in [
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+            MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        ]
+    ):
+        return refresh_with_warning("Error: fee no longer payable")
+
+    # ok to proceed with payment
+
+    return payment_api_interactive(
+        request,
+        request.user,
+        f"Membership Fee {mmt.membership_type.organisation.name}",
+        mmt.fee,
+        organisation=mmt.membership_type.organisation,
+        payment_type="Club Membership",
+        route_code="CAU",
+        route_payload=f"{mmt_id}",
+        next_url=reverse(
+            "accounts:user_profile",
+        ),
+    )
+
+
+@login_required()
+def user_initiated_payment_success_htmx(request, mmt_id):
+    """Payment has been successful ?"""
+
+    return render(
+        request,
+        "accounts/profile/profile_payment_response_htmx.html",
+        {
+            "mmt_id": mmt_id,
+            "message": "Payment made",
+            "disable_payment_button": True,
+        },
+    )
+
+
+def user_initiated_fee_payment_callback(status, payload):
+    """Callback from payments API, payment has been made
+    Payload is the MemberMembershipType id"""
+
+    if status == "Success":
+
+        mmt_id = int(payload)
+        mmt = (
+            MemberMembershipType.objects.filter(pk=mmt_id)
+            .select_related("membership_type", "membership_type__organisation")
+            .last()
+        )
+
+        # mark membership as paid
+        mmt.is_paid = True
+        mmt.paid_until_date = mmt.end_date
+        if mmt.membership_state == MemberMembershipType.MEMBERSHIP_STATE_DUE:
+            mmt.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+
+            # update the membership details record
+            member_details = MemberClubDetails.objects.filter(
+                system_number=mmt.system_number,
+                club=mmt.membership_type.organisation,
+            ).last()
+            member_details.membership_status = mmt.membership_state
+            member_details.save()
+
+        mmt.save()
+
+        user = User.objects.get(system_number=mmt.system_number)
+
+        log_member_change(
+            mmt.membership_type.organisation,
+            mmt.system_number,
+            user,
+            f"Member paid fee by {BRIDGE_CREDITS}",
+        )

@@ -769,6 +769,68 @@ def club_email_for_member(club, system_number):
     return (user.email, additional_info.email_hard_bounce if additional_info else False)
 
 
+def get_club_memberships_for_person(system_number):
+    """Return active membership details records for this user
+
+    Args:
+        system_number (int): the member's system number
+    """
+
+    return MemberClubDetails.objects.filter(
+        system_number=system_number,
+        membership_status__in=MEMBERSHIP_STATES_ACTIVE,
+    )
+
+
+def get_outstanding_membership_fees_for_user(user):
+    """Return club memberships (MemberMembershipType objects) with outstanding
+    fees for the user. Only returns those with an active state (current, future, due)
+
+    Args:
+        user (User): the user to check for
+
+    Returns:
+        QuerySet : query set of MemberMembershipType objects
+    """
+
+    return MemberMembershipType.objects.filter(
+        system_number=user.system_number,
+        fee__gt=0,
+        is_paid=False,
+        membership_state__in=[
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+            MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        ],
+    ).select_related("membership_type", "membership_type__organisation")
+
+
+def get_count_for_membership_type(membership_type, active_only=True):
+    """Return the number of members of the given type for the club,
+    either current members only or all states
+
+    Args:
+        membership_type (MembershipType): the type in question
+
+    Returns:
+        int: number of active club members of this type
+    """
+
+    qs = MemberMembershipType.objects.filter(
+        membership_type=membership_type,
+    )
+
+    if active_only:
+        qs = qs.filter(
+            membership_state__in=[
+                MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+                MemberMembershipType.MEMBERSHIP_STATE_DUE,
+            ]
+        )
+
+    return qs.count()
+
+
 # -------------------------------------------------------------------------------------
 #   Status validation functions
 #
@@ -1956,19 +2018,6 @@ def change_membership(
     )
 
     return (True, message)
-
-
-def get_club_memberships_for_person(system_number):
-    """Return active membership details records for this user
-
-    Args:
-        system_number (int): the member's system number
-    """
-
-    return MemberClubDetails.objects.filter(
-        system_number=system_number,
-        membership_status__in=MEMBERSHIP_STATES_ACTIVE,
-    )
 
 
 def share_user_data_with_clubs(user, this_membership=None, overwrite=False):

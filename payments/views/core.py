@@ -755,6 +755,12 @@ def callback_router(
 
         user_pending_payment_callback(status, route_payload)
 
+    # User initiated club membership fee payment
+    elif route_code == "CAU":
+        from organisations.views.club_admin import user_initiated_fee_payment_callback
+
+        user_initiated_fee_payment_callback(status, route_payload)
+
     else:
         log_event(
             user="Stripe API",
