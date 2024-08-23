@@ -159,6 +159,11 @@ urlpatterns = [
         name="admin_toggle_user_is_active",
     ),
     path(
+        "admin/mark-user-deceased",
+        accounts.views.admin.admin_mark_user_deceased,
+        name="admin_mark_user_deceased",
+    ),
+    path(
         "delete-device",
         accounts.views.api.delete_fcm_device_ajax,
         name="delete_fcm_device_ajax",

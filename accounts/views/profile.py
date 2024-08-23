@@ -9,12 +9,12 @@ from accounts.views.core import _check_duplicate_email
 from forums.models import Post, Comment1, Comment2
 from masterpoints.views import user_summary
 
-# JPG clen up
-# from organisations.views.general import get_clubs_for_player
 from organisations.club_admin_core import (
-    share_user_data_with_clubs,
+    clear_club_email_bounced,
     get_club_memberships_for_person,
     get_outstanding_membership_fees_for_user,
+    has_club_email_bounced,
+    share_user_data_with_clubs,
 )
 from payments.views.core import get_user_pending_payments
 from rbac.core import rbac_user_has_role
@@ -60,6 +60,9 @@ def profile(request):
                 user_additional_info.email_hard_bounce_reason = None
                 user_additional_info.save()
 
+            if has_club_email_bounced(form.cleaned_data["email"]):
+                clear_club_email_bounced(form.cleaned_data["email"])
+
             if request.user.share_with_clubs:
                 updated_clubs = share_user_data_with_clubs(request.user)
                 if updated_clubs:
@@ -80,8 +83,6 @@ def profile(request):
     user_additional_info = UserAdditionalInfo.objects.filter(user=request.user).first()
 
     # Get clubs
-    # JPG Clean up
-    # member_of_clubs = get_clubs_for_player(request.user)
     member_of_clubs = get_club_memberships_for_person(request.user.system_number)
 
     outstanding_fees = get_outstanding_membership_fees_for_user(request.user)
@@ -229,8 +230,6 @@ def public_profile(request, pk):
     user_additional_info = UserAdditionalInfo.objects.filter(user=pub_profile).first()
 
     # Get clubs
-    # JPG clean-up
-    # member_of_clubs = get_clubs_for_player(pub_profile)
     member_of_clubs = get_club_memberships_for_person(pub_profile.system_number)
 
     return render(

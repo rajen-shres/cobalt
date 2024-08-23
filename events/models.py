@@ -21,7 +21,7 @@ from cobalt.settings import (
     TBA_PLAYER,
 )
 from organisations.models import Organisation
-from organisations.views.general import is_player_a_member
+from organisations.club_admin_core import is_player_a_member
 from payments.models import MemberTransaction
 from rbac.core import rbac_user_has_role
 from utils.templatetags.cobalt_tags import cobalt_credits
@@ -641,7 +641,7 @@ class Event(models.Model):
             base_entry_fee = self.member_entry_fee
         elif self.congress.allow_member_entry_fee:
             if is_player_a_member(
-                user.system_number, self.congress.congress_master.org
+                self.congress.congress_master.org, user.system_number
             ):
                 base_entry_fee = self.member_entry_fee
                 base_fee_reason = "Member"

@@ -40,7 +40,6 @@ from organisations.models import (
     ClubLog,
     Organisation,
     MemberMembershipType,
-    MemberClubEmail,
 )
 from organisations.views.club_menu_tabs.members import list_htmx as members_list_htmx
 from organisations.views.club_menu_tabs.contacts import list_htmx as contacts_list_htmx

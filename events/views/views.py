@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from organisations.models import Organisation
-from organisations.views.general import is_player_a_member
+from organisations.club_admin_core import is_player_a_member
 from payments.views.payments_api import payment_api_interactive
 from utils.templatetags.cobalt_tags import cobalt_credits
 from notifications.views.core import (
@@ -405,7 +405,8 @@ def view_congress(request, congress_id, fullscreen=False):
     # Note - not relevant if the user is not logged in
     if congress.members_only and request.user.is_authenticated:
         eligible_to_enter = is_player_a_member(
-            request.user.system_number, congress.congress_master.org
+            congress.congress_master.org,
+            request.user.system_number,
         )
     else:
         eligible_to_enter = True
@@ -1623,7 +1624,8 @@ def enter_event_non_post(event, congress, request, enter_for_another):
         if congress.members_only:
             #  filter out non-members amongst team mates
             if is_player_a_member(
-                team_mate.team_mate.system_number, congress.congress_master.org
+                congress.congress_master.org,
+                team_mate.team_mate.system_number,
             ):
                 item = team_mate.team_mate.id, f"{team_mate.team_mate.full_name}"
                 name_list.append(item)

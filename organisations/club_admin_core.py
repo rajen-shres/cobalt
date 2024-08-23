@@ -86,6 +86,11 @@ MEMBERSHIP_STATES_ACTIVE = [
     MemberMembershipType.MEMBERSHIP_STATE_DUE,
 ]
 
+# membership states/statuses which represent memberships that should never be used
+MEMBERSHIP_STATES_DO_NOT_USE = [
+    MemberMembershipType.MEMBERSHIP_STATE_DECEASED,
+]
+
 
 # -------------------------------------------------------------------------------------
 # Utility Functions
@@ -214,6 +219,60 @@ def member_details_description(member_details):
 # -------------------------------------------------------------------------------------
 
 
+def get_membership_type(club, system_number):
+    """Get the current membership type for a member in a club
+
+    Returns None if not an active member of the club"""
+
+    member_details = (
+        MemberClubDetails.objects.filter(
+            club=club,
+            system_number=system_number,
+        )
+        .select_related("latest_membership")
+        .last()
+    )
+
+    if not member_details:
+        return None
+
+    if member_details.membership_status not in MEMBERSHIP_STATES_ACTIVE:
+        return None
+
+    return member_details.latest_membership
+
+
+def is_player_a_member(club, system_number):
+    """Is the player a current active member?"""
+
+    return get_membership_type(club, system_number) is not None
+
+
+def get_membership_type_for_players(club, system_number_list):
+    """Returns the current, active membership type for a list of system_numbers.
+
+    Args:
+        club (Organisation_: the club)
+        system_number_list (list): list of system numbers
+
+    Returns:
+        dict: system_number => membership type name (str)
+
+    Only members found will be in the dictionary.
+    """
+
+    membership_types = MemberMembershipType.objects.filter(
+        system_number__in=system_number_list,
+        membership_state__in=MEMBERSHIP_STATES_ACTIVE,
+        membership_type__organisation=club,
+    ).select_related("membership_type")
+
+    return {
+        membership_type.system_number: membership_type.membership_type.name
+        for membership_type in membership_types
+    }
+
+
 def get_member_details(club, system_number):
     """Return a MemberClubDetails object augmented with user/unregistered user information
 
@@ -268,7 +327,7 @@ def get_member_count(club, reference_date=None):
     """Get member count for club with optional as at date"""
 
     if not reference_date:
-        # just return teh current membership
+        # just return the current membership
 
         return MemberClubDetails.objects.filter(
             club=club, membership_status__in=MEMBERSHIP_STATES_ACTIVE
@@ -364,8 +423,14 @@ def get_club_members(
     exclude_contacts=True,
     exclude_deceased=True,
 ):
-    """Returns a list of member detail objects for the specified club, augmented with
-    the names and types (user, unregistered, contact).
+    """Returns a list of member detail objects for the specified club,
+    augmented with:
+        first_name (str): First name
+        last_name (str): Last name
+        user_type (str): '{GLOBAL_TITLE} User' | 'Unregistered User'
+        user_or_unreg_id (int): pk to either User or UnregisteredUser
+        club_email (str or None): the email to use for club purposes
+        internal (bool): is the system number an internal one?
 
     Args:
         club (Organisation): the club
@@ -407,6 +472,14 @@ def get_club_members(
 def _augment_member_details(member_qs, sort_option="last_desc"):
     """Augments a query set of members with user/unregistered user details
 
+    The attributes added are:
+        first_name (str): First name
+        last_name (str): Last name
+        user_type (str): '{GLOBAL_TITLE} User' | 'Unregistered User'
+        user_or_unreg_id (int): pk to either User or UnregisteredUser
+        club_email (str or None): the email to use for club purposes
+        internal (bool): is the system number an internal one?
+
     Args:
         club (Organisation): the club to which these members belong
         member_qs (MemberClubDetails QuerySet): the selected members
@@ -429,6 +502,10 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
             if type(player) is User
             else "Unregistered User",
             "user_or_unreg_id": player.id,
+            "user_email": player.email if type(player) is User else None,
+            "internal": False
+            if type(player) is User
+            else player.internal_system_number,
         }
         for player in chain(users, unreg_users)
     }
@@ -441,11 +518,28 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
             member.user_or_unreg_id = player_dict[member.system_number][
                 "user_or_unreg_id"
             ]
+            member.internal = player_dict[member.system_number]["internal"]
+
+            # Note: this needs to replicate the logic in club_email_for_member
+            if member.email:
+                member.club_email = member.email
+            else:
+                if (
+                    member.membership_status
+                    == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+                    or member.membership_status
+                    == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
+                ):
+                    member.club_email = None
+                else:
+                    member.club_email = player_dict[member.system_number]["user_email"]
         else:
             member.first_name = "Unknown"
             member.last_name = "Unknown"
             member.user_type = "Unknown Type"
             member.user_or_unreg_id = None
+            member.club_email = None
+            member.internal = True
 
     # sort
     if sort_option == "first_desc":
@@ -546,8 +640,11 @@ def get_club_member_list_email_match(
     active_only=True,
     exclude_contacts=True,
     exclude_deceased=True,
+    strict_match=False,
 ):
     """Return a list of member's system numbers, matching on email address
+
+
 
     Note that this only searches on the member's email, not the email in the user record"""
 
@@ -572,9 +669,67 @@ def get_club_member_list_email_match(
             membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
         )
 
-    members = members.filter(email__icontains=search_str)
+    if strict_match:
+        members = members.filter(email=search_str)
+    else:
+        members = members.filter(email__icontains=search_str)
 
     return members.values_list("system_number", flat=True)
+
+
+def get_club_member_list_for_emails(
+    club,
+    email_list,
+    active_only=True,
+    exclude_contacts=True,
+    exclude_deceased=True,
+):
+    """Return a list of member's system numbers, matching a list of emails
+
+    Args:
+        club (Organisation): the club or None for all clubs
+        email_list (list): list of email addresses
+
+    Returns:
+        List: list of (system numbers, email)
+
+    Note that this only searches on the member's email, not the email in the user record"""
+
+    members = MemberClubDetails.objects
+
+    if club:
+        members = members.filter(club=club)
+
+    if active_only:
+        members = members.filter(
+            membership_status__in=[
+                MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+                MemberClubDetails.MEMBERSHIP_STATUS_DUE,
+                MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+            ]
+        )
+
+    if exclude_contacts:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT
+        )
+
+    if exclude_deceased:
+        members = members.exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
+        )
+
+    members = members.filter(email__in=email_list)
+
+    return members.values_list("system_number", "email")
+
+
+def get_club_emails_for_system_number(system_number):
+    """Returns a list of club emails associated with this system number across clubs"""
+
+    return MemberClubDetails.objects.filter(
+        system_number=system_number, email=True
+    ).values_list("email", flat=True)
 
 
 def get_club_contact_list(
@@ -591,16 +746,23 @@ def get_club_contact_list(
 def get_club_contact_list_email_match(
     club,
     search_str,
+    strict_match=False,
 ):
     """Return a list of system numbers of club contacts, matching on email address
 
     Note that this only searches on the member's email, not the email in the user record"""
 
-    return MemberClubDetails.objects.filter(
+    qs = MemberClubDetails.objects.filter(
         club=club,
         membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
-        email__icontains=search_str,
-    ).values_list("system_number", flat=True)
+    )
+
+    if strict_match:
+        qs = qs.filter(email=search_str)
+    else:
+        qs = qs.filter(email__icontains=search_str)
+
+    return qs.values_list("system_number", flat=True)
 
 
 def get_club_contacts(
@@ -670,12 +832,15 @@ def _augment_contact_details(contact_qs, sort_option="last_desc"):
                 "user_or_unreg_id"
             ]
             contact.internal = player_dict[contact.system_number]["internal"]
+            # Note: only ever use the contact email for a contact (ie don't use User email)
+            contact.club_email = contact.email
         else:
             contact.first_name = "Unknown"
             contact.last_name = "Unknown"
             contact.user_type = "Unknown Type"
             contact.user_or_unreg_id = None
             contact.internal = True
+            contact.club_email = contact.email
 
     # sort
     if sort_option == "first_desc":
@@ -722,9 +887,9 @@ def get_contact_details(club, system_number):
 
 
 def club_email_for_member(club, system_number):
-    """Return an email address to be used by a club for a member (or None), and
-    whether the email has bounced. The email could be club specific or from the user
-    record. No email address will be returned for a deceased member. A User level email
+    """Return an email address to be used by a club for a member (or None).
+    The email could be club specific or from the user record.
+    No email address will be returned for a deceased member. A User level email
     will not be returned for a contact with no club specific email.
 
     Args:
@@ -733,7 +898,6 @@ def club_email_for_member(club, system_number):
 
     Returns:
         string: email address or None if not specified
-        bool: email has hard bounced
     """
 
     # get the membership details, if any
@@ -748,25 +912,58 @@ def club_email_for_member(club, system_number):
 
     if not member_details:
         # not a member
-        return (None, False)
+        return None
 
     if member_details.email:
-        return (member_details.email, member_details.email_hard_bounce)
+        return member_details.email
 
     if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
         # a contact, but no email (!), so don't look for a User record
-        return (None, False)
+        return None
 
     # no club specific email, so check for a user record
     try:
         user = User.objects.get(system_number=system_number)
     except User.DoesNotExist:
-        return (None, False)
+        return None
 
-    # check for additional info for bounce status
-    additional_info = UserAdditionalInfo.objects.filter(user=user).last()
+    return user.email
 
-    return (user.email, additional_info.email_hard_bounce if additional_info else False)
+
+def has_club_email_bounced(email):
+    """Checks for any club email reference to this email which has bounced
+
+    Args:
+        email (str): an email address
+
+    Returns:
+        bool: has the email bounced (for any member or contact)
+    """
+
+    return MemberClubDetails.objects.filter(
+        email=email,
+        email_hard_bounce=True,
+    ).exists()
+
+
+def set_club_email_bounced(email, email_hard_bounce_reason, email_hard_bounce_date):
+    """Set bounce information for all occurances of a club email address"""
+
+    MemberClubDetails.objects.filter(email=email,).update(
+        email_hard_bounce=True,
+        email_hard_bounce_reason=email_hard_bounce_reason,
+        email_hard_bounce_date=email_hard_bounce_date,
+    )
+
+
+def clear_club_email_bounced(email):
+    """Clear bounce information for all occurances of a club email address"""
+
+    MemberClubDetails.objects.filter(email=email,).update(
+        email_hard_bounce=False,
+        email_hard_bounce_reason=None,
+        email_hard_bounce_date=None,
+    )
 
 
 def get_club_memberships_for_person(system_number):
@@ -1121,7 +1318,7 @@ def refresh_memberships_for_club(club, as_at_date=None):
     return updated_count
 
 
-def mark_player_as_deceased(system_number):
+def mark_player_as_deceased(system_number, requester):
     """Mark a user or unregistered user as deceased, and cascade the
     change to any club memberships for that player. Note that this is a
     support function, not performed by the clubs.
@@ -1148,7 +1345,7 @@ def mark_player_as_deceased(system_number):
     # update any club memberships
     member_details = MemberClubDetails.objects.filter(system_number=system_number)
     for member_detail in member_details:
-        _mark_member_as_deceased(member_detail.club, member_detail.system_number)
+        _mark_member_as_deceased(member_detail.club, member_detail, requester=requester)
 
     return True
 

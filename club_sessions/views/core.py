@@ -31,9 +31,9 @@ from notifications.views.core import (
     send_cobalt_email_with_template,
 )
 from organisations.models import ClubLog, Organisation
-from organisations.views.general import (
+from organisations.club_admin_core import (
     get_membership_type_for_players,
-    get_membership_for_player,
+    get_membership_type,
 )
 from payments.models import OrgPaymentMethod, MemberTransaction, UserPendingPayment
 from payments.views.core import (
@@ -196,7 +196,7 @@ def load_session_entry_static(session, club):
         }
 
     # Get memberships
-    membership_type_dict = get_membership_type_for_players(system_number_list, club)
+    membership_type_dict = get_membership_type_for_players(club, system_number_list)
 
     # Add visitor
     membership_type_dict[VISITOR] = "Guest"
@@ -214,9 +214,11 @@ def get_session_fees_for_session(session):
 
     """
 
+    # JPG Query - 22/08/24 added check for active payment methods
     fees = (
         SessionTypePaymentMethodMembership.objects.filter(
-            session_type_payment_method__session_type=session.session_type
+            session_type_payment_method__session_type=session.session_type,
+            session_type_payment_method__payment_method__active=True,
         )
         .select_related("membership")
         .select_related("session_type_payment_method__payment_method")
@@ -244,7 +246,7 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
     session = session_entry.session
 
     # Get membership for this player. None for Guests
-    membership = get_membership_for_player(session_entry.system_number, club)
+    membership = get_membership_type(session_entry.system_number, club)
 
     # Check if we have a payment method
     if not session_entry.payment_method:

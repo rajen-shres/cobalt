@@ -227,6 +227,21 @@
                                         <td class="text-left">Total Organisations</td>
                                         <td class="text-right">{{ org_statistics.total_orgs|intcomma }}</td>
                                     </tr>
+
+                                    <tr>
+                                        <td class="text-left font-weight-bold">Clubs active in {{ GLOBAL_TITLE }}</td>
+                                        <td class="text-right font-weight-bold">Inactive / Active / Total</td>
+                                    </tr>
+                                    {% for state_counts in active_club_statistics %}
+                                        <tr>
+                                            <td class="text-left">{{ state_counts.label }}</td>
+                                            <td class="text-right">
+                                                {{ state_counts.inactive|intcomma }} /
+                                                {{ state_counts.active|intcomma }} /
+                                                {{ state_counts.total|intcomma }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
                                 </table>
                             </div>
                         </div>

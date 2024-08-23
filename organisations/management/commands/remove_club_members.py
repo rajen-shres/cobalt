@@ -18,19 +18,26 @@ imput data with up to two fields appended to the member rows, a status flag
 ('Y' = processed, 'E' = errored, 'U' = unregistered user) and an error message.
 """
 
-from django.core.management.base import BaseCommand, CommandParser
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from os import path
 
-from cobalt.settings import GLOBAL_CURRENCY_SYMBOL, BRIDGE_CREDITS
-
-from accounts.models import User
+from cobalt.settings import (
+    GLOBAL_CURRENCY_SYMBOL,
+    BRIDGE_CREDITS,
+)
+from accounts.models import (
+    UnregisteredUser,
+    User,
+)
 from organisations.models import (
     ClubLog,
-    Organisation,
-    MemberMembershipType,
+    ClubMemberLog,
     MemberClubTag,
     MemberClubEmail,
+    MemberClubDetails,
+    MemberMembershipType,
+    Organisation,
 )
 
 
@@ -80,7 +87,6 @@ class Command(BaseCommand):
             return (False, f"Requestor '{requestor_number}' not found")
         self.requestor = user_query.get()
 
-        # TO DO - should check RBAC for requestor
         return (True, None)
 
     def cancel_membership(self, system_number):
@@ -92,34 +98,57 @@ class Command(BaseCommand):
 
         try:
             with transaction.atomic():
-                # Memberships are coming later. For now we treat as basically binary - they start on the date they are
-                # entered and we assume only one without checking
-                memberships = MemberMembershipType.objects.filter(
-                    system_number=system_number
-                ).filter(membership_type__organisation=self.club)
 
-                if len(memberships) == 0:
+                # start with the membership details
+                member_details_count = MemberClubDetails.objects.filter(
+                    club=self.club,
+                    system_number=system_number,
+                ).count()
+
+                if member_details_count == 0:
                     return (RESULT_ERROR, "Not a member")
 
-                # Should only be one but not enforced at database level so close any that match to be safe
-                for membership in memberships:
-                    membership.delete()
+                # should be only one, but delete any to be thorough
+                member_details_count = MemberClubDetails.objects.filter(
+                    club=self.club,
+                    system_number=system_number,
+                ).delete()
 
-                    ClubLog(
-                        organisation=self.club,
-                        actor=self.requestor,
-                        action=f"Cancelled membership for {system_number}",
-                    ).save()
+                ClubLog(
+                    organisation=self.club,
+                    actor=self.requestor,
+                    action=f"Deleted membership for {system_number}",
+                ).save()
+
+                # delete any membership records
+                MemberMembershipType.objects.filter(
+                    system_number=system_number, membership_type__organisation=self.club
+                ).delete()
 
                 # Delete any tags
                 MemberClubTag.objects.filter(club_tag__organisation=self.club).filter(
                     system_number=system_number
                 ).delete()
 
-                # Remove any email addresses for this club and user
+                # Delete any club member log records
+                ClubMemberLog.objects.filter(
+                    club=self.club,
+                    system_number=system_number,
+                ).delete()
+
+                # Remove any email addresses for this club and user (left over from pre club admin)
                 MemberClubEmail.objects.filter(
                     organisation=self.club, system_number=system_number
                 ).delete()
+
+                # check for an unregistered user with an internal system number
+                # and delete it if found (only if called for a contact)
+                check_unreg = UnregisteredUser.all_objects.filter(
+                    system_number=system_number,
+                ).last()
+
+                if check_unreg and check_unreg.internal_system_number:
+                    check_unreg.delete()
 
         except Exception as e:
             return (RESULT_ERROR, f"{e}")

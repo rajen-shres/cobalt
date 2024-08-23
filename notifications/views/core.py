@@ -65,7 +65,6 @@ from notifications.forms import (
     EmailOptionsForm,
     EmailContentForm,
     EmailAttachmentForm,
-    AddContactForm,
 )
 from notifications.models import (
     Snooper,
@@ -82,12 +81,21 @@ from notifications.models import (
     InAppNotification,
     UnregisteredBlockedEmail,
 )
+from organisations.club_admin_core import (
+    clear_club_email_bounced,
+    get_club_contact_list,
+    get_club_members,
+    get_club_member_list,
+    get_member_count,
+    get_member_details,
+    has_club_email_bounced,
+    MEMBERSHIP_STATES_ACTIVE,
+    MEMBERSHIP_STATES_DO_NOT_USE,
+)
 from organisations.models import (
     Organisation,
-    MemberClubEmail,
     ClubTag,
     MemberClubTag,
-    MemberMembershipType,
     OrgEmailTemplate,
 )
 from organisations.decorators import check_club_menu_access
@@ -106,6 +114,9 @@ MAX_EMAIL_THREADS = 20
 
 # Artificial id for EVERYONE club tag
 EVERYONE_TAG_ID = 9999999
+
+# Artificial id for all contacts club tag
+CONTACTS_TAG_ID = 11111111
 
 
 def _to_address_checker(to_address, context):
@@ -159,11 +170,11 @@ def _email_address_on_bounce_list(to_address):
         user__email=to_address
     ).first()
 
-    un_reg = MemberClubEmail.objects.filter(email=to_address).first()
+    club_email_bounced = has_club_email_bounced(to_address)
 
-    if (user_additional_info and user_additional_info.email_hard_bounce) or (
-        un_reg and un_reg.email_hard_bounce
-    ):
+    if (
+        user_additional_info and user_additional_info.email_hard_bounce
+    ) or club_email_bounced:
         logger.info(f"Not sending email to suppressed address - {to_address}")
         return True
 
@@ -1069,13 +1080,7 @@ def remove_email_from_blocked_list(email_address):
         user_additional_info.email_hard_bounce_date = None
         user_additional_info.save()
 
-    un_regs = MemberClubEmail.objects.filter(email=email_address)
-
-    for un_reg in un_regs:
-        un_reg.email_hard_bounce = False
-        un_reg.email_hard_bounce_reason = None
-        un_reg.email_hard_bounce_date = None
-        un_reg.save()
+    clear_club_email_bounced(email_address)
 
 
 def get_notifications_statistics():
@@ -1108,7 +1113,7 @@ def _add_user_to_recipients(club, batch, user, initial=True):
     if user.system_number in ALL_SYSTEM_ACCOUNTS:
         return (0, f"{user.full_name} is a system account")
 
-    if not user.is_active:
+    if not user.is_active or user.deceased:
         return (0, f"{user.full_name} is inactive")
 
     recipients = Recipient.objects.filter(batch=batch, system_number=user.system_number)
@@ -1127,36 +1132,6 @@ def _add_user_to_recipients(club, batch, user, initial=True):
         return (1, f"{user.full_name} added")
 
 
-def _add_contact_to_recipients(batch, first_name, last_name, email):
-    """Add a new contact to the recipients of a batch
-
-    Checks whether the email is already in the list and reincludes
-    it if already presenet but not incuded.
-
-    Returns success and a user message
-    """
-
-    existing = Recipient.objects.filter(batch=batch, email=email).first()
-    if existing:
-        if existing.include:
-            return (False, f"{email} is already in the list")
-        else:
-            existing.include = True
-            existing.save()
-            return (True, f"{email} included")
-
-    recipient = Recipient()
-    recipient.batch = batch
-    recipient.first_name = first_name
-    recipient.last_name = last_name
-    recipient.email = email
-    recipient.include = True
-    recipient.initial = False
-    recipient.save()
-
-    return (True, f"{email} added")
-
-
 _ADD_RECIPIENT_RESULT_OK = "OK"
 _ADD_RECIPIENT_RESULT_SYSTEM_AC = "SYS"
 _ADD_RECIPIENT_RESULT_DUPLICATE = "DUP"
@@ -1173,8 +1148,10 @@ _ADD_RECIPIENT_RESULTS = [
 ]
 
 
-def _add_to_recipient_with_system_number(batch, club, system_number):
-    """Add a user or unregistered user to the batch
+def _add_to_recipient_with_system_number(
+    batch, club, system_number, current_only=False
+):
+    """Add a club member or contact to the batch
 
     Returns:
         A result code
@@ -1197,53 +1174,39 @@ def _add_to_recipient_with_system_number(batch, club, system_number):
             existing.save()
             return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
 
-    # is this a User or UnregisteredUser
-    user = User.objects.filter(
-        system_number=system_number,
-    ).first()
+    member_details = get_member_details(club, system_number)
 
-    if user:
-        if user.is_active:
-            recipient = Recipient()
-            recipient.system_number = system_number
-            recipient.batch = batch
-            recipient.first_name = user.first_name
-            recipient.last_name = user.last_name
-            recipient.email = user.email
-            recipient.include = True
-            recipient.initial = False
-            recipient.save()
-            return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
-        else:
-            return (_ADD_RECIPIENT_RESULT_INACTIVE, f"{user.full_name} is inactive")
+    if not member_details:
+        return (_ADD_RECIPIENT_RESULT_NOT_FOUND, "Recipient not found")
 
-    else:
-        # is not a user, so try an unregistered club member
+    if not member_details.club_email:
+        return (_ADD_RECIPIENT_RESULT_NO_EMAIL, "No club email address available")
 
-        member_email = MemberClubEmail.objects.filter(
-            organisation=club, system_number=system_number
-        ).first()
+    if member_details.membership_status in MEMBERSHIP_STATES_DO_NOT_USE:
+        return (
+            _ADD_RECIPIENT_RESULT_INACTIVE,
+            f"{member_details.first_name} {member_details.last_name} is inactive",
+        )
 
-        if member_email and member_email.email:
-            # still need to get the unregistered user record to get the user name
-            unreg = UnregisteredUser.objects.filter(system_number=system_number).first()
+    if (
+        current_only
+        and member_details.membership_status not in MEMBERSHIP_STATES_ACTIVE
+    ):
+        return (
+            _ADD_RECIPIENT_RESULT_INACTIVE,
+            f"{member_details.first_name} {member_details.last_name} is not a current member",
+        )
 
-            recipient = Recipient()
-            recipient.system_number = system_number
-            recipient.batch = batch
-            recipient.first_name = unreg.first_name
-            recipient.last_name = unreg.last_name
-            recipient.email = member_email.email
-            recipient.include = True
-            recipient.initial = False
-            recipient.save()
-            return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
-
-        elif member_email:
-            return (_ADD_RECIPIENT_RESULT_NO_EMAIL, "No email address available")
-
-        else:
-            return (_ADD_RECIPIENT_RESULT_NOT_FOUND, "Recipient not found")
+    recipient = Recipient()
+    recipient.system_number = system_number
+    recipient.batch = batch
+    recipient.first_name = member_details.first_name
+    recipient.last_name = member_details.last_name
+    recipient.email = member_details.club_email
+    recipient.include = True
+    recipient.initial = False
+    recipient.save()
+    return (_ADD_RECIPIENT_RESULT_OK, "Recipient added")
 
 
 @login_required
@@ -1777,29 +1740,7 @@ def compose_email_recipients(request, club, batch):
         BatchID.BATCH_TYPE_MULTI,
     ]
 
-    # Should the add contact form be shown or hidden
-    show_contact_form = False
-
-    if request.method == "POST":
-        page_number = 1
-        add_contact_form = AddContactForm(request.POST)
-        if add_contact_form.is_valid():
-            success, feedback = _add_contact_to_recipients(
-                batch,
-                add_contact_form.cleaned_data["first_name"],
-                add_contact_form.cleaned_data["last_name"],
-                add_contact_form.cleaned_data["email"],
-            )
-            messages.add_message(request, messages.INFO, feedback)
-            if success:
-                add_contact_form = AddContactForm()
-            else:
-                show_contact_form = True
-        else:
-            messages.add_message(request, messages.INFO, "Error in contact details")
-            show_contact_form = True
-    elif request.method == "GET":
-        add_contact_form = AddContactForm()
+    if request.method == "GET":
         try:
             page_number = int(request.GET.get("page"))
         except ValueError:
@@ -1809,7 +1750,6 @@ def compose_email_recipients(request, club, batch):
             page_number = 1
     else:
         page_number = 1
-        add_contact_form = AddContactForm()
 
     # get all of the recients for the batch and paginate
     recipients = Recipient.objects.filter(
@@ -1880,11 +1820,8 @@ def compose_email_recipients(request, club, batch):
             "cancelable": not _batch_has_been_customised(batch),
             "page": page,
             "page_range": page_range,
-            "allow_contacts": False,  # NOTE - disable until contacts implememnted
             "initial_header_before_row": initial_header_before_row,
             "added_header_before_row": added_header_before_row,
-            "add_contact_form": add_contact_form,
-            "show_contact_form": show_contact_form,
             "congress_stream": congress_stream,
             "recipient_count": recipient_count,
         },
@@ -2055,11 +1992,7 @@ def compose_email_recipients_tags_pane_htmx(request, club, batch):
     but having less than N recipients added to the list.
     """
 
-    total_members = (
-        MemberMembershipType.objects.filter(membership_type__organisation=club)
-        .distinct("system_number")
-        .count()
-    )
+    total_members = get_member_count(club)
 
     if total_members:
         club_tags = (
@@ -2087,10 +2020,10 @@ def compose_email_recipients_tags_pane_htmx(request, club, batch):
 
 @check_club_and_batch_access()
 def compose_email_recipients_member_search_htmx(request, club, batch):
-    """Returns a list of club member search candidates
+    """Returns a list of club member and contact search candidates
 
     Searches by first name, last name or system number (not a combination)
-    Matches on teh start of the relevent field, and can include members
+    Matches on the start of the relevent field, and can include members
     with no club email address (unregistered users).
 
     Such unregsistered users will be shown in the UI without a link.
@@ -2102,57 +2035,42 @@ def compose_email_recipients_member_search_htmx(request, club, batch):
     last_name_search = request.POST.get("member-search-last", "")
     system_number_search = request.POST.get("member-search-number", "")
 
-    members = []
-
     # if there is nothing to search for, don't search
     if not first_name_search and not last_name_search and not system_number_search:
         return HttpResponse("")
 
-    member_list = MemberMembershipType.objects.filter(
-        membership_type__organisation=club
-    ).values_list("system_number", flat=True)
+    member_details = get_club_members(club, exclude_contacts=False)
 
-    users = User.objects.filter(
-        system_number__in=member_list,
-        is_active=True,
-    )
-    un_regs = UnregisteredUser.objects.filter(system_number__in=member_list)
-
-    # Subquery of MemberClubEmail filtering by system_number from UnregisteredUser
-    un_reg_emails = MemberClubEmail.objects.filter(
-        system_number=OuterRef("system_number")
-    ).values("email")[:1]
-
-    if first_name_search:
-
-        users = users.filter(first_name__istartswith=first_name_search)
-
-        un_regs = un_regs.filter(first_name__istartswith=first_name_search).annotate(
-            email=Subquery(un_reg_emails)
-        )
-
-    elif last_name_search:
-
-        users = users.filter(last_name__istartswith=last_name_search)
-
-        un_regs = un_regs.filter(last_name__istartswith=last_name_search).annotate(
-            email=Subquery(un_reg_emails)
-        )
-
+    if first_name_search and not last_name_search:
+        first_name_search_upper = first_name_search.upper()
+        members = [
+            member
+            for member in member_details
+            if member.first_name.upper().startswith(first_name_search_upper)
+        ]
+    elif last_name_search and not first_name_search:
+        last_name_search_upper = last_name_search.upper()
+        members = [
+            member
+            for member in member_details
+            if member.last_name.upper().startswith(last_name_search_upper)
+        ]
+    elif first_name_search and last_name_search:
+        first_name_search_upper = first_name_search.upper()
+        last_name_search_upper = last_name_search.upper()
+        members = [
+            member
+            for member in member_details
+            if member.first_name.upper().startswith(first_name_search_upper)
+            and member.last_name.upper().startswith(last_name_search_upper)
+        ]
     else:
-        # system number search
-
-        users = users.annotate(
-            system_number_string=Cast("system_number", CharField())
-        ).filter(system_number_string__startswith=system_number_search)
-
-        un_regs = (
-            un_regs.annotate(system_number_string=Cast("system_number", CharField()))
-            .filter(system_number_string__startswith=system_number_search)
-            .annotate(email=Subquery(un_reg_emails))
-        )
-
-    members = list(chain(users, un_regs))
+        members = [
+            member
+            for member in member_details
+            if not member.internal
+            and str(member.system_number).startswith(system_number_search)
+        ]
 
     return render(
         request,
@@ -2171,16 +2089,16 @@ def compose_email_recipients_add_tag(request, club, batch, tag_id):
 
     reason_counts = {reason_code: 0 for (reason_code, _) in _ADD_RECIPIENT_RESULTS}
 
-    if tag_id == EVERYONE_TAG_ID:
+    if tag_id in [EVERYONE_TAG_ID, CONTACTS_TAG_ID]:
         #  add all members
 
-        all_members = MemberMembershipType.objects.filter(
-            membership_type__organisation=club
-        )
-        for mmt in all_members:
-            result, _ = _add_to_recipient_with_system_number(
-                batch, club, mmt.system_number
-            )
+        if tag_id == EVERYONE_TAG_ID:
+            system_numbers = get_club_member_list(club)
+        else:
+            system_numbers = get_club_contact_list(club)
+
+        for system_number in system_numbers:
+            result, _ = _add_to_recipient_with_system_number(batch, club, system_number)
             reason_counts[result] += 1
 
     else:
@@ -2231,13 +2149,12 @@ def compose_email_recipients_remove_tag(request, club, batch, tag_id, from_all):
     Either from all recipeinets, or from added (ie not initial) recipients only"""
 
     if tag_id == EVERYONE_TAG_ID:
-        source = MemberMembershipType.objects.filter(membership_type__organisation=club)
+        system_numbers = get_club_member_list(club)
 
     else:
         tag = get_object_or_404(ClubTag, pk=tag_id)
         source = MemberClubTag.objects.filter(club_tag=tag)
-
-    system_numbers = [item.system_number for item in source.all()]
+        system_numbers = [item.system_number for item in source.all()]
 
     if from_all:
         # un-include all occurances

@@ -8,10 +8,13 @@ from accounts.models import UnregisteredUser, User
 from accounts.views.admin import invite_to_join
 from cobalt.settings import COBALT_HOSTNAME, GLOBAL_TITLE
 from organisations.decorators import check_club_menu_access
-from organisations.models import MemberMembershipType, Organisation, MemberClubEmail
+from organisations.models import MemberMembershipType, Organisation
 from organisations.views.club_menu_tabs.members import list_htmx
 from organisations.views.general import (
     get_rbac_model_for_state,
+)
+from organisations.club_admin_core import (
+    club_email_for_member,
     get_membership_type_for_players,
 )
 from payments.models import MemberTransaction
@@ -165,9 +168,8 @@ def invite_user_to_join_htmx(request, club):
     un_reg_id = request.POST.get("un_reg_id")
     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
-    club_email = MemberClubEmail.objects.filter(
-        system_number=un_reg.system_number, organisation=club
-    ).first()
+    club_email = club_email_for_member(club, un_reg.system_number)
+
     if club_email:
         email = club_email.email
     else:
@@ -229,7 +231,7 @@ def get_club_members_from_system_number_list(
     combined_set = set(chain(cobalt_members, unregistered_members))
 
     # Add in membership type
-    membership_type_dict = get_membership_type_for_players(system_numbers, club)
+    membership_type_dict = get_membership_type_for_players(club, system_numbers)
 
     for player in combined_set:
         if player.system_number in membership_type_dict:

@@ -324,7 +324,11 @@ def _import_file_upload_htmx_process_line(line, line_no, session, club, request)
         )
 
         try:
-            if last_payment.payment_method.payment_method != "IOU":
+            # JPG Query - added check for inactivated methods
+            if (
+                last_payment.payment_method.payment_method != "IOU"
+                and last_payment.payment_method.active
+            ):
                 payment_method = last_payment.payment_method
         except AttributeError:
             pass

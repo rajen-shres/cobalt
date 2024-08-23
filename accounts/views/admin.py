@@ -12,6 +12,7 @@ from logs.views import log_event
 # from masterpoints.views import user_summary
 from notifications.views.core import send_cobalt_email_with_template
 from organisations.models import Organisation
+from organisations.club_admin_core import mark_player_as_deceased
 from utils.utils import cobalt_paginator
 
 
@@ -37,6 +38,36 @@ def admin_toggle_user_is_active(request):
             "admin-activate",
             f"{user} is_active status changed to {user.is_active}",
         )
+
+    return render(
+        request, "accounts/profile/public_profile_header_admin.html", {"profile": user}
+    )
+
+
+@login_required()
+@require_POST
+def admin_mark_user_deceased(request):
+    """Mark user as deceased"""
+
+    if not request.user.is_superuser:
+        return HttpResponse("Forbidden")
+
+    if "user_id" in request.POST:
+
+        user_id = request.POST.get("user_id")
+        user = get_object_or_404(User, pk=user_id)
+
+        mark_player_as_deceased(user.system_number, request.user)
+
+        log_event(
+            request.user,
+            "WARN",
+            "Accounts",
+            "admin-deceased",
+            f"{user} marked as deceased",
+        )
+
+        user = get_object_or_404(User, pk=user_id)
 
     return render(
         request, "accounts/profile/public_profile_header_admin.html", {"profile": user}

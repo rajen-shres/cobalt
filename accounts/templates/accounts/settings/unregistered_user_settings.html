@@ -49,13 +49,13 @@
                         <tbody>
 
                             {% for additional_email in additional_emails %}
-                                {% if additional_email.email %}
+                                {% if additional_email %}
                                     <tr>
-                                        <td>{{ additional_email.email }}</td>
+                                        <td>{{ additional_email }}</td>
                                         <td>
                                             <div style="height: 20px; background-color: red"
                                                 hx-post="{% url "accounts:unregistered_settings" identifier=unregistered.identifier %}"
-                                                hx-vars="'block_email': '{{ additional_email.email }}'"
+                                                hx-vars="'block_email': '{{ additional_email }}'"
                                                 hx-trigger="click"
                                                 hx-target="#message"
                                                 _="on click remove me"

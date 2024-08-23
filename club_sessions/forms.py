@@ -6,7 +6,10 @@ from accounts.models import UnregisteredUser, User
 from club_sessions.views.core import PLAYING_DIRECTOR, SITOUT, VISITOR
 from club_sessions.models import Session, SessionType, SessionEntry
 from cobalt.settings import BRIDGE_CREDITS
-from organisations.models import OrgVenue, MemberMembershipType
+from organisations.models import OrgVenue
+from organisations.club_admin_core import (
+    get_membership_type,
+)
 from payments.models import OrgPaymentMethod
 
 
@@ -126,14 +129,12 @@ class UserSessionForm(forms.Form):
         # Abuse the form to add some other fields to it
 
         # See if user is a member
-        self.membership_type = (
-            MemberMembershipType.objects.filter(
-                system_number=session_entry.system_number
+        if session_entry.system_number in [PLAYING_DIRECTOR, SITOUT, VISITOR]:
+            self.membership_type = None
+        else:
+            self.membership_type = get_membership_type(
+                club, session_entry.system_number
             )
-            .filter(membership_type__organisation=club)
-            .exclude(system_number__in=[PLAYING_DIRECTOR, SITOUT, VISITOR])
-            .first()
-        )
 
         self.is_member = self.membership_type is not None
 

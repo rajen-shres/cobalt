@@ -22,7 +22,6 @@ from organisations.models import (
     ClubTag,
     MemberClubTag,
     MemberMembershipType,
-    MemberClubEmail,
     OrganisationFrontPage,
     OrgEmailTemplate,
     ClubLog,
@@ -201,9 +200,12 @@ def _send_email_to_tags(request, club, tags, email_form, club_template, attachme
     un_regs = UnregisteredUser.objects.filter(system_number__in=tag_system_numbers)
 
     # get club level email
-    club_email_addresses = MemberClubEmail.objects.filter(
-        system_number__in=tag_system_numbers, organisation=club
-    )
+
+    # JPG deprecated reference until entire function deleted
+    club_email_addresses = None
+    # club_email_addresses = Member@Club@Email.objects.filter(
+    #     system_number__in=tag_system_numbers, organisation=club
+    # )
 
     # convert to dict
     club_email_addresses_dict = {

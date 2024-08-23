@@ -58,11 +58,12 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
 )
-from organisations.models import Organisation, MiscPayType, MemberMembershipType
+from organisations.models import Organisation, MiscPayType
 from organisations.views.club_menu_tabs.finance import (
     pay_member_from_organisation,
     top_up_member_from_organisation,
 )
+from organisations.club_admin_core import get_membership_type
 from payments.models import OrgPaymentMethod, UserPendingPayment, MemberTransaction
 from payments.views.core import get_balance
 from payments.views.payments_api import payment_api_batch
@@ -472,11 +473,7 @@ def change_payment_method_htmx(request, club, session, session_entry):
     )
 
     # Get the membership_type for this user and club, None means they are a guest
-    member_membership_type = (
-        MemberMembershipType.objects.filter(system_number=session_entry.system_number)
-        .filter(membership_type__organisation=club)
-        .first()
-    )
+    member_membership_type = get_membership_type(club, session_entry.system_number)
 
     if member_membership_type:
         member_membership = member_membership_type.membership_type

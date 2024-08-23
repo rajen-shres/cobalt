@@ -29,7 +29,7 @@ from forums.views import forums_status_summary, get_forum_statistics
 from logs.views import get_logs_statistics
 from notifications.views.admin import notifications_status_summary
 from notifications.views.core import get_notifications_statistics
-from organisations.views.general import get_org_statistics
+from organisations.views.general import get_org_statistics, get_active_club_statistics
 from payments.views.core import payments_status_summary, get_payments_statistics
 from rbac.decorators import rbac_check_role
 from rbac.views import get_rbac_statistics
@@ -613,6 +613,7 @@ def system_statistics(request):
     logs_statistics = get_logs_statistics()
     results_statistics = get_results_statistics()
     session_statistics = get_session_statistics()
+    active_club_statistics = get_active_club_statistics()
 
     return render(
         request,
@@ -629,6 +630,7 @@ def system_statistics(request):
             "logs_statistics": logs_statistics,
             "results_statistics": results_statistics,
             "session_statistics": session_statistics,
+            "active_club_statistics": active_club_statistics,
         },
     )
 

@@ -1,25 +1,37 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Subquery
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
-from cobalt.settings import GLOBAL_MPSERVER, GLOBAL_TITLE
+from cobalt.settings import (
+    ABF_STATES,
+    ABF_USER,
+    GLOBAL_MPSERVER,
+    GLOBAL_TITLE,
+)
 from organisations.forms import OrgFormOld
 from organisations.models import (
     Organisation,
-    MemberClubEmail,
     ClubLog,
     MemberMembershipType,
     OrganisationFrontPage,
     MembershipType,
 )
+from organisations.club_admin_core import (
+    get_club_emails_for_system_number,
+)
 from payments.models import OrganisationTransaction
 from rbac.core import rbac_user_has_role
-from rbac.models import RBACGroupRole
+from rbac.models import (
+    RBACGroupRole,
+    RBACAdminUserGroup,
+    RBACAdminGroup,
+)
 from rbac.views import rbac_forbidden
 from utils.views.general import masterpoint_query
 
@@ -187,7 +199,10 @@ def replace_unregistered_user_with_real_user(real_user: User):
 
     The calling function deletes the unregistered user"""
 
-    MemberClubEmail.objects.filter(system_number=real_user.system_number).delete()
+    # NOTE: under club admin this is no longer an issue, as clubs can maintain their own
+    # email address for members.
+
+    # Member*Club*Email.objects.filter(system_number=real_user.system_number).delete()
 
     # Logs
     clubs = MemberMembershipType.objects.filter(system_number=real_user.system_number)
@@ -197,16 +212,6 @@ def replace_unregistered_user_with_real_user(real_user: User):
             organisation=club.membership_type.organisation,
             action=f"{real_user} registered for {GLOBAL_TITLE}. Unregistered user replaced with real user.",
         )
-
-
-def active_email_for_un_reg(un_reg, club):
-    """returns email for user"""
-
-    member_club_email = MemberClubEmail.objects.filter(
-        system_number=un_reg.system_number
-    ).first()
-
-    return member_club_email.email if member_club_email else None
 
 
 @login_required()
@@ -258,61 +263,6 @@ def is_admin_for_organisation(user, club):
         return True
 
     return False
-
-
-# JPG deprecate
-# def get_clubs_for_player(player):
-#     """Return a list of clubs that this user is a member of. Strictly returns a MembershipType queryset."""
-
-#     memberships = MemberMembershipType.objects.filter(
-#         system_number=player.system_number
-#     ).values_list("membership_type")
-
-#     return MembershipType.objects.filter(id__in=memberships)
-
-
-def get_membership_type_for_players(system_number_list, club):
-    """returns the membership type for a list of system_numbers. It returns a dict of system_number to
-    membership type name e.g. "Standard"
-
-    Guests will not be in the dictionary
-
-    """
-
-    membership_types = (
-        MemberMembershipType.objects.select_related("membership_type")
-        .filter(system_number__in=system_number_list)
-        .filter(membership_type__organisation=club)
-    )
-
-    return {
-        membership_type.system_number: membership_type.membership_type.name
-        for membership_type in membership_types
-    }
-
-
-def get_membership_for_player(system_number, club):
-    """returns the MembershipType object for a system_number."""
-
-    member_membership_type = (
-        MemberMembershipType.objects.select_related("membership_type")
-        .filter(system_number=system_number)
-        .filter(membership_type__organisation=club)
-    ).first()
-
-    if member_membership_type:
-        return member_membership_type.membership_type
-
-    return None
-
-
-def is_player_a_member(system_number, club):
-    """Returns whether the player is a current member (of any type) of the club
-    Used in determining event entry fees where membership is relevant.
-
-    Note: This will need to change with implementation of full club admin"""
-
-    return get_membership_for_player(system_number, club) is not None
 
 
 @login_required()
@@ -370,3 +320,53 @@ def get_org_statistics():
         "total_clubs": total_clubs,
         "total_orgs": total_orgs,
     }
+
+
+def get_active_club_statistics():
+    """Returns active and inactive club counts by state/territory"""
+
+    total_inactive = 0
+    total = 0
+
+    state_counts = []
+
+    states = [value[1] for value in ABF_STATES.values()]
+
+    for state in states:
+
+        # count inactive clubs (where ABF user in the admin group)
+        inner_query = RBACAdminGroup.objects.filter(
+            name_item="admin",
+            name_qualifier__startswith=f"admin.clubs.generated.{state.lower()}.",
+        ).values("id")
+
+        inactive_count = RBACAdminUserGroup.objects.filter(
+            member_id=ABF_USER, group_id__in=Subquery(inner_query)
+        ).count()
+
+        total_count = Organisation.objects.filter(
+            state=state,
+            type__in=["Club", "State"],
+        ).count()
+
+        state_counts.append(
+            {
+                "label": state,
+                "inactive": inactive_count,
+                "active": total_count - inactive_count,
+                "total": total_count,
+            }
+        )
+        total_inactive += inactive_count
+        total += total_count
+
+    state_counts.append(
+        {
+            "label": "TOTAL",
+            "inactive": total_inactive,
+            "active": total - total_inactive,
+            "total": total,
+        }
+    )
+
+    return state_counts

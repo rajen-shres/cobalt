@@ -10,7 +10,9 @@ from accounts.models import APIToken, UnregisteredUser
 from organisations.club_admin_core import share_user_data_with_clubs
 from notifications.models import UnregisteredBlockedEmail
 from notifications.views.user import notifications_in_english
-from organisations.models import MemberClubEmail
+from organisations.club_admin_core import (
+    get_club_emails_for_system_number,
+)
 from rbac.core import rbac_user_has_role
 
 
@@ -120,18 +122,18 @@ def unregistered_user_settings(request, identifier):
         return HttpResponse("Invalid identifier")
 
     # get any other emails related to this user
-    additional_emails = MemberClubEmail.objects.filter(
-        system_number=unregistered.system_number
+    additional_email_set = set(
+        get_club_emails_for_system_number(unregistered.system_number)
     )
 
     # don't show if already blocked
-    blocked_emails = UnregisteredBlockedEmail.objects.filter(
-        un_registered_user=unregistered
-    ).values_list("email", flat=True)
+    blocked_email_set = set(
+        UnregisteredBlockedEmail.objects.filter(
+            un_registered_user=unregistered
+        ).values_list("email", flat=True)
+    )
 
-    for additional_email in additional_emails:
-        if additional_email.email in blocked_emails:
-            additional_email.email = None
+    additional_emails = list(additional_email_set - blocked_email_set)
 
     if request.POST:
         email = request.POST.get("block_email")

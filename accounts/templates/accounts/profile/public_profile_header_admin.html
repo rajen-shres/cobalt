@@ -1,8 +1,13 @@
 {#Snippet for admin (superuser) to enable/disable a user from the search screen#}
 
-<h4 class="text-center">Account is {{ profile.is_active|yesno:"Active,Inactive" }}</h4>
+<h4 class="text-center">
+    Account is {{ profile.is_active|yesno:"Active,Inactive" }}
+    {% if profile.deceased %}
+        and marked as deceased
+    {% endif %}
+</h4>
 
-{% if request.user.is_superuser %}
+{% if request.user.is_superuser  and not profile.deceased %}
     <div class="text-center">
         <button
             hx-post="{% url "accounts:admin_toggle_user_is_active" %}"
@@ -10,10 +15,21 @@
             hx-target="#active-status"
 
             {% if profile.is_active %}
-                class="btn btn-sm btn-warning">De-activate</button>
+                class="btn btn-sm btn-warning">De-activate
             {% else %}
-                class="btn btn-sm btn-success">Activate</button>
+                class="btn btn-sm btn-success">Activate<
             {% endif %}
-        </div>
-        <p class="font-italic text-rose">Use "Login As" to see and change user settings such as email, or date of birth.</p>
+        </button>
+        {% if not profile.deceased %}
+            <button
+                hx-post="{% url "accounts:admin_mark_user_deceased" %}"
+                hx-vars="user_id:{{ profile.id }}"
+                hx-target="#active-status"
+                class="btn btn-sm btn-danger"
+            >
+                Mark as Deceased
+            </button>
+        {% endif %}
+    </div>
+    <p class="font-italic text-rose">Use "Login As" to see and change user settings such as email, or date of birth.</p>
 {% endif %}

@@ -14,7 +14,7 @@ from organisations.decorators import check_club_menu_access
 from organisations.models import ClubLog, MemberMembershipType, Organisation
 from organisations.views.club_menu import tab_finance_htmx
 from organisations.views.club_menu_tabs.members import club_admin_edit_member_htmx
-from organisations.views.general import is_player_a_member
+from organisations.club_admin_core import is_player_a_member
 from payments.models import UserPendingPayment, OrganisationTransaction
 from payments.views.core import (
     update_account,
@@ -364,7 +364,8 @@ def charge_member_htmx(request, club):
     #         message=f"{member} is not a member of the club. Cannot charge user.",
     #     )
 
-    if not is_player_a_member(member.system_number, club):
+    # JPG Query - this will just check for current active members.
+    if not is_player_a_member(club, member.system_number):
         return tab_finance_htmx(
             request,
             message=f"{member} is not a member of the club. Cannot charge user.",

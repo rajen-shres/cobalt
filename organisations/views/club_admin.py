@@ -124,7 +124,7 @@ def activity_emails_htmx(request, club):
     system_number = request.POST.get("system_number")
     member_details = get_member_details(club, system_number)
 
-    email_address, _ = club_email_for_member(club, system_number)
+    email_address = club_email_for_member(club, system_number)
 
     if email_address:
         emails = get_emails_sent_to_address(email_address, club, request.user)

@@ -52,7 +52,9 @@ class NotificationsConfig(AppConfig):
         from logs.views import log_event
         from django.utils.inspect import func_accepts_kwargs
         from accounts.models import UserAdditionalInfo, User
-        from organisations.models import MemberClubEmail
+        from organisations.club_admin_core import (
+            set_club_email_bounced,
+        )
 
         def _get_message_id(mail_obj):
             """Utility to get the message_id from the message"""
@@ -83,13 +85,7 @@ class NotificationsConfig(AppConfig):
                 user_additional_info.email_hard_bounce_date = timezone.now()
                 user_additional_info.save()
 
-            un_regs = MemberClubEmail.objects.filter(email=email_address)
-
-            for un_reg in un_regs:
-                un_reg.email_hard_bounce = True
-                un_reg.email_hard_bounce_reason = message
-                un_reg.email_hard_bounce_date = timezone.now()
-                un_reg.save()
+            set_club_email_bounced(email_address)
 
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):

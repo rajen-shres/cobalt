@@ -19,8 +19,12 @@ from logs.views import log_event
 from masterpoints.factories import masterpoint_factory_creator
 from masterpoints.views import user_summary
 from notifications.views.core import send_cobalt_email_with_template
-from organisations.models import MemberClubEmail, Organisation
+from organisations.models import Organisation
 from organisations.views.general import replace_unregistered_user_with_real_user
+from organisations.club_admin_core import (
+    club_email_for_member,
+    get_club_member_list_for_emails,
+)
 
 
 def register_user(request, system_number=None, email=None):
@@ -454,9 +458,7 @@ def get_email_address_and_name_from_system_number(
         return None, None
 
     # Check for email address
-    club_email = MemberClubEmail.objects.filter(
-        system_number=system_number, organisation=club
-    ).first()
+    club_email = club_email_for_member(club, system_number=system_number)
 
     if not club_email:
         return None, None
@@ -512,9 +514,9 @@ def get_users_or_unregistered_users_from_email_list(email_list):
     users = User.objects.filter(email__in=email_list)
 
     # Get Unregistered Users
-    un_reg_emails = MemberClubEmail.objects.filter(email__in=email_list)
+    club_member_list = get_club_member_list_for_emails(None, email_list)
     un_regs = UnregisteredUser.objects.filter(
-        system_number__in=un_reg_emails.values("system_number")
+        system_number__in=[system_number for system_number, _ in club_member_list]
     ).distinct()
     un_reg_dict = {un_reg.system_number: un_reg for un_reg in un_regs}
 
@@ -528,11 +530,11 @@ def get_users_or_unregistered_users_from_email_list(email_list):
         mixed_dict[user.email] = user
 
     # Add unregistered to dictionary
-    for un_reg_email in un_reg_emails:
-        un_reg = un_reg_dict[un_reg_email.system_number]
+    for (system_number, email) in un_reg_dict:
+        un_reg = un_reg_dict[system_number]
         un_reg.is_un_reg = True
         un_reg.is_user = False
-        mixed_dict[un_reg_email.email] = un_reg
+        mixed_dict[email] = un_reg
 
     return mixed_dict
 

@@ -90,14 +90,6 @@ class OrgEmailForm(forms.Form):
         return body
 
 
-class AddContactForm(forms.Form):
-    """Simple form to get details of a contact"""
-
-    first_name = forms.CharField(label="First name", max_length=100, required=False)
-    last_name = forms.CharField(label="Last name", max_length=100, required=False)
-    email = forms.EmailField(label="Email", max_length=100, required=True)
-
-
 class EmailOptionsForm(forms.Form):
     """Form to get email options (compose email step 2)"""
 

@@ -1,19 +1,32 @@
 <!-- member seach results -->
 {% if members %}
 
-    <ul>
-        {% for member in members %}
-            <li>
-                {% if member.email %}
-                    <a href= "{% url 'notifications:compose_email_recipients_add_member' club_id=club.id batch_id_id=batch.id system_number=member.system_number %}">
-                        {{ member.first_name}} {{ member.last_name }} ({{ member.system_number }})
-                    </a>
-                {% else %}
-                    {{ member.first_name}} {{ member.last_name }} ({{ member.system_number }})
-                {% endif %}
-            </p>
-        {% endfor %}
-    </ul>
+    <div class="col">
+        <ul>
+            {% for member in members %}
+                <li>
+                    {% if member.club_email %}
+                        <a href= "{% url 'notifications:compose_email_recipients_add_member' club_id=club.id batch_id_id=batch.id system_number=member.system_number %}">
+                    {% endif  %}
+                    {{ member.first_name}} {{ member.last_name }}
+                    {% if member.membership_status == 'CON' %}
+                        <sup>*</sup>
+                    {% endif %}
+                    {% if not member.internal %}
+                        ({{ member.system_number }})
+                    {% endif %}
+                    {% if member.club_email %}
+                        </a>
+                    {% endif  %}
+                </p>
+            {% endfor %}
+        </ul>
+        <div class="col">
+            <span class="small font-italic">
+                <sup>*</sup> Club contacts
+            </span>
+        </div>
+    </div>
 
 {% else %}
     No members matched

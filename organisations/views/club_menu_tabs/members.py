@@ -85,7 +85,6 @@ from organisations.models import (
     MiscPayType,
 )
 from organisations.views.general import (
-    active_email_for_un_reg,
     get_rbac_model_for_state,
 )
 from payments.models import (
@@ -636,7 +635,7 @@ def _un_reg_edit_htmx_common(
         tag_name__in=used_tags
     )
 
-    email_address = active_email_for_un_reg(un_reg, club)
+    email_address = club_email_for_member(club, un_reg.system_number)
 
     emails = get_emails_sent_to_address(email_address, club, request.user)
 
@@ -1509,12 +1508,8 @@ def bulk_invite_to_join_htmx(request, club):
         failure = 0
 
         for member in can_invite:
-            club_email = MemberClubEmail.objects.filter(
-                system_number=member.system_number, organisation=club
-            ).first()
-            if club_email and invite_to_join(
-                member, club_email.email, request.user, club
-            ):
+            club_email = club_email_for_member(club, member.system_number)
+            if club_email and invite_to_join(member, club_email, request.user, club):
                 success += 1
             else:
                 failure += 1

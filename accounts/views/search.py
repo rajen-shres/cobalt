@@ -34,6 +34,9 @@ def member_search_ajax(request):
 
     """
 
+    # JPG Debug
+    print("*** member_search_ajax ***")
+
     msg = ""
 
     if request.method == "GET":
@@ -169,6 +172,10 @@ def member_search_htmx(request):
     unregistered:  Optional. If provided then we search for UnregisteredUsers instead of Users.
 
     """
+
+    # JPG debug
+    print("*** member_search_htmx ***")
+
     # Get parameters
     search_id = request.POST.get("search_id", "")
     user_id_field = request.POST.get("user_id_field", "")
@@ -177,6 +184,13 @@ def member_search_htmx(request):
     # Get partial first name to search for from form
     last_name_search = request.POST.get("last_name_search")
     first_name_search = request.POST.get("first_name_search")
+
+    # JPG debug
+    print(f"*** search_id = '{search_id}'")
+    print(f"*** user_id_field = '{user_id_field}'")
+    print(f"*** callback = '{callback}'")
+    print(f"*** last_name_search = '{last_name_search}'")
+    print(f"*** search_id = '{first_name_search}'")
 
     # If user enters data and then deletes it we can get nothing through - ignore
     if not last_name_search and not first_name_search:
@@ -491,6 +505,9 @@ def _get_exclude_list_and_base_values(request):
 
     # Check for unregistered, controls which user type we search User or UnregisteredUser
     unregistered = bool(request.POST.get("unregistered"))
+
+    # JPG debug
+    print(f"*** unregistered = '{unregistered}'")
 
     if unregistered:
         exclude_list = []
