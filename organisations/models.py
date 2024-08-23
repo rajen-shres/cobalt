@@ -634,58 +634,6 @@ class MemberClubDetails(models.Model):
     class Meta:
         unique_together = ("club", "system_number")
 
-    def refresh_status(self, as_at_date=None, commit=True):
-        """Ensure that the membership status and current membership are correct.
-
-        Args:
-            as_at_date (Date or None): the date to use, current if None
-            commit (boolean): save changes?
-
-        Returns:
-            boolean: was a change made?
-
-        Note: this calls refresh_state on the most recent MemberMembershipType.
-        Note: if this is called with commit=False, the caller needs to handle saving
-        any changes made to the most recent MemberMembershipType."""
-
-        if self.membership_status == self.MEMBERSHIP_STATUS_DECEASED:
-            return False
-
-        changed = False
-
-        latest_mmt = (
-            MemberMembershipType.objects.filter(
-                system_number=self.system_number,
-                membership_type__organisation=self.club,
-            )
-            .order_by("end_date")
-            .last()
-        )
-
-        if not latest_mmt:
-            # no membership type association, so should be a contact
-            if (
-                self.membership_status != self.MEMBERSHIP_STATUS_CONTACT
-                or self.latest_membership
-            ):
-                self.membership_status = self.MEMBERSHIP_STATUS_CONTACT
-                self.latest_membership = None
-                changed = True
-        else:
-            changed = latest_mmt.refresh_state(as_at_date=as_at_date, commit=commit)
-            if self.latest_membership != latest_mmt or changed:
-                self.latest_membership = latest_mmt
-                self.membership_status = latest_mmt.membership_state
-                changed = True
-            elif self.membership_status != latest_mmt.membership_state:
-                self.membership_status = latest_mmt.membership_state
-                changed = True
-
-        if changed:
-            self.save()
-
-        return changed
-
     @property
     def current_type_dates(self):
         """The start and end dates for the current membership type
@@ -742,6 +690,75 @@ class MemberClubDetails(models.Model):
             MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
             MemberClubDetails.MEMBERSHIP_STATUS_DUE,
         ]
+
+    @property
+    def outstanding_fees(self):
+        """returns the total outstanding fees for this member"""
+
+        os_fees_dict = MemberMembershipType.objects.filter(
+            system_number=self.system_number,
+            membership_type__organisation=self.club,
+            is_paid=False,
+            membership_state__in=[
+                MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+                MemberMembershipType.MEMBERSHIP_STATE_DUE,
+                MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+            ],
+        ).aggregate(os_fees=models.Sum("fee"))
+
+        return os_fees_dict["os_fees"] if os_fees_dict["os_fees"] else 0
+
+    def refresh_status(self, as_at_date=None, commit=True):
+        """Ensure that the membership status and current membership are correct.
+
+        Args:
+            as_at_date (Date or None): the date to use, current if None
+            commit (boolean): save changes?
+
+        Returns:
+            boolean: was a change made?
+
+        Note: this calls refresh_state on the most recent MemberMembershipType.
+        Note: if this is called with commit=False, the caller needs to handle saving
+        any changes made to the most recent MemberMembershipType."""
+
+        if self.membership_status == self.MEMBERSHIP_STATUS_DECEASED:
+            return False
+
+        changed = False
+
+        latest_mmt = (
+            MemberMembershipType.objects.filter(
+                system_number=self.system_number,
+                membership_type__organisation=self.club,
+            )
+            .order_by("end_date")
+            .last()
+        )
+
+        if not latest_mmt:
+            # no membership type association, so should be a contact
+            if (
+                self.membership_status != self.MEMBERSHIP_STATUS_CONTACT
+                or self.latest_membership
+            ):
+                self.membership_status = self.MEMBERSHIP_STATUS_CONTACT
+                self.latest_membership = None
+                changed = True
+        else:
+            changed = latest_mmt.refresh_state(as_at_date=as_at_date, commit=commit)
+            if self.latest_membership != latest_mmt or changed:
+                self.latest_membership = latest_mmt
+                self.membership_status = latest_mmt.membership_state
+                changed = True
+            elif self.membership_status != latest_mmt.membership_state:
+                self.membership_status = latest_mmt.membership_state
+                changed = True
+
+        if changed:
+            self.save()
+
+        return changed
 
     def __str__(self):
         return f"{self.club} - {self.system_number}"

@@ -147,13 +147,39 @@ def description_for_status(status):
     return membership_status_dict.get(status, "Unknown Status")
 
 
+def member_details_short_description(member_details):
+    """A brief description of the membership status"""
+
+    future_memberships_qs = MemberMembershipType.objects.filter(
+        membership_type__organisation=member_details.club,
+        system_number=member_details.system_number,
+        membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+    )
+
+    future_membership_count = future_memberships_qs.count()
+
+    if member_details.membership_status in MEMBERSHIP_STATES_ACTIVE:
+        desc = f"Current {member_details.latest_membership.membership_type.name} member"
+    else:
+        desc = (
+            f"{member_details.get_membership_status_display} "
+            f"{member_details.latest_membership.membership_type.name} member"
+        )
+
+    os_fees = member_details.outstanding_fees
+    if os_fees > 0:
+        desc += f", {os_fees} membership fees to pay"
+
+    if future_membership_count:
+        desc += " (note: future dated memberships exist for this member)"
+
+    return desc
+
+
 def member_details_description(member_details):
     """A comprehensive descriptive string of the type, status and relevant dates"""
 
     contiguous_start, contiguous_end = member_details.current_type_dates
-
-    # JPG debug
-    print(f"Contigous dates = {contiguous_start} - {contiguous_end}")
 
     period = f"from {contiguous_start:%d %b %Y}"
     if contiguous_end:
@@ -172,11 +198,26 @@ def member_details_description(member_details):
     elif joined_and_left:
         joined_and_left += ". "
 
+    #  get the furthest future future membership (if any)
+    future_membership = (
+        MemberMembershipType.objects.filter(
+            membership_type__organisation=member_details.club,
+            system_number=member_details.system_number,
+            membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        )
+        .order_by("end_date")
+        .last()
+    )
+
     paid_until = None
-    if (
-        member_details.latest_membership.paid_until_date
-        and member_details.latest_membership.paid_until_date
-        != member_details.latest_membership.end_date
+    if future_membership and future_membership.is_paid and future_membership.end_date:
+        paid_until = (
+            f"paid until {member_details.future_membership.paid_until_date:%d %b %Y}"
+        )
+
+    elif (
+        member_details.latest_membership.is_paid
+        and member_details.latest_membership.end_date
     ):
         paid_until = (
             f"paid until {member_details.latest_membership.paid_until_date:%d %b %Y}"
@@ -188,7 +229,8 @@ def member_details_description(member_details):
         )
         if paid_until:
             desc += f", {paid_until}"
-        if member_details.latest_membership.due_date:
+
+        if not member_details.latest_membership.is_paid:
             desc += f", {member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
         desc += f". {joined_and_left}"
     elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
@@ -1128,7 +1170,7 @@ def can_mark_as_paid(member_details):
     if os_memberships.count() > 0:
         return (True, None)
     else:
-        return "No outstanding membership fees able to be paid"
+        return (False, "No outstanding membership fees able to be paid")
 
     # JPG clean-up
     # if not (
@@ -2013,14 +2055,20 @@ def renew_membership(
         CobaltMemberNotFound: if no member found with this system number
     """
 
-    member_details = (
-        MemberClubDetails.objects.filter(
-            club=club,
-            system_number=system_number,
-        )
-        .select_related("latest_membership")
-        .last()
-    )
+    message = ""
+
+    # JPG clean up
+    # member_details = (
+    #     MemberClubDetails.objects.filter(
+    #         club=club,
+    #         system_number=system_number,
+    #     )
+    #     .select_related("latest_membership")
+    #     .last()
+    # )
+
+    member_details = get_member_details(club, system_number)
+
     if not member_details:
         raise CobaltMemberNotFound(club, system_number)
 
@@ -2055,6 +2103,9 @@ def renew_membership(
         process_payment=process_payment,
     )
 
+    if payment_message:
+        message = payment_message
+
     new_membership.save()
 
     # NOTE: assuming that renewals always occur while the current membership is active
@@ -2076,7 +2127,7 @@ def renew_membership(
             f"Membership paid using {new_membership.payment_method.payment_method}",
         )
 
-    return (True, "Membership extended" + message)
+    return (True, "Membership extended " + message)
 
 
 def change_membership(

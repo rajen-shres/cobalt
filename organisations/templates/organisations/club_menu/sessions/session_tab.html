@@ -11,6 +11,20 @@
     <div class="card-header card-header-warning">
         <h2>Sessions</h2>
 
+        <!-- SHOW SESSION_TYPES IF MORE THAN ONE -->
+
+        {% if session_types %}
+
+            <span class="text-dark font-weight-bold mr-1">Type:</span>
+
+            <select class="selectpicker mr-3" data-style="btn btn-primary" id="id_session_type" name="session_type">
+                {% for session_type in session_types %}
+                    <option value="{{ session_type.id }}">{{ session_type.name }}</option>
+                {% endfor %}
+            </select>
+
+        {% endif %}
+
         <div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle btn-round" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 New Session
@@ -75,23 +89,7 @@
                 </a>
             </div>
         </div>
-
-        <!-- SHOW SESSION_TYPES IF MORE THAN ONE -->
-
-        {% if session_types %}
-
-            <span class="float-right">
-                <span class="text-dark font-weight-bold">Type:</span>
-
-                <select class="selectpicker" data-style="btn btn-rose" id="id_session_type" name="session_type">
-                    {% for session_type in session_types %}
-                        <option value="{{ session_type.id }}">{{ session_type.name }}</option>
-                    {% endfor %}
-                </select>
-
-        {% endif %}
-    </span>
-
+    </div>
 </div>
 
 <!-- SESSION LISTING TABLE -->

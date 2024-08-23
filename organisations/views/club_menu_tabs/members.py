@@ -56,6 +56,7 @@ from organisations.club_admin_core import (
     log_member_change,
     make_membership_payment,
     member_details_description,
+    member_details_short_description,
     perform_simple_action,
     renew_membership,
     MEMBERSHIP_STATES_TERMINAL,
@@ -1676,16 +1677,14 @@ def club_admin_edit_member_htmx(request, club, message=None):
     else:
         form = MemberClubDetailsForm(instance=member_details)
 
-    # Note: member_admin is used in conditioning the member nav area.
-    # The user has this access if they have got this far.
-
-    member_description = member_details_description(member_details)
+    # member_description = member_details_description(member_details)
+    member_description = member_details_short_description(member_details)
 
     # which recent activities should be shown?
     permitted_activities = get_valid_activities(member_details)
 
-    # JPG debug
-    print(f"Current index = {current_index}")
+    # Note: member_admin is used in conditioning the member nav area.
+    # The user has this access if they have got this far.
 
     return render(
         request,
@@ -1960,7 +1959,7 @@ def club_admin_edit_member_payment_htmx(request, club):
                 club,
                 system_number,
                 payment_message,
-                requester=request.user,
+                show_history=True,
             )
 
         else:
