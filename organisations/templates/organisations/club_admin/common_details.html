@@ -4,7 +4,8 @@
 {#  Expects context:                                                      #}
 {#      edit_details: boolean editing mode flag                           #}
 {#      form: the MemberClubDetailsForm form                              #}
-{#      member_deatils: the augmented member or contact details           #}
+{#      member_details: the augmented member or contact details           #}
+{#      always_shared: member is always sharing profile data              #}
 {#------------------------------------------------------------------------#}
 
 {% load static %}
@@ -16,6 +17,15 @@
 <div class="row pb-2">
     <div class="col-2 justify-content-center align-self-center pt-3">
         Email
+        {% if always_shared and member_details.membership_status != "CON" %}
+            <span
+                class="material-icons text-success"
+                data-toggle="tooltip"
+                title="This field is being provided by the member"
+            >
+                account_circle
+            </span>
+        {% endif %}
     </div>
     <div class="col-8">
         <div id="div_id_email" class="form-group">
@@ -43,6 +53,15 @@
 <div class="row pb-2">
     <div class="col-2 justify-content-center align-self-center">
         Mobile
+        {% if always_shared and member_details.membership_status != "CON" %}
+            <span
+                class="material-icons text-success"
+                data-toggle="tooltip"
+                title="This field is being provided by the member"
+            >
+                account_circle
+            </span>
+        {% endif %}
     </div>
     <div class="col-3">
         <div id="div_id_mobile" class="form-group">
@@ -149,6 +168,16 @@
 <div class="row pb-2">
     <div class="col-2 justify-content-center align-self-center">
         Date of birth
+        {% if always_shared and member_details.membership_status != "CON" %}
+            <span
+                class="material-icons text-success"
+                data-toggle="tooltip"
+                title="This field is being provided by the member"
+            >
+                account_circle
+            </span>
+        {% endif %}
+
     </div>
     <div class="col-3">
         <div id="div_id_dob" class="form-group">
@@ -156,7 +185,7 @@
                 {{ form.dob.errors|striptags }}
             </span>
             {% if edit_details %}
-                {% render_field form.dob class+="form-control" %}
+                {% render_field form.dob class+="form-control datepicker" %}
             {% else %}
                 {{ form.dob.value|default:'-' }}
             {% endif %}
@@ -215,3 +244,4 @@
         </div>
     </div>
 </div>
+

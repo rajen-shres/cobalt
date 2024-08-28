@@ -1,0 +1,174 @@
+{% load cobalt_tags %}
+{% load static %}
+
+<div id="club_memberships" class="card">
+    <div class="card-header card-header-danger">
+        <h4>Club Memberships</h4>
+    </div>
+
+    <div class="card-body">
+
+        {% if club_options %}
+
+            <p>You have memberships with the following clubs. You can control your interactions with these clubs here:</p>
+
+            {% if membership_message %}
+                <h4
+                    class="text-center {% if warning_message %}text-danger{% else %}text-success{% endif %}"
+                >
+                    {{ membership_message }}
+                </h4>
+            {% endif %}
+
+            <div class="table-responsive">
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Club</th>
+                            <th class="text-center">Block</th>
+                            <th class="text-center">Share profile data</th>
+                            <th class="text-center">Auto pay fees</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for club_option in club_options %}
+                            <tr style="height: 50px;">
+                                <td class="text-left">
+                                    {{ club_option.club.name }}
+                                </td>
+
+                                {% if club_option.allow_membership %}
+                                    <td class="text-center">
+                                        <button
+                                            class="btn btn-sm btn-danger"
+                                            id="id-block-{{ club_option.club.id }}"
+                                            onclick="confirmBlock(this)"
+                                            data-toggle="tooltip"
+                                            title="Blocking will delete your membership with this club and prevent the club from adding you as a member while blocked"
+                                        >
+                                            Block
+                                        </button>
+                                    </td>
+                                    <td class="text-center">
+                                        <select
+                                            class="form-control"
+                                            id="id-share_data-{{ club_option.club.id }}"
+                                            name="share-data-{{ club_option.club.id }}"
+                                            hx-post="{% url 'accounts:profile_club_option_share_data_htmx' %}"
+                                            hx-vars="mco_id:{{ club_option.id }}"
+                                            hx-include="#id-share_data-{{ club_option.club.id }}"
+                                            hx_target="#id-membership-card"
+                                            data-toggle="tooltip"
+                                            title="Select when {{ GLOBAL_TITLE }} should share your profile data (email, date of birth, mobile) with this club: once only when selected, whenever you update your information or never."
+                                        >
+                                            {% for value, label in share_data_choices %}
+                                                <option
+                                                    class="text-center"
+                                                    value="{{ value }}"
+                                                    {% if club_option.share_data == value %}selected{% endif %}
+                                                >
+                                                    {{ label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <input
+                                            type="checkbox"
+                                            id="id-allow-auto-pay-{{ club_option.club.id }}"
+                                            hx-post="{% url 'accounts:profile_club_option_allow_auto_pay_htmx' %}"
+                                            hx-vars="mco_id:{{ club_option.id }}"
+                                            hx_target="#id-membership-card"
+                                            data-toggle="tooltip"
+                                            title="Uncheck to stop this club charging your membership fee to your {{ BRIDGE_CREDITS }} account."
+                                            {% if club_option.allow_auto_pay %}checked{% endif %}
+                                        >
+                                    </td>
+
+                                {% else %}
+
+                                    <td class="text-center">
+                                        <button
+                                            class="btn btn-sm btn-success"
+                                            hx-post="{% url 'accounts:profile_club_option_allow_membership_htmx' %}"
+                                            hx-vars="club_id: {{ club_option.club.id }}, allow:'YES'"
+                                            hx_target="#id-membership-card"
+                                            data-toggle="tooltip"
+                                            title="This will allow the club to add you as a member in future"
+                                        >
+                                            Allow
+                                        </button>
+                                    </td>
+                                    <td
+                                        class="text-danger text-left"
+                                        colspan="2"
+                                    >
+                                        You are blocking this club from adding you as a member
+                                    </td>
+
+                                {% endif %}
+                            </tr>
+                            {% if club_option.allow_membership %}
+                                {% for mmt in outstanding_fees %}
+                                    {% if mmt.membership_type.organisation == club_option.club %}
+                                        <tr style="height: 50px;">
+                                            <td></td>
+                                            <td class="text-center" colspan="3">
+                                                {{ mmt.fee }} membership fee
+                                                {% if mmt.due_date %}
+                                                    due {{ mmt.due_date }}
+                                                {% endif %}
+                                                {% if mmt.auto_pay_date and club_option.allow_auto_pay %}
+                                                    , auto payment on {{ mmt.auto_pay_date }}
+                                                {% endif %}
+                                                <a
+                                                    class="btn btn-sm btn-success ml-2"
+                                                    href="{% url 'organisations:club_admin_user_initiated_payment' mmt_id=mmt.id %}"
+                                                >
+                                                    Pay now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% else %}
+            You currently have no club memberships in {{ GLOBAL_TITLE }}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function confirmBlock(button) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you really want to block this club? This will remove your membership of this club.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, block it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                const parts = button.getAttribute('id').split('-');
+                const clubId = parts[parts.length - 1];
+                const postData = {
+                    'club_id': clubId,
+                    'allow': 'NO',
+                };
+
+                // Make the HTMX request
+                htmx.ajax('POST', '{% url "accounts:profile_club_option_allow_membership_htmx" %}', {
+                    'values': postData,
+                    'target': '#id-membership-card'
+                });
+            }
+        });
+    }
+</script>

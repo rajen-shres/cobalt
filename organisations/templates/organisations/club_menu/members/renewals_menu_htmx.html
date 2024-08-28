@@ -1,0 +1,68 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+    <div class="card-header card-header-info">
+        <h2>Members</h2>
+        {% include "organisations/club_menu/members/nav_htmx.html" with selected="renewals" %}
+    </div>
+
+    <div class="card-body" id="id_member_renewals_tab">
+
+        {% if message %}
+            <h3>{{ message }}</h3>
+        {% endif %}
+
+        <div class="table-responsive">
+            <table class="table table-condensed">
+                <tbody>
+                    <tr>
+                        <td>
+                            <button
+                                class="btn bg-primary btn-block"
+                                id="t_member_add_individual_member"
+                                hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}"
+                                hx-target="#id_member_renewals_tab"
+                            >
+                                Bulk Renewals
+                            </button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Initiate a bulk renewals
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                id="t_mpc_import"
+                                hx-post="{% url "organisations:club_menu_tab_members_view_unpaid_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}"
+                                hx-target="#id_member_renewals_tab"
+                            >
+                                Unpaid Fees
+                            </button>
+                        </td>
+                        <td class="text-left pl-5">
+                            View unpaid membership fees
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button class="btn bg-primary btn-block"
+                                hx-post="{% url "organisations:club_menu_tab_members_email_unpaid_htmx" %}"
+                                hx-vars="club_id:{{ club.id }}, type_id:-1"
+                                hx-target="#id_member_renewals_tab"
+                            >
+                                Email Unpaid
+                            </button>
+                        </td>
+                        <td class="text-left pl-5">
+                            Email all members with unpaid membership fees
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

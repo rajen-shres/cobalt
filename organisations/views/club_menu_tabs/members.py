@@ -77,6 +77,7 @@ from organisations.models import (
     MemberMembershipType,
     Organisation,
     MemberClubEmail,
+    MemberClubOptions,
     ClubLog,
     MemberClubTag,
     ClubTag,
@@ -182,6 +183,7 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
             "searchparams": searchparams,
             "sort_option": sort_option,
             "former_members": former_members,
+            "full_membership_mgmt": club.full_club_admin,
         },
     )
 
@@ -212,6 +214,7 @@ def add_htmx(request, club, message=None):
             "has_errors": has_errors,
             "has_unregistered": club_has_unregistered_members(club),
             "message": message,
+            "full_membership_mgmt": club.full_club_admin,
         },
     )
 
@@ -232,6 +235,7 @@ def reports_htmx(request, club):
             "club": club,
             "member_admin": member_admin,
             "has_errors": has_errors,
+            "full_membership_mgmt": club.full_club_admin,
         },
     )
 
@@ -298,6 +302,8 @@ def club_admin_report_all_csv(request, club_id):
             "Membership End Date",
             "Paid Unit Date",
             "Due Date",
+            "Auto Pay Date",
+            "Paid Date",
             "Fee",
             "Email",
             "Joined Date",
@@ -334,6 +340,8 @@ def club_admin_report_all_csv(request, club_id):
                 format_date_or_none(member.latest_membership.end_date),
                 format_date_or_none(member.latest_membership.paid_until_date),
                 format_date_or_none(member.latest_membership.due_date),
+                format_date_or_none(member.latest_membership.auto_pay_date),
+                format_date_or_none(member.latest_membership.paid_date),
                 member.latest_membership.fee,
                 member.email,
                 format_date_or_none(member.joined_date),
@@ -1279,7 +1287,12 @@ def errors_htmx(request, club):
     return render(
         request,
         "organisations/club_menu/members/errors_htmx.html",
-        {"has_errors": has_errors, "member_admin": member_admin, "club": club},
+        {
+            "has_errors": has_errors,
+            "member_admin": member_admin,
+            "club": club,
+            "full_membership_mgmt": club.full_club_admin,
+        },
     )
 
 
@@ -1604,6 +1617,24 @@ def club_admin_edit_member_htmx(request, club, message=None):
 
     valid_actions = get_valid_actions(member_details)
 
+    #  check whether always sharing profile data
+
+    if member_details.user_type == f"{GLOBAL_TITLE} User":
+        user = User.objects.get(pk=member_details.user_or_unreg_id)
+        club_options = MemberClubOptions.objects.filter(
+            club=club,
+            user=user,
+        ).last()
+        always_shared = (
+            club_options
+            and club_options.share_data == MemberClubOptions.SHARE_DATA_ALWAYS
+        )
+    else:
+        always_shared = False
+
+    # JPG Debug
+    print(f"**** always shared = {always_shared}")
+
     # get the members complete set of memberships
     member_history = (
         MemberMembershipType.objects.filter(
@@ -1705,6 +1736,8 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "system_number": member_details.system_number,
             "permitted_activities": permitted_activities,
             "show_history": show_history,
+            "full_membership_mgmt": club.full_club_admin,
+            "always_shared": always_shared,
         },
     )
 
@@ -2094,6 +2127,7 @@ def club_admin_add_member_htmx(request, club):
             "system_number": system_number,
             "member_admin": member_admin,
             "has_errors": has_errors,
+            "full_membership_mgmt": club.full_club_admin,
         },
     )
 
@@ -2318,6 +2352,14 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
                 error = True
                 message = "End date cannot be before start date"
 
+            if (
+                not error
+                and form.cleaned_data["auto_pay_date"]
+                and form.cleaned_data["auto_pay_date"] <= timezone.now().date()
+            ):
+                error = True
+                message = "Auto pay date must be in the future"
+
             if not error:
 
                 mmt.membership_type = new_membership_type
@@ -2337,6 +2379,16 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
                 mmt.due_date = (
                     form.cleaned_data["due_date"]
                     if form.cleaned_data["due_date"]
+                    else None
+                )
+                mmt.paid_date = (
+                    form.cleaned_data["paid_date"]
+                    if form.cleaned_data["paid_date"]
+                    else None
+                )
+                mmt.auto_pay_date = (
+                    form.cleaned_data["auto_pay_date"]
+                    if form.cleaned_data["auto_pay_date"]
                     else None
                 )
                 mmt.fee = form.cleaned_data["fee"]
@@ -2451,3 +2503,41 @@ def get_mpc_details(club, system_number):
         details["EmailAddress"] = None
 
     return details
+
+
+@check_club_menu_access(check_members=True)
+def renewals_menu_htmx(request, club):
+    """Renewals submenu"""
+
+    message = request.POST.get("message", None)
+
+    return render(
+        request,
+        "organisations/club_menu/members/renewals_menu_htmx.html",
+        {
+            "club": club,
+            "full_membership_mgmt": club.full_club_admin,
+            "message": message,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
+def bulk_renewals_htmx(request, club):
+    """Initiate bulk renewals"""
+
+    return HttpResponse("Bulk renewals coming soon")
+
+
+@check_club_menu_access(check_members=True)
+def view_unpaid_htmx(request, club):
+    """Initiate bulk renewals"""
+
+    return HttpResponse("Unpaid fees coming soon")
+
+
+@check_club_menu_access(check_members=True)
+def email_unpaid_htmx(request, club):
+    """Initiate email batch to unpaid members"""
+
+    return HttpResponse("Email unpaid coming soon")

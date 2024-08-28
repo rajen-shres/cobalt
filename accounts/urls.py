@@ -77,6 +77,26 @@ urlpatterns = [
         accounts.views.covid.covid_user_exempt_htmx,
         name="covid_user_exempt_htmx",
     ),
+    path(
+        "profile-memberships",
+        accounts.views.profile.memberships_card_htmx,
+        name="profile_memberships_card_htmx",
+    ),
+    path(
+        "profile-allow-membership",
+        accounts.views.profile.allow_membership_htmx,
+        name="profile_club_option_allow_membership_htmx",
+    ),
+    path(
+        "profile-allow-auto-pay",
+        accounts.views.profile.allow_auto_pay_htmx,
+        name="profile_club_option_allow_auto_pay_htmx",
+    ),
+    path(
+        "profile-share-data",
+        accounts.views.profile.share_data_htmx,
+        name="profile_club_option_share_data_htmx",
+    ),
     path("settings", accounts.views.settings.user_settings, name="user_settings"),
     path(
         "update-blurb",

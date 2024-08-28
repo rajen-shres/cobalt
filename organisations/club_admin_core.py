@@ -20,6 +20,7 @@ from datetime import date, timedelta
 from itertools import chain
 import logging
 
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import (
@@ -28,13 +29,19 @@ from accounts.models import (
     UserAdditionalInfo,
 )
 from cobalt.settings import (
-    GLOBAL_TITLE,
     BRIDGE_CREDITS,
+    GLOBAL_TITLE,
+    GLOBAL_ORG,
 )
 
 from notifications.models import Recipient
 
 from payments.models import OrgPaymentMethod
+
+from rbac.core import (
+    rbac_get_group_by_name,
+    rbac_get_users_in_group,
+)
 
 from .models import (
     Organisation,
@@ -44,6 +51,7 @@ from .models import (
     MemberClubEmail,
     ClubMemberLog,
     MemberClubTag,
+    MemberClubOptions,
 )
 
 
@@ -259,6 +267,83 @@ def member_details_description(member_details):
 #       get_member_details : get a single member's details
 #       get_club_members : get all club members
 # -------------------------------------------------------------------------------------
+
+
+def get_club_options_for_user(user):
+    """Return a query set of member club option records for a user
+
+    Checks that records exist for all club memberships for the user,
+    and creates any missing records with the default values.
+
+    Args:
+        user (User): the registered user
+
+    Returns:
+        list: list of MemberClubOptions, ordered by club name
+    """
+
+    # get existing options records, and build a dictionary keyed on club
+
+    club_options = list(
+        MemberClubOptions.objects.filter(
+            user=user,
+        )
+        .select_related("club")
+        .order_by("club__name")
+    )
+
+    options_dict = {club_option.club: club_option for club_option in club_options}
+
+    # get all memberships for this user and fill in any missing options
+
+    memberships = (
+        MemberClubDetails.objects.filter(
+            system_number=user.system_number,
+        )
+        .exclude(
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+        )
+        .select_related("club")
+    )
+
+    for membership in memberships:
+        if membership.club not in options_dict:
+            missing_options = MemberClubOptions(
+                club=membership.club,
+                user=user,
+            )
+            missing_options.save()
+            club_options.append(missing_options)
+            options_dict[membership.club] = missing_options
+
+    return club_options
+
+
+def is_player_allowing_club_membership(club, system_number):
+    """Checks whether this user is blocking membership for this club
+
+    Creates a default options record if none exists
+    """
+
+    try:
+        user = User.objects.get(system_number=system_number)
+    except User.DoesNotExist:
+        # No restrictions for unregistered users
+        return True
+
+    club_options = MemberClubOptions.objects.filter(
+        club=club,
+        user=user,
+    ).last()
+
+    if not club_options:
+        club_options = MemberClubOptions(
+            club=club,
+            user=user,
+        )
+        club_options.save()
+
+    return club_options.allow_membership
 
 
 def get_membership_type(club, system_number):
@@ -1044,6 +1129,12 @@ def get_outstanding_membership_fees_for_user(user):
     ).select_related("membership_type", "membership_type__organisation")
 
 
+def user_has_outstanding_membership_fees(user):
+    """Checks whether a user has any outstanding membership payments"""
+
+    return get_outstanding_membership_fees_for_user(user).count() > 0
+
+
 def get_count_for_membership_type(membership_type, active_only=True):
     """Return the number of members of the given type for the club,
     either current members only or all states
@@ -1427,6 +1518,9 @@ def add_member(
         string: explanatory message or None
     """
 
+    if not is_player_allowing_club_membership(club, system_number):
+        return (False, "This user is blocking memberships from this club")
+
     today = timezone.now().date()
 
     # build the new membership record
@@ -1494,8 +1588,8 @@ def add_member(
 
     if is_registered_user:
         user = User.objects.get(system_number=system_number)
-        if user.share_with_clubs:
-            share_user_data_with_clubs(user, this_membership=member_details)
+        share_user_data_with_clubs(user, this_membership=member_details, initial=True)
+        _notify_user_of_membership(member_details, user)
 
     return (True, message)
 
@@ -1549,6 +1643,8 @@ def _process_membership_payment(
 
         today = timezone.now().date()
         if ok:
+            membership.paid_date = today
+            membership.auto_pay_date = None
             if membership.is_in_effect:
                 membership.membership_state = (
                     MemberMembershipType.MEMBERSHIP_STATE_CURRENT
@@ -1873,14 +1969,16 @@ def _update_member_status(club, member_details, new_status, action, requester=No
 
 
 def _mark_member_as_paid(club, member_details, requester=None):
-    """Mark a member as paid. Sets the paid until to be the end date, changes the status
-    and removes the due date. Logs the update.
-    """
+    """Mark a member as paid. Sets the paid until to be the end date, sets the paid date, changes the status and removes the due date and auto-pay date. Logs the update."""
+
+    today = timezone.now().date()
 
     member_details.latest_membership.state = (
         MemberMembershipType.MEMBERSHIP_STATE_CURRENT
     )
     member_details.latest_membership.due_date = None
+    member_details.paid_date = today
+    member_details.auto_pay_date = None
     member_details.latest_membership.paid_until_date = (
         member_details.latest_membership.end_date
     )
@@ -1918,7 +2016,7 @@ def _delete_member(club, member_details, requester=None):
     member_details.left_date = None
     member_details.save()
 
-    return (True, "Membership information deleted. Deatils saved as a contact")
+    return (True, "Membership information deleted. Details saved as a contact")
 
 
 SIMPLE_ACTION_FUNCTIONS = {
@@ -2056,16 +2154,6 @@ def renew_membership(
     """
 
     message = ""
-
-    # JPG clean up
-    # member_details = (
-    #     MemberClubDetails.objects.filter(
-    #         club=club,
-    #         system_number=system_number,
-    #     )
-    #     .select_related("latest_membership")
-    #     .last()
-    # )
 
     member_details = get_member_details(club, system_number)
 
@@ -2268,20 +2356,17 @@ def change_membership(
     return (True, message)
 
 
-def share_user_data_with_clubs(user, this_membership=None, overwrite=False):
+def share_user_data_with_clubs(user, this_membership=None, initial=False):
     """Share user personal information with clubs of which they are a member
 
     Args:
         user (User): the user electing to share information
         this_membership (MemberClubDetails): only update this membership
-        overwrite (bool): replace any club values with the user's
+        initail (bool): is this the first time sharing this data?
 
     Returns:
         int: number of clubs updated
     """
-
-    if not user.share_with_clubs:
-        return 0
 
     additional_info = user.useradditionalinfo_set.last()
 
@@ -2294,6 +2379,24 @@ def share_user_data_with_clubs(user, this_membership=None, overwrite=False):
     for membership in memberships:
         updated = False
 
+        # check sharing options
+        club_options = MemberClubOptions.objects.filter(
+            club=membership.club,
+            user=user,
+        ).last()
+
+        if (
+            not club_options
+            or club_options.share_data == MemberClubOptions.SHARE_DATA_NEVER
+            or (
+                club_options.share_data == MemberClubOptions.SHARE_DATA_ONCE
+                and not initial
+            )
+        ):
+            continue
+
+        overwrite = club_options.share_data == MemberClubOptions.SHARE_DATA_ALWAYS
+
         # update any fields
         for field_name in ["email", "dob", "mobile"]:
             if getattr(user, field_name) and (
@@ -2304,6 +2407,7 @@ def share_user_data_with_clubs(user, this_membership=None, overwrite=False):
 
         # if the club is using the same email make sure that the email bounce data
         # is synchronised
+
         if (
             additional_info
             and membership.email == user.email
@@ -2411,8 +2515,8 @@ def convert_existing_membership(club, membership):
 
     member_details.save()
 
-    if is_user and user.share_with_clubs:
-        share_user_data_with_clubs(user.system_number, this_membership=member_details)
+    if is_user:
+        share_user_data_with_clubs(user, this_membership=member_details, initial=True)
 
 
 def convert_existing_memberships_for_club(club):
@@ -2516,6 +2620,9 @@ def convert_contact_to_member(
         bool: success
         string: explanatory message or None
     """
+
+    if not is_player_allowing_club_membership(club, system_number):
+        return (False, "This user is blocking memberships from this club")
 
     today = timezone.now().date()
 
@@ -2626,10 +2733,13 @@ def convert_contact_to_member(
         message,
     )
 
-    if type(new_user_or_unreg) == User and new_user_or_unreg.share_with_clubs:
+    if type(new_user_or_unreg) == User:
         share_user_data_with_clubs(
-            new_user_or_unreg.system_number, this_membership=new_membership
+            new_user_or_unreg.system_number,
+            this_membership=new_membership,
+            initial=True,
         )
+        _notify_user_of_membership(new_membership, new_user_or_unreg)
 
     return (True, message)
 
@@ -2666,3 +2776,189 @@ def delete_contact(club, system_number):
     ClubMemberLog.objects.filter(club=club, system_number=system_number)
 
     return (True, "Contact deleted")
+
+
+def block_club_for_user(club_id, user):
+    """Take all actions to block membership of a club for a registered user
+
+    The user's club option record is updated, any current membership is deleted
+    and the club is sent an email notification.
+
+    Args:
+        club_id (int): the id of the club to block
+        user (User): the user requesting the block
+
+    Returns:
+        bool: success
+        str: error message if failed, or None
+        Organisation: the club, or None if there was a problem
+    """
+
+    try:
+        club = Organisation.objects.get(pk=club_id)
+    except Organisation.DoesNotExist:
+        return (False, "No such club", None)
+
+    #  update or create the options record
+
+    club_options = MemberClubOptions.objects.filter(
+        club=club,
+        user=user,
+    ).last()
+
+    if club_options:
+        club_options.allow_membership = False
+    else:
+        club_options = MemberClubOptions(
+            user=user,
+            club=club,
+            allow_membership=False,
+        )
+    club_options.save()
+
+    # delete the membership
+
+    member_details = MemberClubDetails.objects.filter(
+        system_number=user.system_number,
+        club=club,
+    ).last()
+
+    if member_details:
+        _delete_member(club, member_details, user)
+
+    # email the club
+
+    _notify_club_of_block(club, user)
+
+    return (True, None, None)
+
+
+def unblock_club_for_user(club_id, user):
+    """Take all actions to unblock membership of a club for a registered user
+
+    The user's club option record is deleted.
+
+    Args:
+        club_id (int): the id of the club to block
+        user (User): the user requesting the block
+
+    Returns:
+        bool: success
+        str: error message if failed, or None
+        Organisation: the club, or None if there was a problem
+    """
+
+    try:
+        club = Organisation.objects.get(pk=club_id)
+    except Organisation.DoesNotExist:
+        return (False, "No such club", None)
+
+    club_options = MemberClubOptions.objects.filter(
+        club=club,
+        user=user,
+    ).last()
+
+    if club_options:
+        if club_options.allow_membership:
+            return (True, "Club is already allowed", club)
+        else:
+            club_options.delete()
+
+    return (True, None, club)
+
+
+def _notify_club_of_block(club, user):
+    """Send an email to the club notifying them of a membership being blocked"""
+
+    from notifications.views.core import send_cobalt_email_with_template
+
+    rule = "members_edit"
+    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
+    member_editors = rbac_get_users_in_group(group)
+
+    email_body = f"""
+        <h1>A user has blocked their membership of your club</h1>
+        <p>{user.full_name} ({GLOBAL_ORG} {user.system_number}) was added as a
+        member of your club in {GLOBAL_TITLE}, but they have elected to block
+        the membership. Typically this should mean that they do not believe that
+        they are a member of your club.</p>
+        <p>Their membership has been deleted and your club will not be able to
+        add them as member while this block is in place.
+        <p>If you believe that this person has blocked your club in error,
+        please contact them and ask them to allow membership of your club by
+        logging in to {GLOBAL_TITLE} and clicking the 'Allow' button on their
+        user profile page. This would remove the block and allow a new membership
+        to be created for this person.</p>
+        <p>The member information your club entered into {GLOBAL_TITLE} about
+        this person has been saved as a club contact (see the Club Menu,
+        Contacts page). This contact could be converted back into a member if
+        the block is removed.</p>
+    """
+
+    context = {
+        "title": f"Membership blocked by {user.full_name}",
+        "email_body": email_body,
+        "box_colour": "#007bff",
+    }
+
+    for user in member_editors:
+
+        # JPG Debug
+        print(f"==== sending email to {user.full_name}, {user.email}")
+
+        context["name"] = user.first_name
+
+        send_cobalt_email_with_template(
+            to_address=user.email,
+            context=context,
+        )
+
+
+def _notify_user_of_membership(member_details, user=None):
+    """Send an email notification to a registered user that they have been added
+    as member by a club, and informing them of the blocking option. Only notify
+    registered users and use their profile email (not whatever club email has
+    been provided)
+
+    Args:
+        member_details (MemberClubDetails): details of the membership
+        user (User): user if available
+    """
+
+    from notifications.views.core import send_cobalt_email_with_template
+
+    # check for registered user
+    if not user:
+        try:
+            user = User.objects.get(system_number=member_details.system_number)
+        except User.DoesNotExist:
+            return
+
+    email_body = f"""
+        <h1>Membership of {member_details.club.name}</h1>
+        <p>{member_details.club.name} has listed you as a club member on {GLOBAL_TITLE},
+        with a member type of {member_details.latest_membership.membership_type.membership_type}
+        and status of {member_details.get_membership_status_display}.</p>
+        <p>If you are not a member of {member_details.club.name} you can remove this
+        membership and block any future attempts to list you as a member of this club.
+        This is simple to do from your profile page on {GLOBAL_TITLE} (linked below).</p>
+        <p>On this page you can also control if and when you share profile information
+        (email address, data of birth and mobile number) with each club you are a member of.
+        You can also control whether a club can charge your club membership fees to your
+        {BRIDGE_CREDITS} account.</p>
+        <p>Please note that blocking a club is not the same as resigning or not renewing a
+        legitimate membership. Please contact the club to end a membership in these circumstances.</p>
+    """
+
+    context = {
+        "title": f"Club membership: {member_details.club.name}",
+        "email_body": email_body,
+        "box_colour": "#007bff",
+        "link": reverse("accounts:user_profile"),
+        "link_text": "User Profile",
+    }
+
+    send_cobalt_email_with_template(
+        to_address=user.email,
+        context=context,
+    )

@@ -984,4 +984,24 @@ urlpatterns = [
         organisations.views.club_admin.user_initiated_payment_success_htmx,
         name="club_admin_user_initiated_payment_success_htmx",
     ),
+    path(
+        "club-admin/renewals/menu",
+        organisations.views.club_menu_tabs.members.renewals_menu_htmx,
+        name="club_menu_tab_members_renewals_menu_htmx",
+    ),
+    path(
+        "club-admin/renewals/bulk",
+        organisations.views.club_menu_tabs.members.bulk_renewals_htmx,
+        name="club_menu_tab_members_bulk_renewal_htmx",
+    ),
+    path(
+        "club-admin/renewals/unpaid",
+        organisations.views.club_menu_tabs.members.view_unpaid_htmx,
+        name="club_menu_tab_members_view_unpaid_htmx",
+    ),
+    path(
+        "club-admin/renewals/email-unpaid",
+        organisations.views.club_menu_tabs.members.email_unpaid_htmx,
+        name="club_menu_tab_members_email_unpaid_htmx",
+    ),
 ]

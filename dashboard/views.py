@@ -8,6 +8,7 @@ from payments.views.core import get_balance_detail, get_user_pending_payments
 from events.views.core import get_events
 from results.views.core import get_recent_results
 from utils.models import Slug
+from organisations.club_admin_core import user_has_outstanding_membership_fees
 
 from utils.utils import cobalt_paginator
 from forums.models import Post, ForumFollow
@@ -36,6 +37,7 @@ def home(request):
         events, unpaid, more_events, total_events = get_events(request.user)
         recent_results, more_results = get_recent_results(request.user)
         user_pending_payments = get_user_pending_payments(system_number)
+        pending_memberships = user_has_outstanding_membership_fees(request.user)
 
         # Show tour for this page?
         tour = request.GET.get("tour", None)
@@ -55,6 +57,7 @@ def home(request):
                 "recent_results": recent_results,
                 "user_pending_payments": user_pending_payments,
                 "tour": tour,
+                "pending_memberships": pending_memberships,
             },
         )
 

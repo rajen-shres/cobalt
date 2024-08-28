@@ -387,6 +387,14 @@ class MemberMembershipType(models.Model):
     )
     """ Typically either the end_date or the end of the previous period  """
 
+    paid_date = models.DateField("Paid Date", blank=True, null=True, default=None)
+    """ Date of Payment """
+
+    auto_pay_date = models.DateField(
+        "Auto Pay Date", blank=True, null=True, default=None
+    )
+    """ Date at which an automatic Bridge Credit payment will be attempted """
+
     due_date = models.DateField("Payment due date", blank=True, null=True, default=None)
     """ Date by which payment is due, none if paid, otherwise typically paid_unitl_date plus a grace period """
 
@@ -762,6 +770,44 @@ class MemberClubDetails(models.Model):
 
     def __str__(self):
         return f"{self.club} - {self.system_number}"
+
+
+class MemberClubOptions(models.Model):
+    """Member controlled options relating to a club"""
+
+    club = models.ForeignKey(Organisation, on_delete=models.CASCADE)
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Allow or block club membership
+    allow_membership = models.BooleanField(
+        "Allow Membership",
+        default=True,
+    )
+
+    # Allow of block automatic payment of membership fees
+    allow_auto_pay = models.BooleanField(
+        "Allow Automatic Payment",
+        default=True,
+    )
+
+    SHARE_DATA_NEVER = "NEVER"
+    SHARE_DATA_ONCE = "ONCE"
+    SHARE_DATA_ALWAYS = "ALWAYS"
+
+    SHARE_DATA_CHOICES = [
+        (SHARE_DATA_NEVER, "Never"),
+        (SHARE_DATA_ONCE, "Once"),
+        (SHARE_DATA_ALWAYS, "Always"),
+    ]
+
+    # Share personal data with this club
+    share_data = models.CharField(
+        "Share Data",
+        max_length=6,
+        choices=SHARE_DATA_CHOICES,
+        default=SHARE_DATA_NEVER,
+    )
 
 
 class ClubMemberLog(models.Model):

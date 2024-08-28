@@ -7,7 +7,6 @@ from fcm_django.models import FCMDevice
 
 from accounts.forms import UserSettingsForm
 from accounts.models import APIToken, UnregisteredUser
-from organisations.club_admin_core import share_user_data_with_clubs
 from notifications.models import UnregisteredBlockedEmail
 from notifications.views.user import notifications_in_english
 from organisations.club_admin_core import (
@@ -35,10 +34,6 @@ def user_settings(request):
             form.save()
 
             message = "Settings saved"
-            if form.cleaned_data["share_with_clubs"]:
-                updated_clubs = share_user_data_with_clubs(request.user)
-                if updated_clubs:
-                    message += f", {updated_clubs} club membership{'s' if updated_clubs>1 else ''} updated"
 
             messages.success(request, message, extra_tags="cobalt-message-success")
     else:

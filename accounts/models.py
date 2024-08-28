@@ -50,9 +50,6 @@ class User(AbstractUser):
     deceased = models.BooleanField("Deceased", default=False)
     """ Player is deceased, status set by My ABF support """
 
-    share_with_clubs = models.BooleanField("Share details with clubs", default=False)
-    """ Has the player consented to share selected informatin with clubs that claim them as a member """
-
     phone_regex = RegexValidator(
         #  regex=r"^\+?1?\d{9,15}$",
         regex=r"^04\d{8}$",

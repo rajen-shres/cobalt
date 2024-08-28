@@ -515,7 +515,12 @@ def search_tab_htmx(request, club):
     return render(
         request,
         "organisations/club_admin/search_tab_htmx.html",
-        {"member_admin": member_admin, "club": club, "mode": mode},
+        {
+            "member_admin": member_admin,
+            "club": club,
+            "mode": mode,
+            "full_membership_mgmt": club.full_club_admin,
+        },
     )
 
 
@@ -693,6 +698,8 @@ def user_initiated_fee_payment_callback(status, payload):
         # mark membership as paid
         mmt.is_paid = True
         mmt.paid_until_date = mmt.end_date
+        mmt.paid_date = timezone.now().date()
+        mmt.auto_pay_date = None
         if mmt.membership_state == MemberMembershipType.MEMBERSHIP_STATE_DUE:
             mmt.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
 

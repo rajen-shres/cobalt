@@ -438,6 +438,10 @@
 
     $(document).ready(function() {
 
+        $('.datepicker').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
+
         // change the text on the history table toggle button when pressed
         $('#id-history-button').click(function() {
             var button = $(this);
@@ -456,6 +460,10 @@
     document.addEventListener('htmx:afterSettle', function(event) {
 
         console.log("htmx:afterSettle "+event.detail.target.id+" - "+event.detail.elt.id)
+
+        $('.datepicker').datetimepicker({
+            format: 'DD/MM/YYYY'
+        });
 
         if (event.detail.target.id === 'id_action_pane') {
             // hook for any initialisation required for the form entry in the action pane

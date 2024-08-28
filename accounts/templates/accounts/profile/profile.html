@@ -143,84 +143,13 @@
                     </div>
                 </div>
 
-                {% if member_of_clubs %}
-                    <div id="club_memberships" class="card">
-                        <div class="card-header card-header-danger">
-                            <h4>Club Memberships</h4>
-                        </div>
-
-                        <div class="card-body">
-                            <h3>Club Memberships</h3>
-                            <p>You have memberships with the following clubs:</p>
-                            <ul>
-                                {% for membership in member_of_clubs %}
-                                    <li><a href="{% url "organisations:general_org_profile" org_id=membership.club.id %}">{{ membership.club }}</a></li>
-                                {% endfor %}
-                            </ul>
-
-                            {% if outstanding_fees %}
-
-                                <h3>Club Membership Fees</h3>
-
-                                <p>The following club membership fees can be paid via {{ BRIDGE_CREDITS }}</p>
-
-                                <div class="table-responsive">
-                                    <table class="table table-condensed table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-left">Club</th>
-                                                <th class="text-left">Type</th>
-                                                <th class="text-left">Period</th>
-                                                <th class="text-right">Fee</th>
-                                                <th class="text-center">Due</th>
-                                                <th class="text-right">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for mmt in outstanding_fees %}
-                                                <tr>
-                                                    <td class="text-left">
-                                                        {{ mmt.membership_type.organisation.name }}
-                                                    </td>
-                                                    <td class="text-left">
-                                                        {{ mmt.membership_type.name }}
-                                                    </td>
-                                                    <td class="text-left">
-                                                        {{ mmt.start_date }}
-                                                        {% if mmt.end_date %}
-                                                            - {{mmt.end_date}}
-                                                        {% else %}
-                                                            onwards
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="text-right">
-                                                        {{ mmt.fee }}
-                                                    </td>
-                                                    <td class="text-center">
-                                                        {% if mmt.due_date %}
-                                                            {{ mmt.due_date }}
-                                                        {% else %}
-                                                            -
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="text-right">
-                                                        <a
-                                                            class="btn btn-sm btn-success"
-                                                            href="{% url 'organisations:club_admin_user_initiated_payment' mmt_id=mmt.id %}"
-                                                        >
-                                                            Pay now
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                {% endif %}
+                <div
+                    id="id-membership-card"
+                    hx-post="{% url 'accounts:profile_memberships_card_htmx' %}"
+                    hx-target="#id-membership-card"
+                    hx-trigger="load"
+                >
+                </div>
 
                 <div class="card" id="teammates">
                     <div class="card-header card-header-warning">

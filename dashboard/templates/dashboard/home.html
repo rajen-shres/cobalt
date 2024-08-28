@@ -209,6 +209,10 @@
                             You have unpaid entries <a class="btn btn-sm btn-danger" href='{% url "events:view_events" %}'>Pay Now</a><br>
                         {% endif %}
 
+                        {% if pending_memberships %}
+                            You have unpaid club membership fees, see profile for details <a class="btn btn-sm btn-danger" href='{% url "accounts:user_profile" %}'>Profile</a><br>
+                        {% endif %}
+
                         {% if events %}
 
                             <table class="table table-condensed table-hover">

@@ -193,7 +193,6 @@ class UserSettingsForm(forms.ModelForm):
             "system_number_search",
             "windows_scrollbar",
             "receive_low_balance_emails",
-            "share_with_clubs",
         ]
 
 

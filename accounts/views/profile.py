@@ -10,12 +10,17 @@ from forums.models import Post, Comment1, Comment2
 from masterpoints.views import user_summary
 
 from organisations.club_admin_core import (
+    block_club_for_user,
     clear_club_email_bounced,
     get_club_memberships_for_person,
+    get_club_options_for_user,
     get_outstanding_membership_fees_for_user,
+    get_member_details,
     has_club_email_bounced,
     share_user_data_with_clubs,
+    unblock_club_for_user,
 )
+from organisations.models import MemberClubOptions
 from payments.views.core import get_user_pending_payments
 from rbac.core import rbac_user_has_role
 from support.models import Incident
@@ -63,10 +68,9 @@ def profile(request):
             if has_club_email_bounced(form.cleaned_data["email"]):
                 clear_club_email_bounced(form.cleaned_data["email"])
 
-            if request.user.share_with_clubs:
-                updated_clubs = share_user_data_with_clubs(request.user)
-                if updated_clubs:
-                    feedback += f", {updated_clubs} club membership{'s' if updated_clubs>1 else ''} updated"
+            updated_clubs = share_user_data_with_clubs(request.user)
+            if updated_clubs:
+                feedback += f", {updated_clubs} club membership{'s' if updated_clubs>1 else ''} updated"
 
         messages.success(request, feedback, extra_tags="cobalt-message-success")
 
@@ -81,11 +85,6 @@ def profile(request):
     )
 
     user_additional_info = UserAdditionalInfo.objects.filter(user=request.user).first()
-
-    # Get clubs
-    member_of_clubs = get_club_memberships_for_person(request.user.system_number)
-
-    outstanding_fees = get_outstanding_membership_fees_for_user(request.user)
 
     # Get any outstanding debt
     user_pending_payments = get_user_pending_payments(request.user.system_number)
@@ -102,12 +101,141 @@ def profile(request):
             "photoform": photoform,
             "team_mates": team_mates,
             "user_additional_info": user_additional_info,
-            "member_of_clubs": member_of_clubs,
             "user_pending_payments": user_pending_payments,
             "tour": tour,
-            "outstanding_fees": outstanding_fees,
         },
     )
+
+
+@login_required
+def memberships_card_htmx(request, message=None, warning_message=False):
+    """htmx end point for the membership card on the user profile page"""
+
+    club_options = get_club_options_for_user(request.user)
+    outstanding_fees = get_outstanding_membership_fees_for_user(request.user)
+
+    return render(
+        request,
+        "accounts/profile/profile_memberships_card_htmx.html",
+        {
+            "club_options": club_options,
+            "outstanding_fees": outstanding_fees,
+            "share_data_choices": MemberClubOptions.SHARE_DATA_CHOICES,
+            "membership_message": message,
+            "warning_message": warning_message,
+        },
+    )
+
+
+@login_required
+def allow_membership_htmx(request):
+    """toggle the allow membership setting on a club options row
+
+    The POST is expected to incude:
+        club_id: Organisation id of the club involved
+        allow: 'YES' or 'NO'
+    """
+
+    message = None
+
+    allow = request.POST.get("allow", "YES") == "YES"
+    club_id = request.POST.get("club_id", None)
+
+    # JPG debug
+    print(f"**** allow_membership_htmx: allow='{allow}', club id ={club_id}")
+
+    if not club_id:
+        return memberships_card_htmx(
+            request, "Something went wrong", warning_message=True
+        )
+
+    if allow:
+        # unblocking
+
+        success, message, club = unblock_club_for_user(club_id, request.user)
+
+        warning_message = not success
+        if success:
+            message = f"Unblocked - {club.name} can add you as a member"
+
+    else:
+        # blocking
+
+        success, message, _ = block_club_for_user(club_id, request.user)
+
+        warning_message = True
+        if success:
+            message = "The membership has been removed and the club blocked"
+
+    return memberships_card_htmx(
+        request,
+        message=message,
+        warning_message=warning_message,
+    )
+
+
+@login_required
+def allow_auto_pay_htmx(request):
+    """toggle the allow auto pay setting on a club options row"""
+
+    club_options_id = request.POST.get("mco_id", None)
+    club_options = MemberClubOptions.objects.get(pk=club_options_id)
+
+    if club_options.user != request.user:
+        return memberships_card_htmx(request)
+
+    club_options.allow_auto_pay = not club_options.allow_auto_pay
+    club_options.save()
+
+    return memberships_card_htmx(request)
+
+
+@login_required
+def share_data_htmx(request):
+    """change the data sharing setting on a club options row"""
+
+    message = None
+
+    club_options_id = request.POST.get("mco_id", None)
+    club_options = MemberClubOptions.objects.get(pk=club_options_id)
+
+    if club_options.user != request.user:
+        return memberships_card_htmx(request)
+
+    share_data_choice = request.POST.get(
+        f"share-data-{club_options.club.id}", MemberClubOptions.SHARE_DATA_NEVER
+    )
+
+    if share_data_choice not in [
+        choice for choice, _ in MemberClubOptions.SHARE_DATA_CHOICES
+    ]:
+        share_data_choice = MemberClubOptions.SHARE_DATA_NEVER
+
+    # JPG Debug
+    print(f"++++++ Data sharing option = '{share_data_choice}'")
+
+    club_options.share_data = share_data_choice
+    club_options.save()
+
+    if share_data_choice in [
+        MemberClubOptions.SHARE_DATA_ONCE,
+        MemberClubOptions.SHARE_DATA_ALWAYS,
+    ]:
+
+        member_details = get_member_details(
+            club_options.club, request.user.system_number
+        )
+
+        updated = share_user_data_with_clubs(
+            request.user,
+            this_membership=member_details,
+            initial=True,
+        )
+
+        if updated:
+            message = f"{club_options.club.name} records updated"
+
+    return memberships_card_htmx(request, message=message)
 
 
 def blurb_form_upload(request):
