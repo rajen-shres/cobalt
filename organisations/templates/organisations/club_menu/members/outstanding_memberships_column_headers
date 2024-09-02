@@ -1,0 +1,21 @@
+<th class="text-left">
+    <a href="javascript:void(0)"
+        hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
+
+        {% if sort_option == sort_field|add:"_desc" %}
+            hx-vars="club_id:{{ club.id }}, sort_option:'{{ sort_field }}_asc'"
+        {% else %}
+            hx-vars="club_id:{{ club.id }}, sort_option:'{{ sort_field }}_desc'"
+        {% endif %}
+        hx-target="#id_member_renewals_tab"
+    >
+        <span class="cobalt-no-wrap">
+            {{ sort_label }}
+            {% if sort_option == sort_field|add:"_desc" %}
+                &darr;
+            {% elif sort_option == sort_field|add:"_asc"  %}
+                &uarr;
+            {% endif %}
+        </span>
+    </a>
+</th>

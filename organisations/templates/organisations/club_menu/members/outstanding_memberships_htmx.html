@@ -1,0 +1,185 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{#  Club Admin - Manage Outstanding Memberships                           #}
+{#     Provides content for #id_member_renewals_tab                       #}
+{#                                                                        #}
+{#  Expects context variables:                                            #}
+{#      club: the club                                                    #}
+{#      things: pagenated list of outstanding memberships                 #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load static %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- Header and navigation buttons -->
+
+    <div class="card-header card-header-warning mt-3">
+        <h2>
+            Manage Outstanding Memberships
+        </h2>
+        <a
+            class="btn bg-transparent float-right"
+            style="outline: 0; outline-offset: 0; box-shadow: none;"
+            href="{% url 'organisations:club_menu_tab_members_email_unpaid' club_id=club.id %}"
+        >
+            Email All
+        </a>
+    </div>
+
+    <div class="card-body">
+
+        <p>{{ stats.total_fees|cobalt_currency }} total outstanding, {{ stats.auto_pay_fees|cobalt_currency }} currently to be automatically paid by {{ BRIDGE_CREDITS }}.</p>
+
+        {% if things %}
+
+            <table class="table table-condensed table-hover mt-4">
+
+                <thead>
+                    <tr>
+                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='name' sort_label='Name' %}
+
+                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='type' sort_label='User Type' %}
+
+                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='membership' sort_label='Membership' %}
+
+                        <th class="text-left">
+                            Fee
+                        </th>
+
+                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='due' sort_label='Due Date' %}
+
+                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='auto' sort_label='Auto Pay' %}
+
+                        <th class="text-right">
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for thing in things %}
+
+                        <tr>
+                            <td class="text-left">
+                                {{ thing.first_name }} {{ thing.last_name }} ({{ thing.system_number }})
+                            </td>
+                            <td class="text-left">
+                                {{ thing.user_type }}
+                            </td>
+                            <td class="text-left">
+                                {{ thing.membership_type.name }}
+                                ({{ thing.period }})
+                            </td>
+                            <td class="text-left">
+                                {{ thing.fee|cobalt_currency }}
+                            </td>
+                            <td class="text-left">
+                                {% if thing.due_date %}
+                                    {{ thing.due_date|date:"d-m-Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-left">
+                                {% if thing.auto_pay_date %}
+                                    {% if thing.allow_auto_pay %}
+                                        <span class="material-icons text-success">check_circle_outline</span>
+                                        {{ thing.auto_pay_date }}
+                                    {% elif thing.user_type != 'Unregistered Use' %}
+                                        <span class="material-icons text-warning">highlight_off</span>
+                                    {% endif %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                <button
+                                    class="btn btn-sm btn-success"
+                                    hx-post="{% url "organisations:club_admin_edit_member_htmx" %}"
+                                    hx-vars="club_id:{{ club.id }}, system_number: {{ thing.system_number }}, save:'NO'"
+                                    hx-target="#id_panel_members"
+                                    hx-push-url="{{ club.id }}"
+                                >
+                                    Edit Member
+                                </button>
+                            </td>
+                        </tr>
+
+                    {% endfor %}
+                </tbody>
+                <table>
+
+                    {% if things.paginator.num_pages > 1 %}
+
+                        <ul class="pagination pagination-info">
+
+                            {# Handle backward links if not on first page #}
+
+                            {% if things.has_previous %}
+
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
+                                        hx-vars="page: {{ things.previous_page_number }}"
+                                        hx-target="#id_member_renewals_tab"
+                                        style="cursor: pointer"
+                                    >
+                                        PREV
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {# Show numbered link for this page and those around it #}
+
+                            {% for num in things.paginator.page_range %}
+
+                                {% if things.number == num %}
+
+                                    <li class="active page-item">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+
+                                {% elif num > things.number|add:'-3' and num < things.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                            hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
+                                            hx-vars="page: {{ num }}"
+                                            hx-target="#id_member_renewals_tab"
+                                            style="cursor: pointer"
+                                        >
+
+                                            {{ num }}
+
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                            {% endfor %}
+
+                            {# Handle forwards links if not on last page #}
+
+                            {% if things.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
+                                        hx-vars="page: {{ things.next_page_number }}"
+                                        hx-target="#id_member_renewals_tab"
+                                        style="cursor: pointer"
+                                    >
+                                        NEXT
+                                    </a>
+                                </li>
+
+                            {% endif %}
+                        </ul>
+
+                    {% endif %}
+        {% else %}
+
+            <h4 class="mt-4">No members have outstanding fees</h4>
+
+        {% endif %}
+    </div>
+</div>

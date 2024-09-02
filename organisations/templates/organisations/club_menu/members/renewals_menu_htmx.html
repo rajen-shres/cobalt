@@ -36,7 +36,7 @@
                         <td>
                             <button class="btn bg-primary btn-block"
                                 id="t_mpc_import"
-                                hx-post="{% url "organisations:club_menu_tab_members_view_unpaid_htmx" %}"
+                                hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
                                 hx-vars="club_id:{{ club.id }}"
                                 hx-target="#id_member_renewals_tab"
                             >
@@ -44,18 +44,19 @@
                             </button>
                         </td>
                         <td class="text-left pl-5">
-                            View unpaid membership fees
+                            Manage unpaid membership fees
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <button class="btn bg-primary btn-block"
-                                hx-post="{% url "organisations:club_menu_tab_members_email_unpaid_htmx" %}"
-                                hx-vars="club_id:{{ club.id }}, type_id:-1"
-                                hx-target="#id_member_renewals_tab"
+
+                            <a
+                                class="btn bg-primary btn-block"
+                                href="{% url 'organisations:club_menu_tab_members_email_unpaid' club_id=club.id %}"
                             >
                                 Email Unpaid
-                            </button>
+                            </a>
+
                         </td>
                         <td class="text-left pl-5">
                             Email all members with unpaid membership fees

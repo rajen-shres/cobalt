@@ -6,6 +6,7 @@ from threading import Thread
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django.http import HttpResponse, HttpRequest
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -19,6 +20,7 @@ from accounts.forms import UnregisteredUserForm
 from accounts.models import User, UnregisteredUser, UserAdditionalInfo
 from club_sessions.models import SessionEntry
 from cobalt.settings import (
+    ALL_SYSTEM_ACCOUNTS,
     GLOBAL_ORG,
     GLOBAL_TITLE,
     COBALT_HOSTNAME,
@@ -29,7 +31,11 @@ from masterpoints.views import (
     user_summary,
 )
 from masterpoints.factories import masterpoint_query_row
-from notifications.models import UnregisteredBlockedEmail, BatchID
+from notifications.models import (
+    BatchID,
+    Recipient,
+    UnregisteredBlockedEmail,
+)
 from notifications.views.core import (
     custom_sender,
     send_cobalt_email_with_template,
@@ -52,6 +58,7 @@ from organisations.club_admin_core import (
     get_members_for_renewal,
     get_member_log,
     get_member_system_numbers,
+    get_outstanding_memberships_for_member,
     get_outstanding_memberships,
     get_valid_actions,
     get_valid_activities,
@@ -1870,7 +1877,7 @@ def club_admin_edit_member_payment_htmx(request, club):
     system_number = request.POST.get("system_number", None)
     member_details = get_member_details(club, system_number)
 
-    membership_to_pay = get_outstanding_memberships(
+    membership_to_pay = get_outstanding_memberships_for_member(
         club,
         system_number,
     ).last()
@@ -2016,7 +2023,7 @@ def club_admin_edit_member_extend_htmx(request, club):
             "club_template": -1,
             "send_notice": True,
             "email_subject": "Membership Renewal",
-            "email_content": "Thank you for your continuing membership. Please find your renewal details below",
+            "email_content": "Thank you for your continuing membership. Please find your renewal details below.",
         }
         form = MembershipExtendForm(
             initial=initial_data,
@@ -2685,7 +2692,7 @@ def _process_bulk_renewals(
             this_renewal_parameters.update_with_line_form(form)
             this_renewal_parameters.update_with_options_form(options_form)
 
-            members, _, _ = get_members_for_renewal(
+            members, _ = get_members_for_renewal(
                 club,
                 this_renewal_parameters,
                 form_index,
@@ -2723,13 +2730,91 @@ def _process_bulk_renewals(
 
 @check_club_menu_access(check_members=True)
 def view_unpaid_htmx(request, club):
-    """Initiate bulk renewals"""
+    """Manage unpaid memberships"""
 
-    return HttpResponse("Unpaid fees coming soon")
+    sort_option = request.POST.get("sort_option", "name_desc")
+
+    memberships, stats = get_outstanding_memberships(club, sort_option=sort_option)
+
+    # Note: need to pass the page number because the common routine
+    # expects GET rather than POST
+    things = cobalt_paginator(
+        request,
+        memberships,
+        page_no=request.POST.get("page", 1),
+    )
+
+    # jpg debug
+    print(f"sort_option = '{sort_option}'")
+
+    return render(
+        request,
+        "organisations/club_menu/members/outstanding_memberships_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "stats": stats,
+            "sort_option": sort_option,
+        },
+    )
 
 
-@check_club_menu_access(check_members=True)
-def email_unpaid_htmx(request, club):
+@login_required
+def email_unpaid(request, club_id):
     """Initiate email batch to unpaid members"""
 
-    return HttpResponse("Email unpaid coming soon")
+    club = get_object_or_404(Organisation, pk=club_id)
+
+    club_role = f"orgs.org.{club.id}.view"
+    if not rbac_user_has_role(request.user, club_role):
+        return rbac_forbidden(request, club_role)
+
+    member_role = f"orgs.members.{club.id}.edit"
+    if not rbac_user_has_role(request.user, member_role):
+        return rbac_forbidden(request, member_role)
+
+    memberships, _ = get_outstanding_memberships(club)
+
+    candidates = [
+        (
+            membership.system_number,
+            membership.first_name,
+            membership.last_name,
+            membership.club_email,
+        )
+        for membership in memberships
+        if membership.club_email
+    ]
+
+    # create the batch header
+    batch_id = create_rbac_batch_id(
+        f"notifications.orgcomms.{club.id}.edit",
+        organisation=club,
+        batch_type=BatchID.BATCH_TYPE_COMMS,
+        batch_size=len(candidates),
+        description="Outstanding memberships",
+        complete=False,
+    )
+    batch = BatchID.objects.get(batch_id=batch_id)
+
+    # save the recipients
+    for candidate in candidates:
+        if candidate[0] not in ALL_SYSTEM_ACCOUNTS:
+            try:
+                recpient = Recipient()
+                recpient.batch = batch
+                recpient.system_number = candidate[0]
+                recpient.first_name = candidate[1]
+                recpient.last_name = candidate[2]
+                recpient.email = candidate[3]
+                recpient.save()
+            except IntegrityError:
+                # possible for there to be duplicates
+                pass
+
+    # go to club menu, comms tab, edit batch
+    return redirect(
+        "notifications:compose_email_recipients",
+        club.id,
+        batch.id,
+    )

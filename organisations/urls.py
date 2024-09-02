@@ -1005,8 +1005,8 @@ urlpatterns = [
         name="club_menu_tab_members_view_unpaid_htmx",
     ),
     path(
-        "club-admin/renewals/email-unpaid",
-        organisations.views.club_menu_tabs.members.email_unpaid_htmx,
-        name="club_menu_tab_members_email_unpaid_htmx",
+        "club-admin/renewals/email-unpaid/<int:club_id>/",
+        organisations.views.club_menu_tabs.members.email_unpaid,
+        name="club_menu_tab_members_email_unpaid",
     ),
 ]

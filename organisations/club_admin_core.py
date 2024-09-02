@@ -1247,7 +1247,8 @@ def can_mark_as_deceased(member_details):
     return (True, None)
 
 
-def get_outstanding_memberships(club, system_number):
+# JPG clean-up. Replaced by augmented version
+def get_outstanding_memberships_for_member(club, system_number):
     """Return all memberships with outstanding fees to pay"""
 
     return MemberMembershipType.objects.filter(
@@ -1266,7 +1267,7 @@ def get_outstanding_memberships(club, system_number):
 def can_mark_as_paid(member_details):
     """Can the member validly be marked as paid?"""
 
-    os_memberships = get_outstanding_memberships(
+    os_memberships = get_outstanding_memberships_for_member(
         member_details.club, member_details.system_number
     )
 
@@ -2150,6 +2151,7 @@ def renew_membership(
         start_date=renewal_parameters.start_date,
         due_date=renewal_parameters.due_date,
         end_date=renewal_parameters.end_date,
+        auto_pay_date=renewal_parameters.auto_pay_date,
         fee=renewal_parameters.fee,
         last_modified_by=requester,
         membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
@@ -3199,3 +3201,178 @@ def get_members_for_renewal(
             member_list,
             stats,
         )
+
+
+def _sort_memberships(membership_list, sort_option):
+    """Sort a list of memberships by various fields
+
+    Note that the membership_list must be augments by get_outstanding_memberships"""
+
+    if sort_option == "name_desc":
+        membership_list.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
+
+    elif sort_option == "name_asc":
+        membership_list.sort(
+            key=lambda x: (x.last_name.lower(), x.first_name.lower()), reverse=True
+        )
+
+    if sort_option == "type_desc":
+        membership_list.sort(key=lambda x: x.user_type.lower())
+
+    elif sort_option == "type_asc":
+        membership_list.sort(key=lambda x: x.user_type.lower(), reverse=True)
+
+    elif sort_option == "membership_desc":
+        membership_list.sort(
+            key=lambda x: (
+                x.membership_type.name,
+                x.start_date,
+                x.last_name.lower(),
+                x.first_name.lower(),
+            )
+        )
+
+    elif sort_option == "membership_asc":
+        membership_list.sort(
+            key=lambda x: (x.last_name.lower(), x.first_name.lower(), x.start_date)
+        )
+        membership_list.sort(key=lambda x: x.membership_type.name, reverse=True)
+
+    elif sort_option == "due_desc":
+        membership_list.sort(
+            key=lambda x: (
+                x.due_date,
+                x.last_name.lower(),
+                x.first_name.lower(),
+            )
+        )
+
+    elif sort_option == "due_asc":
+        membership_list.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
+        membership_list.sort(key=lambda x: x.due_date, reverse=True)
+
+    elif sort_option == "auto_asc":
+        membership_list.sort(
+            key=lambda x: (
+                x.auto_pay_sort_date,
+                x.last_name.lower(),
+                x.first_name.lower(),
+            )
+        )
+
+    elif sort_option == "auto_desc":
+        membership_list.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
+        membership_list.sort(key=lambda x: x.auto_pay_sort_date, reverse=True)
+
+
+def get_outstanding_memberships(club, sort_option="name_asc"):
+    """Get a list of memberships with outstanding payments for a club
+
+    Args:
+        club (Organisation): the club
+        sort-option (str): a string specifying the sort field and direction
+
+        The valid fields are name, membership, due and auto. Directions are asc and desc
+
+    Returns:
+        list: augmented MemberMembershipType records
+        dict: statistics dictionary
+
+    The returned objects are augments with
+        first_name (str)
+        last_name (str)
+        user_type (str): '{GLOABL_TITLE} User' or 'Unregistered User'
+        allow_auto_pay (bool)
+        user_or_unreg (User or UnregsiteredUser)
+    """
+
+    stats = {}
+
+    def init_metrics(metric_list):
+        for metric in metric_list:
+            if metric not in stats:
+                stats[metric] = 0
+
+    def increment_count(metric):
+        stats[metric] = stats.get(metric, 0) + 1
+
+    def add_to_total(metric, amount):
+        stats[metric] = stats.get(metric, 0) + amount
+
+    init_metrics(["total_fees", "auto_pay_fees"])
+
+    # get the memberships
+
+    memberships = MemberMembershipType.objects.filter(
+        membership_type__organisation=club,
+        is_paid=False,
+        membership_state__in=[
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+            MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        ],
+    ).select_related("membership_type")
+
+    # get the related User, UnregisteredUser and MemberClubOption objects
+
+    system_numbers = memberships.values_list("system_number", flat=True)
+
+    users = User.objects.filter(system_number__in=system_numbers)
+    unreg = UnregisteredUser.objects.filter(system_number__in=system_numbers)
+    member_details = MemberClubDetails.objects.filter(
+        club=club, system_number__in=system_numbers
+    )
+    options = MemberClubOptions.objects.filter(
+        club=club, user__in=users
+    ).select_related("user")
+
+    # build a dictionary of the player data
+
+    options_dict = {
+        option.user.system_number: option.allow_auto_pay for option in options
+    }
+
+    club_email_dict = {
+        member_detail.system_number: member_detail.email
+        for member_detail in member_details
+        if member_detail.email
+    }
+
+    player_dict = {
+        player.system_number: {
+            "first_name": player.first_name,
+            "last_name": player.last_name,
+            "user_or_unreg": player,
+            "user_type": f"{GLOBAL_TITLE} User"
+            if type(player) == User
+            else "Unregistered User",
+            "allow_auto_pay": options_dict.get(player.system_number, False),
+        }
+        for player in chain(users, unreg)
+    }
+
+    # augment the memberships
+
+    membership_list = list(memberships)
+    for membership in membership_list:
+        if membership.system_number in player_dict:
+            for key in player_dict[membership.system_number]:
+                setattr(membership, key, player_dict[membership.system_number][key])
+            add_to_total("total_fees", membership.fee)
+            if membership.allow_auto_pay:
+                add_to_total("auto_pay_fees", membership.fee)
+            if membership.allow_auto_pay and membership.auto_pay_date:
+                membership.auto_pay_sort_date = membership.auto_pay_date
+            else:
+                membership.auto_pay_sort_date = date(1900, 1, 1)
+            if membership.system_number in club_email_dict:
+                membership.club_email = club_email_dict[membership.system_number]
+            else:
+                if type(membership.user_or_unreg) == User:
+                    membership.club_email = membership.user_or_unreg.email
+                else:
+                    membership.club_email = None
+
+    _sort_memberships(membership_list, sort_option)
+
+    return (membership_list, stats)

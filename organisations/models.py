@@ -465,6 +465,17 @@ class MemberMembershipType(models.Model):
         ]
 
     @property
+    def period(self):
+        """A string representation of teh effective period"""
+        if self.end_date:
+            if self.start_date.year == self.end_date.year:
+                return f"{self.start_date:%-d-%b} - {self.end_date:%-d-%b-%y}"
+            else:
+                return f"{self.start_date:%-d-%b-%y} - {self.end_date:%-d-%b-%y}"
+        else:
+            return f"{self.start_date:%-d-%b-%y} onwards"
+
+    @property
     def is_in_effect(self):
         """Is this currently in the effective date range"""
         today = timezone.now().date()
