@@ -2,6 +2,7 @@ import csv
 from datetime import date, timedelta
 import logging
 from itertools import chain
+from threading import Thread
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -48,6 +49,7 @@ from organisations.club_admin_core import (
     get_contact_system_numbers,
     get_member_count,
     get_member_details,
+    get_members_for_renewal,
     get_member_log,
     get_member_system_numbers,
     get_outstanding_memberships,
@@ -59,6 +61,8 @@ from organisations.club_admin_core import (
     member_details_short_description,
     perform_simple_action,
     renew_membership,
+    send_renewal_notice,
+    _format_renewal_notice_email,
     MEMBERSHIP_STATES_TERMINAL,
 )
 from organisations.decorators import check_club_menu_access
@@ -72,6 +76,8 @@ from organisations.forms import (
     MembershipChangeTypeForm,
     MembershipPaymentForm,
     MembershipRawEditForm,
+    BulkRenewalFormSet,
+    BulkRenewalOptionsForm,
 )
 from organisations.models import (
     MemberMembershipType,
@@ -85,6 +91,7 @@ from organisations.models import (
     WelcomePack,
     OrgEmailTemplate,
     MiscPayType,
+    RenewalParameters,
 )
 from organisations.views.general import (
     get_rbac_model_for_state,
@@ -962,9 +969,6 @@ def add_member_search_htmx(request):
 def edit_member_htmx(request, club, message=""):
     """Edit a club member manually"""
 
-    # JPG debug
-    print("*** edit_member_htmx ***")
-
     member_id = request.POST.get("member")
     member = get_object_or_404(User, pk=member_id)
 
@@ -988,16 +992,6 @@ def edit_member_htmx(request, club, message=""):
     available_tags = ClubTag.objects.filter(organisation=club).exclude(
         tag_name__in=used_tags
     )
-
-    # Get recent emails too
-    # if rbac_user_has_role(
-    #     request.user, f"notifications.orgcomms.{club.id}.edit"
-    # ) or rbac_user_has_role(request.user, "orgs.admin.edit"):
-    #     emails = PostOfficeEmail.objects.filter(to=[member.email]).order_by("-pk")[:20]
-    # else:
-    #     emails = None
-
-    # JPG cleanup
 
     emails = get_emails_sent_to_address(member.email, club, request.user)
 
@@ -1414,91 +1408,6 @@ def add_misc_payment_pay(request, club, member, amount, misc_description):
     return "Payment successful"
 
 
-#  jpg clean-up
-# @check_club_menu_access(check_members=True)
-# def member_search_tab_htmx(request, club):
-#     """member search tab"""
-
-#     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
-
-#     return render(
-#         request,
-#         "organisations/club_menu/members/member_search_tab_htmx.html",
-#         {"member_admin": member_admin, "club": club},
-#     )
-
-
-# @check_club_menu_access()
-# def member_search_tab_name_htmx(request, club):
-#     """Search function for searching for a member by name"""
-
-#     first_name_search = request.POST.get("member_first_name_search")
-#     last_name_search = request.POST.get("member_last_name_search")
-
-#     # if there is nothing to search for, don't search
-#     if not first_name_search and not last_name_search:
-#         return HttpResponse()
-
-#     member_list = get_club_member_list(club)
-
-#     # Users
-#     users = User.objects.filter(system_number__in=member_list)
-
-#     if first_name_search:
-#         users = users.filter(first_name__istartswith=first_name_search)
-
-#     if last_name_search:
-#         users = users.filter(last_name__istartswith=last_name_search)
-
-#     # Unregistered
-#     un_regs = UnregisteredUser.objects.filter(system_number__in=member_list)
-
-#     if first_name_search:
-#         un_regs = un_regs.filter(first_name__istartswith=first_name_search)
-
-#     if last_name_search:
-#         un_regs = un_regs.filter(last_name__istartswith=last_name_search)
-
-#     user_list = list(chain(users, un_regs))
-
-#     return render(
-#         request,
-#         "organisations/club_menu/members/member_search_tab_name_htmx.html",
-#         {"user_list": user_list, "club": club},
-#     )
-
-
-# @check_club_menu_access()
-# def member_search_tab_email_htmx(request, club):
-#     """Search function for searching for a member by email"""
-
-#     email_search = request.POST.get("member_email_search")
-
-#     # if there is nothing to search for, don't search
-#     if not email_search:
-#         return HttpResponse()
-
-#     member_club_system_number_list = get_club_member_list_email_match(club, email_search)
-
-#     # JPG clean up
-#     # Unregistered Only
-#     # member_club_system_number_list = (
-#     #     MemberClubEmail.objects.filter(email__icontains=email_search)
-#     #     .filter(organisation=club)
-#     #     .values("system_number")
-#     # )
-
-#     un_regs = UnregisteredUser.objects.filter(
-#         system_number__in=member_club_system_number_list
-#     )
-
-#     return render(
-#         request,
-#         "organisations/club_menu/members/member_search_tab_name_htmx.html",
-#         {"user_list": un_regs, "club": club},
-#     )
-
-
 @check_club_menu_access(check_members=True)
 def bulk_invite_to_join_htmx(request, club):
     """Invite multiple people to join MyABF"""
@@ -1631,9 +1540,6 @@ def club_admin_edit_member_htmx(request, club, message=None):
         )
     else:
         always_shared = False
-
-    # JPG Debug
-    print(f"**** always shared = {always_shared}")
 
     # get the members complete set of memberships
     member_history = (
@@ -1785,6 +1691,21 @@ def _refresh_member_list(request, club):
     )
 
 
+def _refresh_renewal_menu(request, club, message=None):
+    """Show the renewals menu from within the view
+    ie. call as the result of an htmx end point to refresh the view
+    """
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_renewal_menu_refresh_htmx.html",
+        {
+            "club_id": club.id,
+            "message": message,
+        },
+    )
+
+
 @check_club_menu_access(check_members=True)
 def club_admin_edit_member_change_htmx(request, club):
     """HTMX endpoint to change a member to a new membership type.
@@ -1888,11 +1809,6 @@ def club_admin_edit_member_change_htmx(request, club):
             "membership_type": membership_choices[0][0],
             "start_date": today.strftime("%Y-%m-%d"),
             "payment_method": -1,
-            # JPG clean up
-            # "end_date": club.current_end_date.strftime("%Y-%m-%d"),
-            # "fee": fees_and_due_dates[f"{membership_choices[0][0]}"]['annual_fee'],
-            # "due_date": fees_and_due_dates[f"{membership_choices[0][0]}"]['due_date'],
-            # "is_paid": False,
         }
         form = MembershipChangeTypeForm(
             initial=initial_data,
@@ -2054,14 +1970,26 @@ def club_admin_edit_member_extend_htmx(request, club):
         )
         if form.is_valid():
 
-            success, message = renew_membership(
+            # JPG to do check for future dated
+
+            renewal_parameters = RenewalParameters(club)
+            renewal_parameters.update_with_extend_form(
+                form,
+                member_details.latest_membership.end_date - timedelta(days=1),
+                member_details.latest_membership.membership_type,
+            )
+
+            # get a new version with the correct annotations - a bit messy
+            member_details = get_members_for_renewal(
                 club,
-                system_number,
-                form.cleaned_data["new_end_date"],
-                form.cleaned_data["fee"],
-                form.cleaned_data["due_date"],
-                payment_method_id=int(form.cleaned_data["payment_method"]),
-                process_payment=True,
+                renewal_parameters,
+                just_system_number=system_number,
+            )
+
+            success, message = renew_membership(
+                member_details,
+                renewal_parameters,
+                process_payment=renewal_parameters.payment_method is not None,
                 requester=request.user,
             )
 
@@ -2083,7 +2011,12 @@ def club_admin_edit_member_extend_htmx(request, club):
             "new_end_date": club.next_end_date.strftime("%Y-%m-%d"),
             "fee": member_details.latest_membership.membership_type.annual_fee,
             "due_date": default_due_date.strftime("%Y-%m-%d"),
+            "auto_pay_date": default_due_date.strftime("%Y-%m-%d"),
             "payment_method": -1,
+            "club_template": -1,
+            "send_notice": True,
+            "email_subject": "Membership Renewal",
+            "email_content": "Thank you for your continuing membership. Please find your renewal details below",
         }
         form = MembershipExtendForm(
             initial=initial_data,
@@ -2137,7 +2070,6 @@ def club_admin_add_member_detail_htmx(request, club):
     """End point for handling the shared club_admin_edit_member_change_htmx.html
     when adding a new club member"""
 
-    # JPG Detail
     print("club_admin_add_member_detail_htmx")
 
     system_number = request.POST.get("system_number")
@@ -2196,9 +2128,6 @@ def club_admin_add_member_detail_htmx(request, club):
         )
         if form.is_valid():
 
-            # JPG debug
-            print("=== form is valid")
-
             if (
                 form.cleaned_data["send_welcome_pack"]
                 and user_type != "REG"
@@ -2231,9 +2160,6 @@ def club_admin_add_member_detail_htmx(request, club):
                 )
 
                 if success:
-
-                    # JPG debug
-                    print("=== post successfull")
 
                     if form.cleaned_data["send_welcome_pack"]:
                         email = club_email_for_member(club, system_number)
@@ -2524,9 +2450,275 @@ def renewals_menu_htmx(request, club):
 
 @check_club_menu_access(check_members=True)
 def bulk_renewals_htmx(request, club):
-    """Initiate bulk renewals"""
+    """Initiate bulk renewals
 
-    return HttpResponse("Bulk renewals coming soon")
+    This can be called in four modes:
+
+        INIT - from the menu, initialise and show the options view
+        OPTION - allows the user to select the renewal options
+        MEMBERS - shows a list of members who will be renewed given the options
+        PREVIEW - shows a preview of an email, and allows the user to initiate the renewals
+        SEND - process the renewals
+
+    Note that nothing is saved to the database until the renewals are processed.
+    This means that all modes need to pass through te formset and options forms.
+    """
+
+    mode = request.POST.get("mode", "INIT")
+
+    # Context variables that will be updated depending on mode
+    message = None
+    member_list = None
+    stats = None
+    club_email = None
+    email_context = {}
+    form_index = 0
+    system_number = 0
+    sending_notices = True
+    member_details = None
+
+    if mode == "INIT":
+        # first time through, initialise the forms
+
+        initial_data = []
+
+        membership_types = MembershipType.objects.filter(
+            organisation=club,
+            does_not_renew=False,
+        )
+
+        default_start_date = club.next_renewal_date
+        default_end_date = club.next_end_date
+
+        for membership_type in membership_types:
+
+            default_due_date = default_start_date + timedelta(
+                days=membership_type.grace_period_days
+            )
+
+            defaults = {
+                "selected": False,
+                "membership_type_id": membership_type.id,
+                "membership_type_name": membership_type.name,
+                "fee": membership_type.annual_fee if membership_type.annual_fee else 0,
+                "due_date": default_due_date.strftime("%Y-%m-%d"),
+                "auto_pay_date": default_due_date.strftime("%Y-%m-%d"),
+                "start_date": default_start_date.strftime("%Y-%m-%d"),
+                "end_date": default_end_date.strftime("%Y-%m-%d"),
+            }
+
+            initial_data.append(defaults)
+
+        formset = BulkRenewalFormSet(initial=initial_data)
+
+        default_options = {
+            "send_notice": True,
+            "club_template": -1,
+            "email_subject": "Membership Renewal",
+            "email_content": "Thank you for your continuing membership. Please find your renewal details below",
+        }
+
+        options_form = BulkRenewalOptionsForm(initial=default_options, club=club)
+
+        mode = "OPTIONS"
+
+    else:
+        # all other modes must at least pass the forms through
+        formset = BulkRenewalFormSet(request.POST)
+        options_form = BulkRenewalOptionsForm(request.POST, club=club)
+
+        if not (formset.is_valid() and options_form.is_valid()):
+
+            message = "Please fix errors before proceeding"
+            mode = "OPTIONS"
+
+        else:
+            if mode == "SEND":
+                # process the renewals in teh background
+
+                args = {
+                    "club": club,
+                    "formset": formset,
+                    "options_form": options_form,
+                    "requester": request.user,
+                }
+
+                thread = Thread(target=_process_bulk_renewals, kwargs=args)
+                thread.setDaemon(True)
+                thread.start()
+
+                return _refresh_renewal_menu(
+                    request, club, message="Bulk renewal initiated"
+                )
+
+            elif mode == "MEMBERS":
+                # show the selected members
+
+                full_member_list = []
+                stats = None
+                for form_index, form in enumerate(formset):
+                    if form.cleaned_data["selected"]:
+                        this_renewal_parameters = RenewalParameters(club)
+                        this_renewal_parameters.update_with_line_form(form)
+                        this_renewal_parameters.update_with_options_form(options_form)
+                        members, stats = get_members_for_renewal(
+                            club,
+                            this_renewal_parameters,
+                            form_index,
+                            stats_to_date=stats,
+                        )
+                        full_member_list += members
+
+                # Note: need to pass the page number because the common routine
+                # expects GET rather than POST
+                member_list = cobalt_paginator(
+                    request,
+                    full_member_list,
+                    page_no=request.POST.get("page", 1),
+                )
+
+            elif mode == "PREVIEW":
+                # show an example email preview
+
+                form_index = int(request.POST.get("form_index"))
+                system_number = int(request.POST.get("system_number"))
+
+                renewal_parameters = RenewalParameters(club)
+                renewal_parameters.update_with_line_form(formset[form_index])
+                renewal_parameters.update_with_options_form(options_form)
+
+                sending_notices = renewal_parameters.send_notice
+
+                if renewal_parameters.send_notice:
+
+                    member_details = get_members_for_renewal(
+                        club,
+                        renewal_parameters,
+                        form_index,
+                        just_system_number=system_number,
+                    )
+
+                    club_email, email_context = _format_renewal_notice_email(
+                        member_details,
+                        renewal_parameters,
+                    )
+
+    context = {
+        "club": club,
+        "mode": mode,
+        "message": message,
+        "formset": formset,
+        "options_form": options_form,
+        "member_list": member_list,
+        "stats": stats,
+        "club_email": club_email,
+        "form_index": form_index,
+        "system_number": system_number,
+        "sending_notices": sending_notices,
+        "member_details": member_details,
+    }
+
+    return render(
+        request,
+        "organisations/club_menu/members/bulk_renewals_htmx.html",
+        {**context, **email_context},
+    )
+
+
+@check_club_menu_access(check_members=True)
+def bulk_renewals_test_htmx(request, club):
+    """Send a test message, return a string"""
+
+    formset = BulkRenewalFormSet(request.POST)
+    formset.is_valid()
+    options_form = BulkRenewalOptionsForm(request.POST, club=club)
+    options_form.is_valid()
+    form_index = int(request.POST.get("form_index"))
+    system_number = int(request.POST.get("system_number"))
+
+    renewal_parameters = RenewalParameters(club)
+    renewal_parameters.update_with_line_form(formset[form_index])
+    renewal_parameters.update_with_options_form(options_form)
+
+    member_details = get_members_for_renewal(
+        club, renewal_parameters, form_index, just_system_number=system_number
+    )
+
+    success, message = send_renewal_notice(
+        member_details,
+        renewal_parameters,
+        test_email_address=request.user.email,
+    )
+
+    if success:
+        return HttpResponse("Test message sent")
+    else:
+        return HttpResponse(f"Test message failed: {message}")
+
+
+def _process_bulk_renewals(
+    club,
+    formset,
+    options_form,
+    requester,
+):
+    """The post logic for processing a set of renewals
+
+    Args:
+        club (Organisation): the club
+        formset (BulkRenewalFormSet): set of validated BulkRenewalLineForm forms
+        options_form (BulkRenewalOptionsForm): the validate options form
+        requester (User): the requesting user
+
+    returns:
+        int: processed correctly count
+        int: error count
+    """
+
+    ok_count = 0
+    error_count = 0
+
+    for form_index, form in enumerate(formset):
+        if form.cleaned_data["selected"]:
+
+            this_renewal_parameters = RenewalParameters(club)
+            this_renewal_parameters.update_with_line_form(form)
+            this_renewal_parameters.update_with_options_form(options_form)
+
+            members, _, _ = get_members_for_renewal(
+                club,
+                this_renewal_parameters,
+                form_index,
+            )
+
+            this_batch_id = create_rbac_batch_id(
+                rbac_role=f"notifications.orgcomms.{club.id}.edit",
+                organisation=club,
+                batch_type=BatchID.BATCH_TYPE_COMMS,
+                batch_size=len(members),
+                description=(
+                    this_renewal_parameters.email_subject
+                    + f" ({this_renewal_parameters.membership_type.name})"
+                ),
+                complete=False,
+            )
+
+            for member in members:
+                success, _ = renew_membership(
+                    member,
+                    this_renewal_parameters,
+                    batch_id=this_batch_id,
+                    requester=requester,
+                )
+                if success:
+                    ok_count += 1
+                else:
+                    error_count += 1
+
+            this_batch_id.state = BatchID.BATCH_STATE_COMPLETE
+            this_batch_id.save()
+
+    return (ok_count, error_count)
 
 
 @check_club_menu_access(check_members=True)

@@ -22,6 +22,7 @@ import logging
 
 from django.urls import reverse
 from django.utils import timezone
+from django.template.loader import render_to_string
 
 from accounts.models import (
     User,
@@ -34,7 +35,10 @@ from cobalt.settings import (
     GLOBAL_ORG,
 )
 
-from notifications.models import Recipient
+from notifications.models import (
+    BatchID,
+    Recipient,
+)
 
 from payments.models import OrgPaymentMethod
 
@@ -52,6 +56,12 @@ from .models import (
     ClubMemberLog,
     MemberClubTag,
     MemberClubOptions,
+    OrgEmailTemplate,
+    RenewalParameters,
+)
+
+from .forms import (
+    BulkRenewalLineForm,
 )
 
 
@@ -629,6 +639,7 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
             if type(player) is User
             else "Unregistered User",
             "user_or_unreg_id": player.id,
+            "user_or_unreg": player,
             "user_email": player.email if type(player) is User else None,
             "internal": False
             if type(player) is User
@@ -645,6 +656,7 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
             member.user_or_unreg_id = player_dict[member.system_number][
                 "user_or_unreg_id"
             ]
+            member.user_or_unreg = player_dict[member.system_number]["user_or_unreg"]
             member.internal = player_dict[member.system_number]["internal"]
 
             # Note: this needs to replicate the logic in club_email_for_member
@@ -1263,27 +1275,6 @@ def can_mark_as_paid(member_details):
     else:
         return (False, "No outstanding membership fees able to be paid")
 
-    # JPG clean-up
-    # if not (
-    #     member_details.is_active_status
-    #     or member_details.membership_status
-    #     == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
-    # ):
-    #     return (False, "Member must be in an active state to be marked as paid")
-
-    # today = timezone.now().date()
-
-    # if (
-    #     member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
-    #     and member_details.latest_membership.end_date < today
-    # ):
-    #     return (False, "Lapsed members cannot pay after the end date")
-
-    # if member_details.latest_membership.is_paid:
-    #     return (False, "Membership is already paid")
-
-    # return (True, None)
-
 
 def can_extend_membership(member_details):
     """Can the member validly be extended?"""
@@ -1894,7 +1885,6 @@ def _reinstate_previous_status(club, member_details, requester=None):
             member_details.membership_status = (
                 MemberClubDetails.MEMBERSHIP_STATUS_LAPSED
             )
-            # JPG to do - should an auto due date be created?
     elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
         if member_details.latest_membership.due_date < today:
             member_details.membership_status = (
@@ -2122,12 +2112,9 @@ def make_membership_payment(
 
 
 def renew_membership(
-    club,
-    system_number,
-    new_end_date,
-    new_fee,
-    new_due_date,
-    payment_method_id=-1,
+    member_details,
+    renewal_parameters,
+    batch_id=None,
     process_payment=False,
     requester=None,
 ):
@@ -2136,57 +2123,49 @@ def renew_membership(
     emd date.
 
     Args:
-        club (Organisation): the club
-        system_number (int): the member's system number
-        new_end_date (Date): the extended end date
-        new_fee (Decimal): the fee associated with the renewal
-        new_due_date (Date): the fee payment due date
-        payment_method_id: OrgPaymentMethod id or -1 if none
-        process_payment: attempt to process the payment of Bridge Credits
-        requester (User): the user requesting the change
+        membership_details (MemberClubDetails): augmented by get_members_for_renewal
+        renewal_parameters (RenewalParameters): the parameters
+        batch_id (BatchID): the rbac batch id for this batch of renewals, or None if a single
+        requester (User): the requesting user
 
     Returns:
         bool: success
         string: explanatory message or None
-
-    Raises:
-        CobaltMemberNotFound: if no member found with this system number
     """
 
     message = ""
-
-    member_details = get_member_details(club, system_number)
-
-    if not member_details:
-        raise CobaltMemberNotFound(club, system_number)
 
     permitted_action, message = can_perform_action("extend", member_details)
     if not permitted_action:
         return (False, message)
 
-    if new_end_date <= member_details.latest_membership.end_date:
+    if renewal_parameters.end_date <= member_details.latest_membership.end_date:
         return (False, "New end date must be later than the current end date")
 
     # create a new membership record
 
-    _, contiguous_end = member_details.current_type_dates
-
     new_membership = MemberMembershipType(
-        system_number=system_number,
-        membership_type=member_details.latest_membership.membership_type,
-        start_date=contiguous_end + timedelta(days=1),
-        due_date=new_due_date,
-        end_date=new_end_date,
-        fee=new_fee,
+        system_number=member_details.system_number,
+        membership_type=renewal_parameters.membership_type,
+        start_date=renewal_parameters.start_date,
+        due_date=renewal_parameters.due_date,
+        end_date=renewal_parameters.end_date,
+        fee=renewal_parameters.fee,
         last_modified_by=requester,
         membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
     )
 
+    # note: membership state will be updated by the payment process
+
+    # JPG to do - pass payment method rather than id
+
     payment_success, payment_message = _process_membership_payment(
-        club,
+        renewal_parameters.club,
         (member_details.user_type != f"{GLOBAL_TITLE} User"),
         new_membership,
-        payment_method_id,
+        renewal_parameters.payment_method.id
+        if renewal_parameters.payment_method
+        else -1,
         "Membership renewal",
         process_payment=process_payment,
     )
@@ -2200,22 +2179,158 @@ def renew_membership(
     # nothin needs to be done to the current membership details or membership
 
     log_member_change(
-        club,
-        system_number,
+        renewal_parameters.club,
+        member_details.system_number,
         requester,
         f"{member_details.latest_membership.membership_type.name} membership extended from "
-        + f"{new_membership.start_date.strftime('%d-%m-%Y')} to {new_end_date.strftime('%d-%m-%Y')}",
+        + f"{new_membership.start_date.strftime('%d-%m-%Y')} to {new_membership.end_date.strftime('%d-%m-%Y')}",
     )
+
+    if renewal_parameters.send_notice:
+
+        send_renewal_notice(
+            member_details,
+            renewal_parameters,
+            batch_id=batch_id,
+        )
 
     if new_membership.is_paid:
         log_member_change(
-            club,
-            system_number,
+            renewal_parameters.club,
+            member_details.system_number,
             requester,
             f"Membership paid using {new_membership.payment_method.payment_method}",
         )
 
     return (True, "Membership extended " + message)
+
+
+def _format_renewal_notice_email(
+    member_details, renewal_parameters, test_email_address=None
+):
+    """Returns the email address and context for a renewal notice
+
+    Args:
+        member_details (MemberContactDetails): the member details (augmented as per get_members_for_renewal)
+        renewal_parameters (RenewalParameters): the renewal parameters
+        test_email_address (str): an email address to override the member email for a test message
+
+    Returns:
+        str: email address or None
+        dict: email rendering context
+    """
+
+    if test_email_address:
+        club_email = test_email_address
+    else:
+        club_email = member_details.club_email
+        # club_email = club_email_for_member(member_details.club, member_details.system_number)
+
+    if not club_email:
+        return (None, {})
+
+    # generate a summary of the renewal details and payment options to append to the user provided content
+    # NOTE: normally the global settings are added to the context by gloabl_settings context processor
+    # but this does not happen here
+    auto_content = render_to_string(
+        "organisations/club_menu/members/renewal_notice_content.html",
+        {
+            "member_details": member_details,
+            "renewal_parameters": renewal_parameters,
+            "GLOBAL_TITLE": GLOBAL_TITLE,
+            "BRIDGE_CREDITS": BRIDGE_CREDITS,
+        },
+    )
+
+    context = {
+        "title": renewal_parameters.email_subject,
+        "subject": renewal_parameters.email_subject,
+        "name": member_details.first_name,
+        "email_body": renewal_parameters.email_content + auto_content,
+    }
+
+    if renewal_parameters.club_template:
+        #  apply club template styling
+
+        if renewal_parameters.club_template.banner:
+            context["img_src"] = renewal_parameters.club_template.banner.url
+        if renewal_parameters.club_template.footer:
+            context["footer"] = renewal_parameters.club_template.footer
+        if renewal_parameters.club_template.box_colour:
+            context["box_colour"] = renewal_parameters.club_template.box_colour
+        if renewal_parameters.club_template.box_font_colour:
+            context[
+                "box_font_colour"
+            ] = renewal_parameters.club_template.box_font_colour
+        if renewal_parameters.club_template.reply_to:
+            context["reply_to"] = renewal_parameters.club_template.reply_to
+        if renewal_parameters.club_template.from_name:
+            context["from_name"] = renewal_parameters.club_template.from_name
+
+    return (club_email, context)
+
+
+def send_renewal_notice(
+    member_details, renewal_parameters, batch_id=None, test_email_address=None
+):
+    """Send an email renewal notice.
+    Includes a system generated portion explaining Bridge Credit payment options
+    if appropriate (ie registered user and not paid).
+
+    Args:
+        member_details (MemberClubDetails): augmented member details
+        renewal_parameters (RenewalParameters): the parameters
+        batch_id (RBACBathcId): if sending as part of a batch
+        test_email_address (string): override members email to send a test message
+
+    Returns:
+        bool: success
+        str: explanatory message if failed, or None
+    """
+
+    from notifications.views.core import send_cobalt_email_with_template
+
+    # generate some meaningful content to append to the user provided content
+    club_email, context = _format_renewal_notice_email(
+        member_details,
+        renewal_parameters,
+        test_email_address=test_email_address,
+    )
+
+    if not club_email:
+        return (False, "No email address available")
+
+    if test_email_address:
+        # Do not associate test emails with a batch
+        this_batch_id = None
+    else:
+        if batch_id:
+            this_batch_id = batch_id
+        else:
+            # Create batch id so admins can see this email
+
+            from notifications.views.core import create_rbac_batch_id
+
+            this_batch_id = create_rbac_batch_id(
+                rbac_role=f"notifications.orgcomms.{renewal_parameters.club.id}.edit",
+                organisation=renewal_parameters.club,
+                batch_type=BatchID.BATCH_TYPE_COMMS,
+                batch_size=1,
+                description=renewal_parameters.email_subject,
+                complete=True,
+            )
+
+    send_cobalt_email_with_template(
+        to_address=club_email,
+        context=context,
+        batch_id=this_batch_id,
+        batch_size=this_batch_id.batch_size if this_batch_id else 1,
+        apply_default_template_for_club=member_details.club
+        if renewal_parameters.club_template is None
+        else None,
+    )
+
+    return (True, None)
 
 
 def change_membership(
@@ -2903,9 +3018,6 @@ def _notify_club_of_block(club, user):
 
     for user in member_editors:
 
-        # JPG Debug
-        print(f"==== sending email to {user.full_name}, {user.email}")
-
         context["name"] = user.first_name
 
         send_cobalt_email_with_template(
@@ -2962,3 +3074,128 @@ def _notify_user_of_membership(member_details, user=None):
         to_address=user.email,
         context=context,
     )
+
+
+def get_members_for_renewal(
+    club,
+    renewal_parameters,
+    form_index=0,
+    just_system_number=None,
+    stats_to_date=None,
+):
+    """Return a list of members that match the bulk renewal line form. Also can return just a single
+    memver details object for a specified member.
+
+    Args:
+        club (Organisation): the club
+        renewal_parameters (RenewalParameters): the renewal parameters from the BulkRenewalLineForm
+        form_index (int): index of the form in the form set, added to each member
+        just_system_number (int): just gets this system number (or None), and returns a single details object
+        stats_to_date (dict): a dictionary of statistics to add to
+
+    Returns:
+        list: list of augmented MemberClubDetail objects (with allow_auto_pay and form_index)
+        dict: a dictionary of statistics
+    """
+
+    if stats_to_date:
+        stats = stats_to_date.copy()
+    else:
+        stats = {}
+
+    def init_metrics(metric_list):
+        for metric in metric_list:
+            if metric not in stats:
+                stats[metric] = 0
+
+    def increment_count(metric):
+        stats[metric] = stats.get(metric, 0) + 1
+
+    def add_to_total(metric, amount):
+        stats[metric] = stats.get(metric, 0) + amount
+
+    init_metrics(
+        ["allowing_auto_pay", "no_email", "total_fees", "member_count", "auto_pay_fees"]
+    )
+
+    target_end_date = renewal_parameters.start_date - timedelta(days=1)
+
+    if just_system_number:
+
+        member_qs = MemberClubDetails.objects.filter(
+            club=club,
+            system_number=just_system_number,
+        ).select_related(
+            "latest_membership",
+            "latest_membership__membership_type",
+        )
+
+    else:
+
+        member_qs = MemberClubDetails.objects.filter(
+            club=club,
+            latest_membership__membership_type=renewal_parameters.membership_type,
+            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+            latest_membership__end_date=target_end_date,
+        ).select_related(
+            "latest_membership",
+            "latest_membership__membership_type",
+        )
+
+    # NOTE: could use _augment_member_details, then further augment with options, but combining
+    # these here avoids a second pass through the member list which might be large
+
+    member_list = list(member_qs)
+
+    system_numbers = [member.system_number for member in member_list]
+
+    users = User.objects.filter(system_number__in=system_numbers)
+    unreg_users = UnregisteredUser.all_objects.filter(system_number__in=system_numbers)
+    options = MemberClubOptions.objects.filter(club=club, user__in=users)
+    system_numbers_allowing_auto_pay = [
+        option.user.system_number for option in options if option.allow_membership
+    ]
+
+    player_dict = {
+        player.system_number: {
+            "user_type": f"{GLOBAL_TITLE} User"
+            if type(player) is User
+            else "Unregistered User",
+            "user_or_unreg": player,
+            "user_email": player.email if type(player) is User else None,
+            "allow_auto_pay": player.system_number in system_numbers_allowing_auto_pay,
+        }
+        for player in chain(users, unreg_users)
+    }
+
+    for member in member_list:
+        if member.system_number in player_dict:
+            member.user_or_unreg = player_dict[member.system_number]["user_or_unreg"]
+            member.first_name = member.user_or_unreg.first_name
+            member.last_name = member.user_or_unreg.last_name
+            member.user_type = player_dict[member.system_number]["user_type"]
+            member.allow_auto_pay = player_dict[member.system_number]["allow_auto_pay"]
+            member.form_index = form_index
+            member.fee = renewal_parameters.fee
+            add_to_total("total_fees", member.fee)
+            increment_count("member_count")
+            if member.allow_auto_pay:
+                increment_count("allowing_auto_pay")
+                add_to_total("auto_pay_fees", member.fee)
+
+            # Note: this needs to replicate the logic in club_email_for_member
+            if member.email:
+                member.club_email = member.email
+            else:
+                member.club_email = player_dict[member.system_number]["user_email"]
+
+            if not member.club_email:
+                increment_count("no_email")
+
+    if just_system_number:
+        return member_list[0] if len(member_list) > 0 else None
+    else:
+        return (
+            member_list,
+            stats,
+        )

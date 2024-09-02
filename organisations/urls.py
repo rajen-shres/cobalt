@@ -995,6 +995,11 @@ urlpatterns = [
         name="club_menu_tab_members_bulk_renewal_htmx",
     ),
     path(
+        "club-admin/renewals/bulk/test",
+        organisations.views.club_menu_tabs.members.bulk_renewals_test_htmx,
+        name="club_menu_tab_members_bulk_renewal_test_htmx",
+    ),
+    path(
         "club-admin/renewals/unpaid",
         organisations.views.club_menu_tabs.members.view_unpaid_htmx,
         name="club_menu_tab_members_view_unpaid_htmx",

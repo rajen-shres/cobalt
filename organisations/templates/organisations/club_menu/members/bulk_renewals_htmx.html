@@ -1,0 +1,578 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{#  Club Admin - Bulk Renewal Initiation View                             #}
+{#     Provides content for #id_member_renewals_tab                       #}
+{#                                                                        #}
+{#  Expects context variables:                                            #}
+{#      club: the club                                                    #}
+{#      mode: OPTIONS, MEMBERS, PREVIEW                                   #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+
+<div class="card" style="min-height: 800px; height: auto">
+
+    <!-- Header and navigation buttons -->
+
+    <div class="card-header card-header-warning mt-3">
+        <h2>
+            Initiate Bulk Renewals
+        </h2>
+        <div class="steps-form">
+            <div class="steps-row setup-panel">
+
+                <div class="steps-step">
+                    <button
+                        class="btn {% if mode == 'OPTIONS' %}btn-primary{% else %}btn-success{% endif %} btn-circle"
+                        data-toggle="tooltip"
+                        title="Select the options for the renewals"
+                        data-placement="bottom"
+                        hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, mode:'OPTIONS'"
+                        hx-include="#id-formset-form, #id-option-form"
+                        hx-target="#id_member_renewals_tab"
+                    >1</button>
+                    <p
+                        {% if mode == 'OPTIONS' %}class="text-dark font-weight-bold"{% endif %}
+                    >
+                        Options
+                    </p>
+                </div>
+
+                <div class="steps-step">
+                    <button
+                        class="btn {% if mode == 'MEMBERS' %}btn-primary{% elif mode == 'PREVIEW' %}btn-success{% else %}bg-white text-dark{% endif %} btn-circle"
+                        data-toggle="tooltip"
+                        title="Review the members who will be renewed"
+                        data-placement="bottom"
+                        hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, mode:'MEMBERS'"
+                        hx-include="#id-formset-form, #id-option-form"
+                        hx-target="#id_member_renewals_tab"
+                    >2</button>
+                    <p
+                        {% if mode == 'MEMBERS' %}class="text-dark font-weight-bold"{% endif %}
+                    >
+                        Members
+                    </p>
+                </div>
+
+                <div class="steps-step">
+                    <span
+                        data-toggle="tooltip"
+                        title="Review sample emails and process the renewals"
+                        data-placement="bottom"
+                    >
+                        <button
+                            class="btn {% if mode == 'PREVIEW' %}btn-primary{% else %}btn-light{% endif %} btn-circle"
+                            {% if mode != 'PREVIEW' %}disabled{% endif %}
+                            hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, mode:'PREVIEW'"
+                            hx-include="#id-formset-form, #id-option-form"
+                            hx-target="#id_member_renewals_tab"
+                        >3</button></span>
+                    <p
+                        {% if mode == 'PREVIEW' %}class="text-dark font-weight-bold"{% endif %}
+                    >
+                        Process
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+
+        {% if message %}
+            <h3 class="text-center">{{ message }}</h3>
+        {% endif %}
+
+        <!-- OPTIONS PANE -->
+        <div
+            id="id-options-pane"
+            {% if mode != 'OPTIONS' %}
+                class="d-none"
+            {% else %}
+                class="mt-3"
+            {% endif %}
+        >
+            <h4>Select the membership types to include in this renewal and the options for each:</h4>
+            <form
+                class="mt-3"
+                id="id-formset-form"
+            >
+                {% csrf_token %}
+                {{ formset.management_form }}
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th
+                                class="text-left"
+                                data-toggle="tooltip"
+                                title="Add this membership type to the renewal"
+                            >
+                                Include
+                            </th>
+                            <th
+                                class="text-left"
+                            >
+                                Membership type
+                            </th>
+                            <th
+                                class="text-center"
+                                data-toggle="tooltip"
+                                title="The start date of the renewal period"
+                            >
+                                From
+                            </th>
+                            <th
+                                class="text-center"
+                                data-toggle="tooltip"
+                                title="The end date of the renewal period"
+                            >
+                                To
+                            </th>
+                            <th
+                                class="text-right"
+                                data-toggle="tooltip"
+                                title="The membership fee"
+                            >
+                                Fee
+                            </th>
+                            <th
+                                class="text-center"
+                                data-toggle="tooltip"
+                                title="The due date for the payment"
+                            >
+                                Due Date
+                            </th>
+                            <th
+                                class="text-center"
+                                data-toggle="tooltip"
+                                title="The date on which eligible members will be charged using {{ BRIDGE_CREDITS }}"
+                            >
+                                Auto Pay on
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                            <tr>
+                                <td class="text-center">
+                                    {% render_field form.selected class+="form-control" %}
+                                </td>
+                                <td class="text-left">
+                                    {{ form.membership_type_name.value }}
+                                    {% render_field form.membership_type_name class+="form-control d-none" %}
+                                    {% render_field form.membership_type_id class+="form-control d-none" %}
+                                </td>
+                                <td class="text-center">
+                                    {% render_field form.start_date class+="form-control text-center" %}
+                                </td>
+                                <td class="text-center">
+                                    {% render_field form.end_date class+="form-control text-center" %}
+                                </td>
+                                <td class="text-right">
+                                    {% render_field form.fee class+="form-control text-right" %}
+                                </td>
+                                <td class="text-center">
+                                    {% render_field form.due_date class+="form-control text-center" %}
+                                </td>
+                                <td class="text-center">
+                                    {% render_field form.auto_pay_date class+="form-control text-center" %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+
+            <h4 class="mt-5">Select the details for the renewal notices to be send to the selected members:</h4>
+
+            <form
+                class="mt-3"
+                id="id-option-form"
+            >
+                {% csrf_token %}
+
+                <div class="row pb-2">
+                    <div class="col-2 justify-content-center align-self-center pt-3">
+                        Send renewal notice emails
+                    </div>
+
+                    <div class="col-3">
+                        <div id="div_id_send_notice" class="form-group">
+                            <span class="cobalt-form-error" id="id_send_notice_errors">
+                                {{ options_form.send_notice.errors|striptags }}
+                            </span>
+                            {% render_field options_form.send_notice class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pb-2">
+                    <div class="col-2 justify-content-center align-self-center pt-3">
+                        Club template
+                    </div>
+                    <div class="col">
+                        <div id="div_id_club_template" class="form-group">
+                            <span class="cobalt-form-error" id="id_club_template_errors">
+                                {{ options_form.club_template.errors|striptags }}
+                            </span>
+                            {% render_field options_form.club_template class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pb-2">
+                    <div class="col-2 justify-content-center align-self-center pt-3">
+                        Subject
+                    </div>
+                    <div class="col">
+                        <div id="div_id_email_subject" class="form-group">
+                            <span class="cobalt-form-error" id="id_email_subject_errors">
+                                {{ options_form.email_subject.errors|striptags }}
+                            </span>
+                            {% render_field options_form.email_subject class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row pb-2">
+                    <div class="col-12 my-4">
+                        <div class="form-group">
+                            <label class="bmd-label-floating" for="id_email_content">
+                                Email content
+                            </label>
+                            {% render_field options_form.email_content class+="form-control" %}
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <p mt-2>
+                Note: {{ GLOBAL_TITLE }} will add a section to the end of the email content with
+                the renewals details, and details about paying with {{ BRIDGE_CREDITS }}. Details
+                of other payment methods (eg EFT) should be included in the email content above.
+            </p>
+
+
+        </div> <!-- OPTIONS PANE -->
+
+        {% if mode == 'MEMBERS' %}
+            <!-- MEMBERS PANE -->
+            <div
+                id="id-members-pane"
+            >
+                {% if member_list %}
+
+                    <h4 class="mt-4">Summary:</h4>
+
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-10">
+                            <table class="table">
+                                <tr>
+                                    <td>Members selected:</td>
+                                    <td>{{ stats.member_count|cobalt_number_short }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="tr-3">Members without email addresses:</td>
+                                    <td>{{ stats.no_email|cobalt_number_short }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Members allowing auto pay:</td>
+                                    <td>{{ stats.allowing_auto_pay|cobalt_number_short }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Total membership fees:</td>
+                                    <td>{{ stats.total_fees|cobalt_currency }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Auto pay fees:</td>
+                                    <td>{{ stats.auto_pay_fees |cobalt_currency }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    </div>
+
+                    <p>Note: The auto pay figures above are based on the current user permissions. Registered user members can change their auto pay permissions at any time.</p>
+
+                    <table class="table table-condensed table-hover mt-4 mr-5 ml-5">
+                        <thead>
+                            <tr>
+                                <th class="text-left">
+                                    Name
+                                </th>
+                                <th class="text-left">
+                                    {{ GLOBAL_ORG }} Number
+                                </th>
+                                <th class="text-left">
+                                    Membership Type
+                                </th>
+                                <th class="text-left">
+                                    User Type
+                                </th>
+                                <th class="text-left">
+                                    Fee
+                                </th>
+                                <th class="text-center">
+                                    Allow Auto Pay
+                                </th>
+                                <th class="text-left">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member_details in member_list %}
+                                <tr>
+                                    <td class="text-left">
+                                        {{ member_details.first_name }} {{ member_details.last_name }}
+                                    </td>
+                                    <td class="text-left">
+                                        {{ member_details.system_number }}
+                                    </td>
+                                    <td class="text-left">
+                                        {{ member_details.latest_membership.membership_type.name }}
+                                    </td>
+                                    <td class="text-left">
+                                        {{ member_details.user_type }}
+                                    </td>
+                                    <td class="text-left">
+                                        {{ member_details.latest_membership.fee|cobalt_currency }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if member_details.allow_auto_pay %}
+                                            <span class="material-icons text-success">check_circle_outline</span>
+                                        {% elif member_details.user_type != 'Unregistered Use' %}
+                                            <span class="material-icons text-warning">highlight_off</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-left">
+                                        {% if member_details.club_email %}
+                                            <button
+                                                class="btn btn-sm btn-success"
+                                                hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                                                hx-vars="club_id:{{ club.id }}, mode:'PREVIEW', form_index:{{ member_details.form_index }}, system_number:{{ member_details.system_number }}"
+                                                hx-include="#id-formset-form, #id-option-form"
+                                                hx-target="#id_member_renewals_tab"
+                                            >
+                                                Preview
+                                            </button>
+                                        {% else %}
+                                            <span class="text-warning">No Email</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% include "organisations/club_menu/members/bulk_renewals_member_pagination.html" %}
+                    <h4 class="mt-4">Please select a member to review an example email for before processing these renewals.</h4>
+                {% else %}
+                    <p class="mt-4">The options you have selected do not correspond to any members.</p>
+                    <p class="mt-2">To be selected for renewal a member must:</p>
+                    <ol>
+                        <li>Be a current member,</li>
+                        <li>Be of a selected membership type, and</li>
+                        <li>Have a membership period ending immediately prior to the renewal start date.
+                        </ol>
+                        <p class="mt-2">Please review the options selected.</p>
+                {% endif %}
+
+            </div> <!-- OPTIONS PANE -->
+        {% endif %}
+
+        {% if mode == 'PREVIEW' %}
+            <!-- PREVIEW PANE -->
+            <div
+                id="id-preview-pane"
+            >
+
+                {% if sending_notices %}
+                    {% if club_email %}
+
+                        <div class="row">
+                            <div class="col-10">
+                                <h4>
+                                    To see how this email looks in an email client you can send a test message to yourself.
+                                    <span class="font-weight-bold" id="id-test-email-response"></span>
+                                </h4>
+                            </div>
+                            <div class="col text-right">
+                                <button
+                                    class="btn btn-sm btn-success"
+                                    hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_test_htmx" %}"
+                                    hx-vars="club_id:{{ club.id }}, mode:'PREVIEW', form_index:{{ form_index }}, system_number:{{ system_number }}"
+                                    hx-include="#id-formset-form, #id-option-form"
+                                    hx-target="#id-test-email-response"
+                                >
+                                    Send test
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-1"></div>
+                            <div class="col-10">
+                                {% include "organisations/club_menu/members/bulk_renewals_email_preview.html" %}
+                            </div>
+                        </div>
+
+                        <h4 class="mt-5">If you are ready to process these renewals, press the PROCESS button below.</h4>
+                        <h4>The renewals will be processed in the background as it may take some time.<h4>
+                            <h4>The renewals emails can be viewed under Communications in the Club Menu.</h4>
+
+                    {% else %}
+
+                        <h4 class="text-warning">
+                            There is no email address for {{ member_details.first_name }}
+                            {{ member_details.last_name }} ({{ GLOBAL_ORG }} No:
+                            {{ member_details.system_number }}).
+                        </h4>
+                        <h4 class="text-warning">
+                            To preview the email format, go back to members and select a
+                            member with an email address.
+                        </h4>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <h4 class="text-danger">You have selected to not send email renewal notices.</h4>
+                    <h4>If you are ready to process these renewals without email notices, press the PROCESS button below.</h4>
+                    <h4>The renewals will be processed in the background as it may take some time.<h4>
+
+                {% endif %}
+
+
+            </div> <!-- OPTIONS PANE -->
+        {% endif %}
+
+        <!-- PROCEED / SAVE / CANCEL BUTTONS -->
+
+        <div class="row mt-5">
+            <div class="col">
+                {% if mode == "PREVIEW" %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-sm btn-success w-50"
+                        onclick="confirmSend(this)"
+                    >
+                        Process
+                    </button>
+
+                {% elif mode == "OPTIONS" %}
+
+                    <button
+                        class="btn btn-sm btn-success w-50"
+                        hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, mode:'MEMBERS'"
+                        hx-include="#id-formset-form, #id-option-form"
+                        hx-target="#id_member_renewals_tab"
+                    >
+                        Proceeed to Members
+                    </button>
+
+                {% else %}
+                    {% if member_list %}
+
+                        <button
+                            class="btn btn-sm btn-success w-50"
+                            hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, mode:'PREVIEW', form_index:{{ member_list.0.form_index }}, system_number:{{ member_list.0.system_number }}"
+                            hx-include="#id-formset-form, #id-option-form"
+                            hx-target="#id_member_renewals_tab"
+                        >
+                            Proceeed to Process
+                        </button>
+
+                    {% else %}
+
+                        <button
+                            class="btn btn-sm btn-success w-50"
+                            hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                            hx-vars="club_id:{{ club.id }}, mode:'OPTIONS'"
+                            hx-include="#id-formset-form, #id-option-form"
+                            hx-target="#id_member_renewals_tab"
+                        >
+                            Go back to Options
+                        </button>
+
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="col text-right">
+                <button
+                    class="btn btn-sm btn-primary w-50"
+                    hx-post="{% url 'organisations:club_menu_tab_members_renewals_menu_htmx' %}"
+                    hx-vars="club_id:{{ club.id }}"
+                    hx-target="#id_panel_members"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+    </div> <!-- card body -->
+
+</div> <!-- card -->
+
+<script>
+    function confirmSend(button) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to proceed with these renewals?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                // Define your custom post data
+                const postData = {
+                    'club_id': '{{ club.id }}',
+                    'mode': 'SEND',
+                };
+
+                // Gather the formset data
+                const formElement = document.getElementById('id-formset-form');
+                const formData = new FormData(formElement);
+
+                // Convert FormData to an object and merge with postData
+                formData.forEach((value, key) => {
+                    postData[key] = value;
+                });
+
+                // Gather the options form data
+                const optionFormElement = document.getElementById('id-option-form');
+                const optionFormData = new FormData(optionFormElement);
+
+                // Convert FormData to an object and merge with postData
+                optionFormData.forEach((value, key) => {
+                    postData[key] = value;
+                });
+
+                // Make the HTMX request
+                htmx.ajax('POST', '{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}', {
+                    'values': postData,
+                    'target': '#id_member_renewals_tab'
+                });
+
+            }
+        });
+    }
+</script>
+

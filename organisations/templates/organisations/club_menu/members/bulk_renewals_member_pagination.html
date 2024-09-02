@@ -1,0 +1,71 @@
+{# based on utils/pagination_footer_htmx.html #}
+{# required to handle hx-include of forms #}
+
+{% if member_list.paginator.num_pages > 1 %}
+
+    <ul class="pagination pagination-info">
+
+        {# Handle backward links if not on first page #}
+
+        {% if member_list.has_previous %}
+
+            <li class="page-item">
+                <a class="page-link"
+                    hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                    hx-vars="club_id:{{ club.id }}, mode:'MEMBERS', page:{{ things.previous_page_number }}"
+                    hx-include="#id-formset-form, #id-option-form"
+                    hx-target="#id_member_renewals_tab"
+                    style="cursor: pointer"
+                >
+                    PREV
+                </a>
+            </li>
+        {% endif %}
+
+        {# Show numbered link for this page and those around it #}
+
+        {% for num in member_list.paginator.page_range %}
+
+            {% if member_list.number == num %}
+
+                <li class="active page-item">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+
+            {% elif num > member_list.number|add:'-3' and num < member_list.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link"
+                        hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                        hx-vars="club_id:{{ club.id }}, mode:'MEMBERS', page:{{ num }}"
+                        hx-include="#id-formset-form, #id-option-form"
+                        hx-target="#id_member_renewals_tab"
+                        style="cursor: pointer"
+                    >
+
+                        {{ num }}
+
+                    </a>
+                </li>
+            {% endif %}
+
+        {% endfor %}
+
+        {# Handle forwards links if not on last page #}
+
+        {% if member_list.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                    hx-post="{% url "organisations:club_menu_tab_members_bulk_renewal_htmx" %}"
+                    hx-vars="club_id:{{ club.id }}, mode:'MEMBERS', page:{{ member_list.next_page_number }}"
+                    hx-include="#id-formset-form, #id-option-form"
+                    hx-target="#id_member_renewals_tab"
+                    style="cursor: pointer"
+                >
+                    NEXT
+                </a>
+            </li>
+
+        {% endif %}
+    </ul>
+
+{% endif %}

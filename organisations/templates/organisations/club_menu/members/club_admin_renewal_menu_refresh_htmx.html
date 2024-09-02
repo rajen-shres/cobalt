@@ -1,0 +1,11 @@
+{# An html snippet to show the renewal menu  #}
+{# from within the view (ie from an htmx end point) #}
+
+<div
+    id="trigger-renewal-menu"
+    hx-post="{% url 'organisations:club_menu_tab_members_renewals_menu_htmx' %}"
+    hx-target="#id_panel_members"
+    hx-vars="club_id:{{ club_id }}{% if message %}, message:'{{ message }}'{% endif %}"
+    hx-trigger="load"
+    style="display: none;"
+></div>

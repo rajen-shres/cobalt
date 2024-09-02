@@ -1058,3 +1058,128 @@ class WelcomePack(models.Model):
             )
 
         super().save(*args, **kwargs)
+
+
+class RenewalParameters:
+    """A class to represent the parameters for a renewal.
+
+    It contains all of the parameters necessary to define a bulk
+    or individual renewal and to create a renewal or payment notice,
+    other than the member to which it is being applied.
+
+    Note: This is not a database model.
+    """
+
+    def __init__(
+        self,
+        club,
+        membership_type=None,
+        fee=None,
+        due_date=None,
+        auto_pay_date=None,
+        start_date=None,
+        end_date=None,
+        send_notice=False,
+        email_subject=None,
+        email_content=None,
+        club_template=None,
+        is_paid=False,
+        payment_method=None,
+        paid_date=None,
+    ):
+        """Default constructor"""
+
+        self.club = club
+        self.membership_type = membership_type
+        self.fee = fee
+        self.due_date = due_date
+        self.auto_pay_date = auto_pay_date
+        self.start_date = start_date
+        self.end_date = end_date
+        self.send_notice = send_notice
+        self.email_subject = email_subject
+        self.email_content = email_content
+        self.club_template = club_template
+        self.is_paid = is_paid
+        self.payment_method = payment_method
+        self.paid_date = paid_date
+
+    def update_with_line_form(
+        self,
+        form,
+    ):
+        """Populate with fields from a BulkRenewalLineForm"""
+
+        membership_type_id = int(form.cleaned_data["membership_type_id"])
+        if membership_type_id >= 0:
+            try:
+                self.membership_type = MembershipType.objects.get(pk=membership_type_id)
+            except MembershipType.DoesNotExist:
+                self.membership_type = None
+        else:
+            self.membership_type = None
+
+        self.fee = form.cleaned_data["fee"]
+        self.due_date = form.cleaned_data["due_date"]
+        self.auto_pay_date = form.cleaned_data["auto_pay_date"]
+        self.start_date = form.cleaned_data["start_date"]
+        self.end_date = form.cleaned_data["end_date"]
+
+    def update_with_options_form(
+        self,
+        form,
+    ):
+        """Populate with fields from a BulkRenewalOptionsForm"""
+
+        self.send_notice = form.cleaned_data["send_notice"]
+        self.email_subject = form.cleaned_data["email_subject"]
+        self.email_content = form.cleaned_data["email_content"]
+
+        club_template_id = int(form.cleaned_data["club_template"])
+        if club_template_id >= 0:
+            try:
+                self.club_template = OrgEmailTemplate.objects.get(pk=club_template_id)
+            except OrgEmailTemplate.DoesNotExist:
+                self.club_template = None
+        else:
+            self.club_template = None
+
+    def update_with_extend_form(
+        self,
+        form,
+        start_date,
+        membership_type,
+        is_paid=False,
+    ):
+        """Populate with fields from a MembershipExtendForm"""
+
+        from payments.models import OrgPaymentMethod
+
+        self.membership_type = membership_type
+
+        self.fee = form.cleaned_data["fee"]
+        self.due_date = form.cleaned_data["due_date"]
+        self.auto_pay_date = form.cleaned_data["auto_pay_date"]
+        self.start_date = start_date
+        self.end_date = form.cleaned_data["new_end_date"]
+        self.send_notice = form.cleaned_data["send_notice"]
+        self.email_subject = form.cleaned_data["email_subject"]
+        self.email_content = form.cleaned_data["email_content"]
+
+        club_template_id = int(form.cleaned_data["club_template"])
+        if club_template_id >= 0:
+            try:
+                self.club_template = OrgEmailTemplate.objects.get(pk=club_template_id)
+            except MembershipType.DoesNotExist:
+                self.club_template = None
+        else:
+            self.club_template = None
+
+        payment_method_id = int(form.cleaned_data["payment_method"])
+        if payment_method_id >= 0:
+            try:
+                self.payment_method = OrgPaymentMethod.objects.get(pk=payment_method_id)
+            except OrgPaymentMethod.DoesNotExist:
+                self.payment_method = None
+        else:
+            self.payment_method = None

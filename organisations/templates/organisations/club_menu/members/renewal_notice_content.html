@@ -1,0 +1,133 @@
+{# System generated content for a renewal notice                #}
+{# Note that the renewal may have been paid                     #}
+{# Expects member_details and renewal_parameters in context     #}
+{# Does not use Boot Strap 4, just styles in PO email template  #}
+
+{% load cobalt_tags %}
+{% load static %}
+
+<br>
+<hr>
+<h4>Renewal Details:</h4>
+
+<table>
+    <tr>
+        <td>Membership Type:</td>
+        <td>{{ renewal_parameters.membership_type.name }}</td>
+    </tr>
+
+    <tr>
+        <td>Period:</td>
+        <td>
+            {{ renewal_parameters.start_date }}
+            {% if renewal_parameters.end_date %}
+                to {{ renewal_parameters.end_date }}
+            {% else %}
+                onwards
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <td>Fee:</td>
+        <td>
+            {% if renewal_parameters.fee %}
+                ${{ renewal_parameters.fee|floatformat:2 }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+    </tr>
+
+    {% if renewal_parameters.is_paid %}
+        {# --- paid --- #}
+
+        <tr>
+            <td>Paid:</td>
+            <td>
+                {% if renewal_parameters.paid_date %}
+                    {{ renewal_parameters.paid_date }}
+                {% endif %}
+                {% if renewal_parameters.payment_method %}
+                    {{ renewal_parameters.payment_method.payment_method }}
+                {% endif %}
+            </td>
+        </tr>
+
+    {% else %}
+        {# --- not paid --- #}
+
+        <tr>
+            <td>Due:</td>
+            <td>
+                {% if renewal_parameters.due_date %}
+                    {{ renewal_parameters.due_date }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+
+        {% if renewal_parameters.auto_pay_date and member_details.user_type != 'Unregistered User' %}
+
+            <tr>
+                <td>Auto pay:</td>
+                <td>
+                    {% if member_details.allow_auto_pay %}
+                        {{ renewal_parameters.auto_pay_date }}
+                    {% else %}
+                        <b>Disabled</b>
+                    {% endif %}
+                </td>
+            </tr>
+
+        {% endif %}
+
+    {% endif %}
+</table>
+<hr>
+
+{% if member_details.user_type  != 'Unregistered User' and not renewal_parameters.is_paid and renewal_parameters.fee %}
+
+    {# --- Additional notes for registered users --- #}
+
+    <br>
+    <p style="font-size: 90%;">
+        You can pay your membership fee using {{ BRIDGE_CREDITS }} by going to your
+        <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
+        and clicking the &apos;Pay Now&apos; button for this renewal in the Club Memberships section.
+    </p>
+
+    {% if renewal_parameters.auto_pay_date %}
+
+        {% if member_details.allow_auto_pay %}
+
+            <p style="font-size: 90%;">
+                The club will attempt to pay your membership using {{ BRIDGE_CREDITS }} on
+                {{ renewal_parameters.auto_pay_date }} if it has not been paid by that time. If you would like to pay this way please ensure that you have sufficient {{ BRIDGE_CREDITS }} in your account or have auto top-up enabled.
+            </p>
+
+            <p style="font-size: 90%;">
+                You can prevent automatic payment with {{ BRIDGE_CREDITS }} by changing your permissions
+                for this club on your
+                <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
+                before {{ renewal_parameters.auto_pay_date }}.
+            </p>
+
+        {% else %}
+
+            <p style="font-size: 90%;">
+                You have disabled automatic payment of membership fees by {{ BRIDGE_CREDITS }}
+                for this club. This can be re-enabled by changing your permissions for this club on your
+                <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
+            </p>
+            <p style="font-size: 90%;">
+                If you re-enable auto payment before {{ renewal_parameters.auto_pay_date }}, the club will
+                attempt to pay your membership fee using {{ BRIDGE_CREDITS }} on that date.
+            </p>
+
+        {% endif %}
+
+    {% endif %}
+
+{% endif %}

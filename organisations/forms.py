@@ -3,6 +3,7 @@ import datetime
 import bleach
 from crispy_forms.helper import FormHelper
 from django import forms
+from django.forms import formset_factory
 from django_summernote.widgets import SummernoteInplaceWidget
 from django.utils import timezone
 from PIL import Image
@@ -65,6 +66,21 @@ def membership_payment_method_choices(club, registered, allow_none=True):
             method_choices.append((id, desc))
 
     return method_choices
+
+
+def club_email_template_choices(club):
+    """Return available club email template choices
+
+    Returns a list of (OrgEmailTemplate id, template name)
+    including a null choice of (-1. '-')
+    """
+
+    choices = list(
+        OrgEmailTemplate.objects.filter(organisation=club).values_list(
+            "id", "template_name"
+        )
+    )
+    return [(-1, "-")] + choices
 
 
 # TODO: Replace when club admin work complete
@@ -277,9 +293,23 @@ class MembershipExtendForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
+    auto_pay_date = forms.DateField(
+        label="Auto payment date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
     payment_method = forms.ChoiceField(label="Payment method", required=True)
-    # JPG clean up
-    # is_paid = forms.BooleanField(label="Mark as paid", required=False)
+    send_notice = forms.BooleanField(
+        label="Send a renewal notice",
+        required=False,
+    )
+    club_template = forms.ChoiceField(label="Club email template", required=True)
+    email_subject = forms.CharField(label="Subject", required=False)
+    email_content = forms.CharField(
+        label="Renewal message",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4, "cols": 40}),
+    )
 
     def __init__(self, *args, **kwargs):
         self.club = kwargs.pop("club")
@@ -288,6 +318,7 @@ class MembershipExtendForm(forms.Form):
         self.fields["payment_method"].choices = membership_payment_method_choices(
             self.club, registered
         )
+        self.fields["club_template"].choices = club_email_template_choices(self.club)
 
 
 class MembershipPaymentForm(forms.Form):
@@ -881,3 +912,72 @@ class MinimumBalanceAfterSettlementForm(forms.ModelForm):
     class Meta:
         model = Organisation
         fields = ("minimum_balance_after_settlement",)
+
+
+class BulkRenewalLineForm(forms.Form):
+    """Options for bulk renewal of a membership type"""
+
+    selected = forms.BooleanField(
+        label="Selected",
+        required=False,
+    )
+
+    membership_type_id = forms.IntegerField(
+        label="Membership type id (hidden)",
+    )
+
+    membership_type_name = forms.CharField(
+        label="Membership type",
+    )
+
+    fee = forms.DecimalField(
+        label="Fee",
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+    )
+
+    due_date = forms.DateField(
+        label="Payment due date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+
+    auto_pay_date = forms.DateField(
+        label="Auto pay date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+
+    start_date = forms.DateField(
+        label="Start date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+
+    end_date = forms.DateField(
+        label="End date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+
+
+BulkRenewalFormSet = formset_factory(BulkRenewalLineForm, extra=0)
+
+
+class BulkRenewalOptionsForm(forms.Form):
+    """A form for teh common options for a batch"""
+
+    send_notice = forms.BooleanField(label="Send renewal notices", required=False)
+    club_template = forms.ChoiceField(label="Club email template", required=True)
+    email_subject = forms.CharField(label="Subject", required=False)
+    email_content = forms.CharField(
+        label="Renewal message",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4, "cols": 40}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.club = kwargs.pop("club")
+        super(BulkRenewalOptionsForm, self).__init__(*args, **kwargs)
+        self.fields["club_template"].choices = club_email_template_choices(self.club)

@@ -1,0 +1,23 @@
+<div class="container" style="border: 1px solid black;">
+
+    {% if subject %}
+        <p class="text-dark mt-3">Subject: {{ subject }}</p>
+    {% endif %}
+
+    {% if from_name %}
+        <p class="text-dark mt-3">From: '{{ from_name }}&lt;donotreply@myabf.com.au&gt;'</p>
+    {% endif %}
+
+    {% if reply_to %}
+        <p class="text-dark mt-3">Reply to: '{{ reply_to }}'</p>
+    {% endif %}
+
+    {# We use an iframe to get rid of the bootstrap css so we can see the email as it will look when delivered #}
+
+    <iframe
+        onload='javascript:(function(o){o.style.height=o.contentWindow.document.body.scrollHeight+"px";}(this));'
+        style="height:200px;width:100%;border:none;overflow:hidden;"
+        srcdoc='{% include "notifications/django_post_office_core_templates/po_club_template.html" %}'
+    ></iframe>
+
+</div>
