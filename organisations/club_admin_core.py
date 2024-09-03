@@ -165,6 +165,19 @@ def description_for_status(status):
     return membership_status_dict.get(status, "Unknown Status")
 
 
+def member_has_future(club, system_number):
+    """Does the member have a future dated membership?"""
+
+    return (
+        MemberMembershipType.objects.filter(
+            membership_type__organisation=club,
+            system_number=system_number,
+            membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        ).count()
+        > 0
+    )
+
+
 def member_details_short_description(member_details):
     """A brief description of the membership status"""
 
@@ -189,7 +202,7 @@ def member_details_short_description(member_details):
         desc += f", {os_fees} membership fees to pay"
 
     if future_membership_count:
-        desc += " (note: future dated memberships exist for this member)"
+        desc += " (note: a future dated membership exists for this member)"
 
     return desc
 
@@ -1280,7 +1293,13 @@ def can_mark_as_paid(member_details):
 def can_extend_membership(member_details):
     """Can the member validly be extended?"""
 
-    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
+    if member_has_future(member_details.club, member_details.system_number):
+        return (False, "Member already has a future dated membership")
+
+    if member_details.membership_status in [
+        MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+        MemberClubDetails.MEMBERSHIP_STATUS_DUE,
+    ]:
         if member_details.latest_membership.membership_type.does_not_renew:
             return (
                 False,
@@ -1404,13 +1423,14 @@ def get_valid_activities(member_details):
 
     activities = ["TAGS", "EMAILS"]
 
-    if member_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
+    # JPG clean-up
+    # if member_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
 
-        if member_details.user_type == f"{GLOBAL_TITLE} User":
-            activities += ["ENTRIES", "SESSIONS", "TRANSACTIONS"]
+    if member_details.user_type == f"{GLOBAL_TITLE} User":
+        activities += ["ENTRIES", "SESSIONS", "TRANSACTIONS"]
 
-        if member_details.user_type == "Unregistered User":
-            activities += ["INVITATIONS"]
+    if member_details.user_type == "Unregistered User":
+        activities += ["INVITATIONS"]
 
     return activities
 
@@ -1651,7 +1671,11 @@ def _process_membership_payment(
                     MemberMembershipType.MEMBERSHIP_STATE_LAPSED
                 )
         else:
-            if membership.due_date >= today:
+            if membership.start_date > today:
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_FUTURE
+                )
+            elif membership.due_date >= today:
                 membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_DUE
             else:
                 # something has gone wrong, past due but not paid successfully
@@ -2179,8 +2203,6 @@ def renew_membership(
     )
 
     # note: membership state will be updated by the payment process
-
-    # JPG to do - pass payment method rather than id
 
     payment_success, payment_message = _process_membership_payment(
         renewal_parameters.club,
@@ -3109,8 +3131,8 @@ def get_members_for_renewal(
     just_system_number=None,
     stats_to_date=None,
 ):
-    """Return a list of members that match the bulk renewal line form. Also can return just a single
-    memver details object for a specified member.
+    """Return a list of members that match the bulk renewal parameters. Also can return just a single
+    member details object for a specified member.
 
     Args:
         club (Organisation): the club
@@ -3161,17 +3183,32 @@ def get_members_for_renewal(
         member_qs = MemberClubDetails.objects.filter(
             club=club,
             latest_membership__membership_type=renewal_parameters.membership_type,
-            membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+            membership_status__in=[
+                MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
+                MemberClubDetails.MEMBERSHIP_STATUS_DUE,
+            ],
             latest_membership__end_date=target_end_date,
         ).select_related(
             "latest_membership",
             "latest_membership__membership_type",
         )
 
+    # check for future memberships for these candiates (cannot renew if one exists)
+
+    system_numbers = [member.system_number for member in member_qs]
+
+    with_future = MemberMembershipType.objects.filter(
+        membership_type__organisation=club,
+        membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        system_number__in=system_numbers,
+    ).values_list("system_number", flat=True)
+
+    member_list = [
+        member for member in member_qs if member.system_number not in with_future
+    ]
+
     # NOTE: could use _augment_member_details, then further augment with options, but combining
     # these here avoids a second pass through the member list which might be large
-
-    member_list = list(member_qs)
 
     system_numbers = [member.system_number for member in member_list]
 

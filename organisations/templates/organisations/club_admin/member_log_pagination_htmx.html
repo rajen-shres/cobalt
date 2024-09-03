@@ -1,0 +1,85 @@
+<!-- log pagination controls -->
+{% if log_history.paginator.num_pages > 1 %}
+
+    <!-- log pagination controls class -->
+
+    <ul class="pagination pagination-info">
+
+        {% if log_history.has_previous %}
+
+            <!-- previous -->
+
+            <li class="page-item">
+                <a class="page-link"
+                    {% if page_type == "MEMBERS" %}
+                        hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                        hx-target="#id_panel_members"
+                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO', page:{{ log_history.previous_page_number }}"
+                    {% else %}
+                        hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                        hx-target="#id_panel_contacts"
+                        hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit: 'NO', page:{{ log_history.previous_page_number }}"
+                    {% endif %}
+                    style="cursor: pointer"
+                >
+                    PREV
+                </a>
+            </li>
+        {% endif %}
+
+        <!-- page buttons -->
+
+        {% for num in log_history.paginator.page_range %}
+
+            {% if log_history.number == num %}
+
+                <li class="active page-item">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+
+            {% elif num > log_history.number|add:'-3' and num < log_history.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link"
+                        {% if page_type == "MEMBERS" %}
+                            hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                            hx-target="#id_panel_members"
+                            hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO', page:{{ num }}"
+                        {% else %}
+                            hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                            hx-target="#id_panel_contacts"
+                            hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit: 'NO', page:{{ num }}"
+                        {% endif %}
+                        style="cursor: pointer"
+                    >
+                        {{ num }}
+                    </a>
+                </li>
+            {% endif %}
+
+        {% endfor %}
+
+        {% if log_history.has_next %}
+
+            <!-- next -->
+
+            <li class="page-item">
+                <a class="page-link"
+                    {% if page_type == "MEMBERS" %}
+                        hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                        hx-target="#id_panel_members"
+                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO', page:{{ log_history.next_page_number }}"
+                    {% else %}
+                        hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                        hx-target="#id_panel_contacts"
+                        hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit: 'NO', page:{{ log_history.next_page_number }}"
+                    {% endif %}
+                    style="cursor: pointer"
+                >
+                    NEXT
+                </a>
+            </li>
+
+        {% endif %}
+    </ul>
+
+{% endif %}

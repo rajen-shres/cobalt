@@ -66,6 +66,7 @@ from organisations.club_admin_core import (
     make_membership_payment,
     member_details_description,
     member_details_short_description,
+    member_has_future,
     perform_simple_action,
     renew_membership,
     send_renewal_notice,
@@ -1568,7 +1569,15 @@ def club_admin_edit_member_htmx(request, club, message=None):
             break
 
     # get the members log history
-    log_history = get_member_log(club, system_number)
+    log_history_full = get_member_log(club, system_number)
+    log_history = cobalt_paginator(
+        request, log_history_full, items_per_page=5, page_no=request.POST.get("page", 1)
+    )
+
+    # jpg debug
+    print(
+        f"*** log_history.paginator.num_pages = {log_history.paginator.num_pages} ***"
+    )
 
     if request.POST.get("save", "NO") == "LOG":
 
@@ -1638,7 +1647,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "member_details": member_details,
             "member_history": member_history,
             "current_index": current_index,
-            "log_history": log_history[:20],
+            "log_history": log_history,
             "form": form,
             "valid_actions": valid_actions,
             "message": message,
@@ -1977,12 +1986,10 @@ def club_admin_edit_member_extend_htmx(request, club):
         )
         if form.is_valid():
 
-            # JPG to do check for future dated
-
             renewal_parameters = RenewalParameters(club)
             renewal_parameters.update_with_extend_form(
                 form,
-                member_details.latest_membership.end_date - timedelta(days=1),
+                member_details.latest_membership.end_date + timedelta(days=1),
                 member_details.latest_membership.membership_type,
             )
 
@@ -2292,6 +2299,31 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
             ):
                 error = True
                 message = "Auto pay date must be in the future"
+
+            if (
+                not error
+                and mmt.membership_state == MemberMembershipType.MEMBERSHIP_STATE_FUTURE
+                and form.cleaned_data["start_date"]
+                != (member_details.latest_membership.end_date + timedelta(days=1))
+            ):
+                error = True
+                message = "Future dated memberships must start immediately after the current membership ends"
+
+            if (
+                not error
+                and mmt.membership_state != MemberMembershipType.MEMBERSHIP_STATE_FUTURE
+                and mmt.membership_state
+                in [
+                    MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+                    MemberMembershipType.MEMBERSHIP_STATE_DUE,
+                ]
+                and member_has_future(club, member_details.system_number)
+                and form.cleaned_data["end_date"] != mmt.end_date
+            ):
+                error = True
+                message = (
+                    "Cannot change the end date when there is a future dated membership"
+                )
 
             if not error:
 

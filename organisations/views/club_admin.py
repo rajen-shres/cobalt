@@ -124,7 +124,11 @@ def activity_emails_htmx(request, club):
     system_number = request.POST.get("system_number")
     member_details = get_member_details(club, system_number)
 
+    message = None
     email_address = club_email_for_member(club, system_number)
+
+    # jpg debug
+    print(f">>>>> activity_emails_htmx, {system_number}, {club.name}")
 
     if email_address:
         emails = get_emails_sent_to_address(email_address, club, request.user)
@@ -134,13 +138,20 @@ def activity_emails_htmx(request, club):
         emails = None
         message = "No email address for this person"
 
+    permitted_activities = get_valid_activities(member_details)
+
+    # jpg debug
+    print(
+        f">>>>> about to render: {club.name}, {system_number}, {permitted_activities}, {emails}, {message}"
+    )
+
     return render(
         request,
         "organisations/club_admin/activity_emails_htmx.html",
         {
             "club": club,
             "system_number": system_number,
-            "permitted_activities": get_valid_activities(member_details),
+            "permitted_activities": permitted_activities,
             "emails": emails,
             "message": message,
         },
@@ -280,11 +291,17 @@ def activity_transactions_htmx(request, club):
     # validate membership
     member_details = get_member_details(club, system_number)
     if not member_details:
-        return HttpResponse("This person is not a club member")
+        return _activity_none_error_htmx(
+            request,
+            club,
+            message="This person is not a club member",
+        )
     if member_details.user_type != f"{GLOBAL_TITLE} User":
-        return HttpResponse(f"This person is not a registered {GLOBAL_TITLE} user")
-    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
-        return HttpResponse("You can only access transaction details for club members")
+        return _activity_none_error_htmx(
+            request,
+            club,
+            message=f"This person is not a registered {GLOBAL_TITLE} user",
+        )
 
     # get member - must be User to have transactions
     member = get_object_or_404(User, system_number=system_number)
@@ -482,7 +499,9 @@ def activity_invitations_htmx(request, club):
 
 @check_club_menu_access(check_members=True)
 def activity_none_htmx(request, club):
-    """Close the current recent activity view"""
+    """Close the current recent activity view,
+    Can also be used to show a fatal error message from an activity view
+    """
 
     system_number = request.POST.get("system_number")
     member_details = get_member_details(club, system_number)
@@ -495,6 +514,25 @@ def activity_none_htmx(request, club):
             "member_details": member_details,
             "system_number": member_details.system_number,
             "permitted_activities": get_valid_activities(member_details),
+        },
+    )
+
+
+def _activity_none_error_htmx(request, club, message):
+    """Show a fatal error message from an activity view"""
+
+    system_number = request.POST.get("system_number")
+    member_details = get_member_details(club, system_number)
+
+    return render(
+        request,
+        "organisations/club_admin/activity_none_htmx.html",
+        {
+            "club": club,
+            "member_details": member_details,
+            "system_number": member_details.system_number,
+            "permitted_activities": get_valid_activities(member_details),
+            "message": message,
         },
     )
 

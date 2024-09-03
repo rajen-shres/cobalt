@@ -162,7 +162,10 @@ def edit_htmx(request, club, message=None):
     contact_details = get_contact_details(club, system_number)
 
     # get the members log history
-    log_history = get_member_log(club, system_number)
+    log_history_full = get_member_log(club, system_number)
+    log_history = cobalt_paginator(
+        request, log_history_full, items_per_page=5, page_no=request.POST.get("page", 1)
+    )
 
     if request.POST.get("save", "NO") == "LOG":
 
@@ -207,7 +210,7 @@ def edit_htmx(request, club, message=None):
             "message": message,
             "member_admin": True,
             "edit_details": editing,
-            "log_history": log_history[:20],
+            "log_history": log_history,
             "system_number": contact_details.system_number,
             "permitted_activities": get_valid_activities(contact_details),
         },
@@ -513,7 +516,7 @@ def add_contact_manual_htmx(request, club):
                 # log it
                 log_member_change(
                     club,
-                    unreg_user.system_number,
+                    system_number,
                     request.user,
                     f"Contact added ({source})",
                 )

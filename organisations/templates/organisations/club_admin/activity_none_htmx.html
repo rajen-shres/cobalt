@@ -1,4 +1,10 @@
 {% include "organisations/club_admin/activity_nav_htmx.html" with activity_selected="NONE" %}
 <div class="card-body">
-    Select a category to view
+    <div class="container">
+        {% if message %}
+            <h4>{{ message }}</h4>
+        {% else %}
+            <h4>Select a category to view</h4>
+        {% endif %}
+    </div>
 </div>

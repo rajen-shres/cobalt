@@ -195,6 +195,7 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                            {% include "organisations/club_admin/member_log_pagination_htmx.html" with page_type='CONTACTS' %}
                         </div>
                     {% else %}
                         No changes have been made

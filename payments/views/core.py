@@ -93,7 +93,9 @@ def get_balance_detail(member):
 
     """
 
-    last_tran = MemberTransaction.objects.filter(member=member).last()
+    last_tran = (
+        MemberTransaction.objects.filter(member=member).order_by("created_date").last()
+    )
     if last_tran:
         return {
             "balance": last_tran.balance,
@@ -121,7 +123,9 @@ def get_balance(member):
     """
 
     # JPG - needs to take an update lock !!
-    last_tran = MemberTransaction.objects.filter(member=member).last()
+    last_tran = (
+        MemberTransaction.objects.filter(member=member).order_by("created_date").last()
+    )
     return float(last_tran.balance) if last_tran else 0.0
 
 
