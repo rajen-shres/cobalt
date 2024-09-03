@@ -1,0 +1,100 @@
+{% load cobalt_tags %}
+{% load static %}
+
+<p>
+    Auto payment of club membership fees for {{ club.name }} were processed for {{ today }}.
+</p>
+
+{% if paid_memberships %}
+
+    <p>
+        {% if paid_memberships|length == 1 %}
+            1 membership fee auto payment was
+        {% else %}
+            {{ paid_memberships|length }} membership fee auto payments were
+        {% endif %}
+        charged successfully, with total fees of {{ total_collected|cobalt_number }}.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Membership</th>
+                <th style="text-align: right;">Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membership in paid_memberships %}
+
+                <tr>
+                    <td>
+                        {{ membership.user.first_name }} {{ membership.user.last_name }}
+                        ({{ GLOABL_ORG }} No {{ membership.user.system_number }})
+                    </td>
+                    <td>
+                        {{ membership.membership_type.name }} {{ membership.period }}
+                    </td>
+                    <td style="text-align: right;">
+                        {{ membership.fee|cobalt_number }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+
+    <p>No membership fee auto payments were successful.</p>
+
+{% endif %}
+
+{% if failed_memberships %}
+
+    <p>
+        {% if paid_memberships|length == 1 %}
+            1 membership fee auto payment was
+        {% else %}
+            {{ paid_memberships|length }} membership fee auto payments were
+        {% endif %}
+        unsuccessful.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Membership</th>
+                <th style="text-align: right;">Fee</th>
+                <th>Issue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membership in failed_memberships %}
+
+                <tr>
+                    <td>
+                        {{ membership.user.first_name }} {{ membership.user.last_name }}
+                        ({{ GLOABL_ORG }} No {{ membership.user.system_number }})
+                    </td>
+                    <td>
+                        {{ membership.membership_type.name }} {{ membership.period }}
+                    </td>
+                    <td style="text-align: right;">
+                        {{ membership.fee|cobalt_number }}
+                    </td>
+                    <td>
+                        {{ membership.message }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% else %}
+
+    <p>No membership fee auto payments were unsuccessful.</p>
+
+{% endif %}

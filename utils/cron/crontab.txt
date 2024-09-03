@@ -10,3 +10,4 @@
 0 22 * * * /var/app/current/utils/cron/wrapper.sh delete_old_in_app_notifications
 0 23 * * * /var/app/current/utils/cron/wrapper.sh handle_closed_congresses_with_unpaid_entries
 5 3 * * * /var/app/current/utils/cron/wrapper.sh update_membership_status
+5 23 * * * /var/app/current/utils/cron/wrapper.sh auto_pay_batch

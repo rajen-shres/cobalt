@@ -2288,7 +2288,7 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
             if (
                 not error
                 and form.cleaned_data["auto_pay_date"]
-                and form.cleaned_data["auto_pay_date"] <= timezone.now().date()
+                and form.cleaned_data["auto_pay_date"] < timezone.now().date()
             ):
                 error = True
                 message = "Auto pay date must be in the future"

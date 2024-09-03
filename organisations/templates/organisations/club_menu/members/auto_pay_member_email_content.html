@@ -1,0 +1,58 @@
+{% load cobalt_tags %}
+{% load static %}
+
+<p>
+    Your membership fee for {{ club.name }} was paid using {{ BRIDGE_CREDITS }} on {{ today }}. The membership renewal details are below.
+</p>
+<br>
+<hr>
+<h4>Renewal Details:</h4>
+
+<table>
+    <tr>
+        <td>Membership Type:</td>
+        <td>{{ membership.membership_type.name }}</td>
+    </tr>
+
+    <tr>
+        <td>Period:</td>
+        <td>
+            {{ membership.period }}
+        </td>
+    </tr>
+
+    <tr>
+        <td>Fee:</td>
+        <td>
+            {% if renewal_parameters.fee %}
+                ${{ membership.fee|cobalt_number }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+    </tr>
+
+    <tr>
+        <td>Paid:</td>
+        <td>
+            {{ membership.paid_date }} {{ BRIDGE_CREDITS }} (auto pay)
+        </td>
+    </tr>
+
+    <tr>
+        <td>Due:</td>
+        <td>
+            {% if renewal_parameters.due_date %}
+                {{ renewal_parameters.due_date }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+    </tr>
+</table>
+<hr>
+<p style="font-size: 90%;">
+    You control whether a club can use this feature to collect your membership fees.
+    Your permissions for this club can be changed on your
+    <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>.
+</p>

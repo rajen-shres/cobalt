@@ -1590,7 +1590,7 @@ def _process_membership_payment(
     club,
     is_registered_user,
     membership,
-    payment_method_id,
+    payment_method,
     description,
     process_payment=True,
 ):
@@ -1605,8 +1605,8 @@ def _process_membership_payment(
     Args:
         club (Organisation): the club
         is_registered_user (bool): is there a User object for this person
-        membership (MemberClubDetails): Must have the system_number, fee, membership_type and end_date set
-        payment_method_id (int): pk for the OrgPaymentMethod to be used, -1 if none selected
+        membership (MemberMembershipTYpe): Must have the system_number, fee, membership_type and end_date set
+        payment_method (OrgPaymentMethod): payment method to be used, or None
         description (str): description to be used on the payment transactions
         process_payments (bool): should a Bridge Credit payment be processed (if the select method)?
 
@@ -1666,12 +1666,8 @@ def _process_membership_payment(
         _has_paid(True)
         return (True, "Nothing to pay")
 
-    # get and check the payment method
-    if payment_method_id >= 0:
-        payment_method = OrgPaymentMethod.objects.get(
-            pk=payment_method_id,
-            organisation=club,
-        )
+    # check the payment method
+    if payment_method:
         if payment_method.payment_method == "Bridge Credits" and not is_registered_user:
             membership.payment_method = None
             _has_paid(False)
@@ -1679,8 +1675,6 @@ def _process_membership_payment(
                 f"Unregistered {membership.system_number} cannot pay with {BRIDGE_CREDITS}"
             )
             return (False, f"Only registered users can use {BRIDGE_CREDITS}")
-    else:
-        payment_method = None
 
     membership.payment_method = payment_method
 
@@ -2065,6 +2059,31 @@ def perform_simple_action(action_name, club, system_number, requester=None):
 # -------------------------------------------------------------------------------------
 
 
+def _get_payment_method(club, payment_method_id):
+    """Returns a club payment method or None, based on the id choice from
+    a drop down list (-1 if not selected)
+
+    Args:
+        club (Organisation): the club
+        payment_method_id (int): the payment method id or -1 if not specified
+
+    Returns:
+        OrgPaymentMethod: or none if invalid or not selected
+    """
+
+    if payment_method_id >= 0:
+        try:
+            payment_method = OrgPaymentMethod.objects.get(pk=payment_method_id)
+            if payment_method.organisation != club or payment_method.active is False:
+                payment_method = None
+        except OrgPaymentMethod.DoesNotExist:
+            payment_method = None
+    else:
+        payment_method = None
+
+    return payment_method
+
+
 def make_membership_payment(
     club,
     membership,
@@ -2092,11 +2111,13 @@ def make_membership_payment(
 
     user_check = User.objects.filter(system_number=membership.system_number).last()
 
+    payment_method = _get_payment_method(club, payment_method_id)
+
     payment_success, payment_message = _process_membership_payment(
         club,
         (user_check is not None),
         membership,
-        payment_method_id,
+        payment_method,
         f"Membership fee ({membership.membership_type.name})",
     )
 
@@ -2165,9 +2186,7 @@ def renew_membership(
         renewal_parameters.club,
         (member_details.user_type != f"{GLOBAL_TITLE} User"),
         new_membership,
-        renewal_parameters.payment_method.id
-        if renewal_parameters.payment_method
-        else -1,
+        renewal_parameters.payment_method,
         "Membership renewal",
         process_payment=process_payment,
     )
@@ -2425,11 +2444,14 @@ def change_membership(
             return (False, "End date must be after start date")
 
     # try to process payment
+
+    payment_method = _get_payment_method(club, payment_method_id)
+
     payment_success, payment_message = _process_membership_payment(
         club,
         (member_details.user_type != f"{GLOBAL_TITLE} User"),
         new_membership,
-        payment_method_id,
+        payment_method,
         "Membership",
         process_payment=process_payment,
     )
@@ -2821,11 +2843,13 @@ def convert_contact_to_member(
         + timedelta(days=membership_type.grace_period_days)
     )
 
+    payment_method = _get_payment_method(club, payment_method_id)
+
     payment_success, paymnet_message = _process_membership_payment(
         club,
         (type(new_user_or_unreg) == User),
         new_membership,
-        payment_method_id,
+        payment_method,
         "New membership",
         process_payment=process_payment,
     )
@@ -3376,3 +3400,104 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
     _sort_memberships(membership_list, sort_option)
 
     return (membership_list, stats)
+
+
+def get_clubs_with_auto_pay_memberships(date=None):
+    """Return a list of clubs that have memberships with auto pay dates at the
+    specified date (today if none specified).
+
+    Note that a club may be on this list but have no auto payments to make
+    once the user permissions have been considered.
+
+    Args:
+        date (Date): the auto pay date to find, or today if None
+
+    Returns:
+        list: Organisations
+    """
+
+    target_date = date if date else timezone.now().date()
+
+    return Organisation.objects.filter(
+        membershiptype__membermembershiptype__is_paid=False,
+        membershiptype__membermembershiptype__auto_pay_date=target_date,
+        membershiptype__membermembershiptype__membership_state__in=[
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+        ],
+    ).distinct()
+
+
+def get_auto_pay_memberships_for_club(club, date=None):
+    """Return a list of memberships that are allowed for auto pay as at the
+    specified date (today if none specified) for the club.
+
+    Args:
+        club (Organisation): a club whih may or may not have auto pay memberships
+        date (Date): the auto pay date to find, or today if None
+
+    Returns:
+        list: MemberMembershipTypes augmented with user and member_details
+    """
+
+    target_date = date if date else timezone.now().date()
+
+    # get superset of eligible memberships with target auto pay dates
+
+    membership_qs = MemberMembershipType.objects.filter(
+        is_paid=False,
+        auto_pay_date=target_date,
+        membership_type__organisation=club,
+        membership_state__in=[
+            MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
+            MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+            MemberMembershipType.MEMBERSHIP_STATE_DUE,
+        ],
+    ).select_related("membership_type", "membership_type__organisation")
+
+    # check auto pay permissions
+
+    system_numbers = membership_qs.values_list("system_number", flat=True)
+
+    if len(system_numbers) == 0:
+        return None
+
+    allowing = MemberClubOptions.objects.filter(
+        club=club,
+        user__system_number__in=system_numbers,
+        allow_auto_pay=True,
+    ).values_list("user__system_number", flat=True)
+
+    # filter the memberships by permissions
+    memberships = [
+        membership
+        for membership in membership_qs
+        if membership.system_number in allowing
+    ]
+
+    if len(memberships) == 0:
+        return None
+
+    # augment with user and membership details
+
+    system_numbers = [membership.system_number for membership in memberships]
+
+    users = User.objects.filter(system_number__in=system_numbers)
+    member_details_qs = MemberClubDetails.objects.filter(
+        club=club, system_number__in=system_numbers
+    )
+
+    user_dict = {user.system_number: user for user in users}
+    member_detail_dict = {
+        member_details.system_number: member_details
+        for member_details in member_details_qs
+    }
+
+    for membership in memberships:
+        membership.user = user_dict.get(membership.system_number, None)
+        membership.member_details = member_detail_dict.get(
+            membership.system_number, None
+        )
+
+    return memberships
