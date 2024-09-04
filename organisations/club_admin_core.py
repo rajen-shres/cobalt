@@ -1562,11 +1562,12 @@ def add_member(
 
     # proceed with payment
 
+    payment_method = _get_payment_method(club, payment_method_id)
     payment_success, payment_message = _process_membership_payment(
         club,
         is_registered_user,
         new_membership,
-        payment_method_id,
+        payment_method,
         "New membership",
         process_payment=process_payment,
     )

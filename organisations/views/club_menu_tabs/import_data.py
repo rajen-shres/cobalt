@@ -409,9 +409,9 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
                 print(
                     f"    updated {attr_name}: {old_value} => {new_details[attr_name]}"
                 )
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError) as e:
             # JPG debug
-            print(f"_augment_member_details - error on '{attr_name}'")
+            print(f"_augment_member_details - error on '{attr_name}' {e}")
 
     if updated:
         member_details.save()
@@ -651,14 +651,20 @@ def add_member_to_membership(
     user: User,
     default_membership: MembershipType,
     home_club: bool = False,
+    is_registered_user: bool = True,
 ):
     """Sub process to add a member to the club. Returns 0 if already there
-    or 1 for counting purposes, plus an error or warning if one is found"""
+    or 1 for counting purposes, plus an error or warning if one is found
+
+    Args:
+        user (User): logged in user making the request
+
+    """
 
     name = f"{club_member['system_number']} - {club_member['first_name']} {club_member['last_name']}"
 
     # See if we are overriding the membership type
-    if club_member["membership_type"]:
+    if "membership_type" in club_member and club_member["membership_type"]:
         this_membership = MembershipType.objects.filter(
             organisation=club, name=club_member["membership_type"]
         ).first()
@@ -712,6 +718,7 @@ def add_member_to_membership(
         success, message = add_member(
             club,
             club_member["system_number"],
+            is_registered_user,
             default_membership,
             user,
         )
@@ -749,13 +756,12 @@ def process_member_import(
     """Common function to process a list of members
 
     Args:
+        club: Club object
+        member_data: list of data
+        user: Logged in user who is making this change
+        origin: Where did we get this data from?
         default_membership: Which membership to add this user to. Can be overridden at the row level
         home_club: Is this the home club for this user
-        origin: Where did we get this data from?
-        user: Logged in user who is making this change
-        member_data: list of data
-        club: Club object
-
     """
 
     # counters
@@ -795,7 +801,12 @@ def process_member_import(
                 ).save()
 
             added, error = add_member_to_membership(
-                club, club_member, user, default_membership, home_club
+                club,
+                club_member,
+                user,
+                default_membership,
+                home_club,
+                is_registered_user=False,
             )
 
             added_unregistered_users += added

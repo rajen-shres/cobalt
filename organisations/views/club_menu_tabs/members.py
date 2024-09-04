@@ -177,6 +177,14 @@ def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
 
     total_members = len(members)
 
+    # add balances (done after pagination to reduce load)
+    for thing in things:
+        thing.balance = (
+            None
+            if thing.user_type == "Unregistered User"
+            else get_balance(thing.user_or_unreg)
+        )
+
     # Check level of access
     member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
 

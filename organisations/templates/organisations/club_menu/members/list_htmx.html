@@ -253,7 +253,7 @@
                                     </span>
                                 </a>
                             </th>
-
+                            <th class="text-right">Balance</th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
@@ -274,6 +274,16 @@
                                 {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.get_membership_status_display %}
 
                                 {% include 'organisations/club_menu/members/list_column_content.html' with column_content=thing.user_type %}
+
+                                {% if thing.balance is not None %}
+                                    <td class="text-right {% if thing.balance < 20 %} text-warning font-weight-bold{% endif %}">
+                                        {{ thing.balance|cobalt_number }}
+                                    </td>
+                                {% else %}
+                                    <td class="text-right">
+                                    </td>
+                                {% endif %}
+
 
                                 <td class="text-center">
                                     {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}
