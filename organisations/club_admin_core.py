@@ -3098,7 +3098,7 @@ def _notify_user_of_membership(member_details, user=None):
     email_body = f"""
         <h1>Membership of {member_details.club.name}</h1>
         <p>{member_details.club.name} has listed you as a club member on {GLOBAL_TITLE},
-        with a member type of {member_details.latest_membership.membership_type.membership_type}
+        with a member type of {member_details.latest_membership.membership_type.name}
         and status of {member_details.get_membership_status_display}.</p>
         <p>If you are not a member of {member_details.club.name} you can remove this
         membership and block any future attempts to list you as a member of this club.
