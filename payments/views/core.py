@@ -27,7 +27,7 @@ Key Points:
 
 """
 
-# JPG debug - for COB-804 race condition testing
+# JPG TESTING - for COB-804 race condition testing
 import time
 
 import json
@@ -805,7 +805,7 @@ def update_account(
 
     """
 
-    # JPG debug - for COB-804 race condition testing
+    # JPG TESTING - for COB-804 race condition testing
     # time.sleep(2)
 
     # Get new balance

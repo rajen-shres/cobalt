@@ -57,9 +57,6 @@ def cobalt_round(number):
 
     result = float(dec_input.quantize(cent, rounding=decimal.ROUND_UP))
 
-    # JPG Debug
-    # print(f"*** cobalt_round *** {number} => {result}   Input: {type(number)}")
-
     return result
 
     # return float(

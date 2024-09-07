@@ -193,7 +193,7 @@ def member_details_short_description(member_details):
         desc = f"Current {member_details.latest_membership.membership_type.name} member"
     else:
         desc = (
-            f"{member_details.get_membership_status_display} "
+            f"{member_details.get_membership_status_display()} "
             f"{member_details.latest_membership.membership_type.name} member"
         )
 
@@ -342,13 +342,15 @@ def get_club_options_for_user(user):
                 user=user,
             )
             missing_options.save()
-            missing_options.membership_status = membership.get_membership_status_display
+            missing_options.membership_status = (
+                membership.get_membership_status_display()
+            )
             club_options.append(missing_options)
             options_dict[membership.club] = missing_options
         else:
             options_dict[
                 membership.club
-            ].membership_status = membership.get_membership_status_display
+            ].membership_status = membership.get_membership_status_display()
 
     return club_options
 
@@ -1663,9 +1665,6 @@ def _process_membership_payment(
 
     from payments.views.payments_api import payment_api_batch
 
-    # JPG debug
-    print("_process_membership_payment")
-
     message = ""
     success = True
 
@@ -1674,9 +1673,6 @@ def _process_membership_payment(
 
     def _has_paid(ok):
         """Updates when paid status is known"""
-
-        # JPG debug
-        print(f"_has_paid {ok}, fee = {membership.fee}")
 
         membership.is_paid = ok
         membership.paid_until_date = membership.end_date if ok else None
@@ -2238,7 +2234,7 @@ def renew_membership(
 
     payment_success, payment_message = _process_membership_payment(
         renewal_parameters.club,
-        (member_details.user_type != f"{GLOBAL_TITLE} User"),
+        (member_details.user_type == f"{GLOBAL_TITLE} User"),
         new_membership,
         renewal_parameters.payment_method,
         "Membership renewal",
@@ -2503,7 +2499,7 @@ def change_membership(
 
     payment_success, payment_message = _process_membership_payment(
         club,
-        (member_details.user_type != f"{GLOBAL_TITLE} User"),
+        (member_details.user_type == f"{GLOBAL_TITLE} User"),
         new_membership,
         payment_method,
         "Membership",
@@ -2813,9 +2809,6 @@ def convert_contact_to_member(
         bool: success
         string: explanatory message or None
     """
-
-    # jpg debug
-    print(f"convert_contact_to_member, fee = {fee}")
 
     if not is_player_allowing_club_membership(club, system_number):
         return (False, "This user is blocking memberships from this club")
@@ -3133,7 +3126,7 @@ def _notify_user_of_membership(member_details, user=None):
         <h1>Membership of {member_details.club.name}</h1>
         <p>{member_details.club.name} has listed you as a club member on {GLOBAL_TITLE},
         with a member type of {member_details.latest_membership.membership_type.name}
-        and status of {member_details.get_membership_status_display}.</p>
+        and status of {member_details.get_membership_status_display()}.</p>
         <p>If you are not a member of {member_details.club.name} you can remove this
         membership and block any future attempts to list you as a member of this club.
         This is simple to do from your profile page on {GLOBAL_TITLE} (linked below).</p>

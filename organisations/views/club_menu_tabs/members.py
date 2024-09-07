@@ -324,7 +324,7 @@ def club_admin_report_all_csv(request, club_id):
             "Membership Status",
             "Membership Start Date",
             "Membership End Date",
-            "Paid Unit Date",
+            "Paid Until Date",
             "Due Date",
             "Auto Pay Date",
             "Paid Date",
@@ -861,8 +861,6 @@ def _send_welcome_pack(club, first_name, email, user, invite_to_join):
     from_name = use_template.from_name
     if use_template.banner:
         context["img_src"] = use_template.banner.url
-        #  JPG debug
-        # print(f"++++++ _send_welcome_pack url={use_template.banner.url}")
 
     context["footer"] = use_template.footer
 
@@ -1705,16 +1703,6 @@ def club_admin_edit_member_htmx(request, club, message=None):
                 registered=(member_details.user_type == f"{ GLOBAL_TITLE } User"),
             )
 
-            # jpg debug
-            print(
-                f"AFTER INIT: type choices = {smm_form.fields['membership_type'].choices}"
-            )
-            print(
-                f"AFTER INIT: type initial = {smm_form.initial.get('membership_type')}"
-            )
-            print(f"AFTER INIT: state = {smm_form.data.get('membership_state')}")
-            print(f"AFTER INIT: type = {smm_form.data.get('membership_type')}")
-
     # which recent activities should be shown?
     permitted_activities = get_valid_activities(member_details)
 
@@ -1722,10 +1710,6 @@ def club_admin_edit_member_htmx(request, club, message=None):
 
     # Note: member_admin is used in conditioning the member nav area.
     # The user has this access if they have got this far.
-
-    # Note: there is some inexplicable issue with getting the membership type and
-    # state from teh form when not edittign and in simplified membership management
-    # Seems to work fine when editing. Work around is to pass the values separately.
 
     return render(
         request,
@@ -1738,16 +1722,6 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "log_history": log_history,
             "form": form,
             "smm_form": smm_form,
-            # "smm_membership_type" : (
-            #     simplified_membership.membership_type.name
-            #     if simplified_membership and not editing
-            #     else None
-            # ),
-            # "smm_membership_state" : (
-            #     simplified_membership.get_membership_state_display
-            #     if simplified_membership and not editing
-            #     else None
-            # ),
             "valid_actions": valid_actions,
             "message": message,
             "member_admin": True,
@@ -2875,9 +2849,6 @@ def view_unpaid_htmx(request, club):
         memberships,
         page_no=request.POST.get("page", 1),
     )
-
-    # jpg debug
-    print(f"sort_option = '{sort_option}'")
 
     return render(
         request,

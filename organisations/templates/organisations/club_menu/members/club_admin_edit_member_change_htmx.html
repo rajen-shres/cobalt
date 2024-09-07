@@ -219,6 +219,7 @@
                         <div class="col text-right">
                             <button
                                 class="btn btn-sm btn-info"
+                                type="button"
                                 {% if adding %}
                                     hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
                                     hx-target="#id_panel_members"
@@ -229,7 +230,7 @@
                                     hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
                                     hx-target="#id_panel_members"
                                 {% endif %}
-                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, message:'', save:'NO'"
                                 hx-trigger="click"
                             >
                                 Cancel

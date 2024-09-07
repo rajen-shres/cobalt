@@ -141,9 +141,6 @@ def allow_membership_htmx(request):
     allow = request.POST.get("allow", "YES") == "YES"
     club_id = request.POST.get("club_id", None)
 
-    # JPG debug
-    print(f"**** allow_membership_htmx: allow='{allow}', club id ={club_id}")
-
     if not club_id:
         return memberships_card_htmx(
             request, "Something went wrong", warning_message=True
@@ -210,9 +207,6 @@ def share_data_htmx(request):
         choice for choice, _ in MemberClubOptions.SHARE_DATA_CHOICES
     ]:
         share_data_choice = MemberClubOptions.SHARE_DATA_NEVER
-
-    # JPG Debug
-    print(f"++++++ Data sharing option = '{share_data_choice}'")
 
     club_options.share_data = share_data_choice
     club_options.save()

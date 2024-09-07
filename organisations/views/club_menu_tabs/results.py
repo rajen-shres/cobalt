@@ -138,8 +138,6 @@ def _send_results_emails(results_file, club, request):
     from_name = results_template.from_name
     if results_template.banner:
         context["img_src"] = results_template.banner.url
-        # JPG debug
-        # print(f"++++++ _send_results_emails url={results_template.banner.url}")
 
     # sender = f"{from_name}<donotreply@myabf.com.au>" if from_name else None
     sender = custom_sender(from_name)

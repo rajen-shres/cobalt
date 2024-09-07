@@ -441,7 +441,7 @@ class MembershipChangeTypeForm(forms.Form):
     start_date = forms.DateField(
         label="Start date",
         widget=forms.DateInput(attrs={"type": "date"}),
-        required=False,
+        required=True,
     )
     end_date = forms.DateField(
         label="End date",

@@ -57,6 +57,7 @@ This will be rendered in the action pane of the club admin edit member window
                         <div class="col">
                             <button
                                 type="Save"
+                                id="id-pay-button"
                                 class="btn btn-sm btn-success cobalt-save"
                             >
                                 Pay
@@ -66,7 +67,7 @@ This will be rendered in the action pane of the club admin edit member window
                             <button
                                 class="btn btn-sm btn-info"
                                 hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
-                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, message:'', save:'NO'"
                                 hx-target="#id_panel_members"
                                 hx-trigger="click"
                             >
@@ -79,3 +80,28 @@ This will be rendered in the action pane of the club admin edit member window
         </div>
     </div>
 </div>
+
+
+<script>
+
+    // set up to change date and fees when the membership type selection changes
+    function initialiseHTMXForm() {
+
+        console.log("-- initialiseHTMXForm make a payment --")
+
+        $('select[name="payment_method"]').on('change', function() {
+            var paymentMethod = this.options[this.selectedIndex].text;
+            if (paymentMethod == 'Bridge Credits') {
+                $('#id-pay-button').text("Pay");
+            } else {
+                $('#id-pay-button').text("Mark as Paid");
+            }
+        });
+
+        console.log("--- sending initising change events ---")
+
+        // Trigger change event on page load to set initial values
+        $('select[name="payment_method"]').trigger('change');
+    };
+
+</script>

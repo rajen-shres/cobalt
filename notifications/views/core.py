@@ -6,7 +6,7 @@ from threading import Thread
 from itertools import chain
 from urllib.parse import urlencode
 
-# JPG debug - to test queue progress
+# JPG TESTING - to test queue progress
 # import time
 
 import boto3
@@ -255,11 +255,6 @@ def update_context_for_club_default_template(club, context):
         if default_template.banner:
             context["img_src"] = default_template.banner.url
 
-            #  JPG debug
-            # print(
-            #     f"++++++ update_context_for_club_default_template url={default_template.banner.url}"
-            # )
-
         if default_template.footer:
             context["footer"] = default_template.footer
 
@@ -476,11 +471,6 @@ def create_rbac_batch_id(
     Returns: BatchID
 
     """
-
-    # JPG debug
-    # print(
-    #     f"====== create_rbac_batch_id: {rbac_role}, {batch_type}, {batch_size} '{description}'"
-    # )
 
     if not batch_id:
         batch_id = BatchID()
@@ -2733,7 +2723,7 @@ def _dispatch_batch_thread(
     try:
         for recipient in recipients:
 
-            # JPG debug - to test queuing progress
+            # JPG TESTING - to test queuing progress
             # time.sleep(3)
 
             context["name"] = recipient.first_name

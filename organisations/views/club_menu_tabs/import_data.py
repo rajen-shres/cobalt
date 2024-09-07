@@ -142,6 +142,14 @@ COMPSCORE_MEMBER_MAPPING = {
     "first_name": {"csv_col": 1, "required": True, "case": "cap"},
     "last_name": {"csv_col": 0, "required": True, "case": "cap"},
     "email": {"csv_col": 7, "type": "email"},
+    "address1": {"csv_col": 2, "type": "str", "len": 100},
+    "address2": {"csv_col": 3, "type": "str", "len": 100},
+    "postcode": {"csv_col": 4, "type": "str", "len": 10},
+    "other_phone": {"csv_col": 5, "type": "phone"},
+    "emergency_contact": {"csv_col": 10},
+    "notes": {"csv_col": 11},
+    "dob": {"csv_col": 12, "type": "date"},
+    "club_membership_number": {"csv_col": 14},
 }
 
 DATE_FORMATS = [
@@ -194,8 +202,6 @@ def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
     """
 
     def _smart_concat(part1, part2):
-        # jpg debug
-        print(f"              concatenating '{part1}' and '{part2}'")
         if part1 and part2:
             return f"{part1}, {part2}"
         elif part1:
@@ -372,9 +378,6 @@ def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
                 # no type specified (ie string)
                 item[attr_name] = _str_value(source)
 
-    # jpg debug
-    print(item)
-
     return (True, None, item)
 
 
@@ -388,12 +391,6 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
         bool: have any updates been made
     """
 
-    # jpg debug
-    print(
-        f"_augment_member_details {system_number} {new_details['first_name']} {new_details['last_name']}"
-    )
-    print(f"    {new_details}")
-
     member_details = MemberClubDetails.objects.get(
         club=club, system_number=system_number
     )
@@ -405,13 +402,8 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
             if not old_value or overwrite:
                 setattr(member_details, attr_name, new_details[attr_name])
                 updated = True
-                # jpg debug
-                print(
-                    f"    updated {attr_name}: {old_value} => {new_details[attr_name]}"
-                )
-        except (AttributeError, TypeError) as e:
-            # JPG debug
-            print(f"_augment_member_details - error on '{attr_name}' {e}")
+        except (AttributeError, TypeError):
+            pass
 
     if updated:
         member_details.save()

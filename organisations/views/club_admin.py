@@ -4,9 +4,6 @@ Club Administration Shared Views
 Vies used by both members and contacts.
 """
 
-# jpg debug
-from django.template.loader import render_to_string
-
 from datetime import datetime
 from itertools import chain
 
@@ -127,9 +124,6 @@ def activity_emails_htmx(request, club):
     message = None
     email_address = club_email_for_member(club, system_number)
 
-    # jpg debug
-    print(f">>>>> activity_emails_htmx, {system_number}, {club.name}")
-
     if email_address:
         emails = get_emails_sent_to_address(email_address, club, request.user)
         if not emails:
@@ -139,11 +133,6 @@ def activity_emails_htmx(request, club):
         message = "No email address for this person"
 
     permitted_activities = get_valid_activities(member_details)
-
-    # jpg debug
-    print(
-        f">>>>> about to render: {club.name}, {system_number}, {permitted_activities}, {emails}, {message}"
-    )
 
     return render(
         request,
@@ -570,9 +559,6 @@ def search_tab_name_htmx(request, club):
     first_name_search = request.POST.get("first_name_search")
     last_name_search = request.POST.get("last_name_search")
 
-    # jpg debug
-    print(f"search_tab_name_htmx {mode} '{first_name_search}' '{last_name_search}'' ")
-
     # if there is nothing to search for, don't search
     if not first_name_search and not last_name_search:
         return HttpResponse()
@@ -581,9 +567,6 @@ def search_tab_name_htmx(request, club):
         system_number_list = get_club_member_list(club)
     else:
         system_number_list = get_club_contact_list(club)
-
-    # jpg debug
-    # print(f"system numbers = {system_number_list}")
 
     # Users
     users = User.objects.filter(system_number__in=system_number_list)
@@ -604,15 +587,6 @@ def search_tab_name_htmx(request, club):
         un_regs = un_regs.filter(last_name__istartswith=last_name_search)
 
     user_list = list(chain(users, un_regs))
-
-    # jpg debug
-    # print(f"user_list len={len(user_list)}")
-
-    # debug_str= render_to_string(
-    #     "organisations/club_admin/search_tab_results_htmx.html",
-    #     {"user_list": user_list, "club": club, "mode": mode},
-    # )
-    # print(debug_str)
 
     return render(
         request,

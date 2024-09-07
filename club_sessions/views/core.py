@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import logging
 
-# JPG debug - for COB-804 race condition testing
+# JPG TESTING - for COB-804 race condition testing
 # import os
 
 from django.db.models import Sum, Max
@@ -906,9 +906,6 @@ def refund_bridge_credit_for_extra(
 ):
     """ " Handle an extra with paid bridge credits being changed"""
 
-    # JPG debug
-    # print("*** refund_bridge_credit_for_extra ***")
-
     update_account(
         member=player,
         amount=session_misc_payment.amount,
@@ -1442,7 +1439,7 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
     # loop through and try to make payments
     for session_entry in session_entries:
 
-        # JPG debug - for COB-804 race condition testing
+        # JPG TESTING - for COB-804 race condition testing
         # print(f"{os.getpid()} process_bridge_credits processing SessionEntry {session_entry}")
 
         amount_paid = float(session_entry.fee) if session_entry.is_paid else 0

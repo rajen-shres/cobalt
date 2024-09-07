@@ -160,7 +160,7 @@ This will be rendered in the action pane of the club admin edit member window
                             <button
                                 class="btn btn-sm btn-info"
                                 hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
-                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, message:'', save:'NO'"
                                 hx-target="#id_panel_members"
                                 hx-trigger="click"
                             >

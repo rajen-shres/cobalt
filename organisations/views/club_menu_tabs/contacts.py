@@ -372,9 +372,6 @@ def convert_htmx(request, club):
         )
         if form.is_valid():
 
-            # JPG debug
-            print(f"Form fee = {form.cleaned_data['fee']}")
-
             membership_type = get_object_or_404(
                 MembershipType, pk=int(form.cleaned_data["membership_type"])
             )

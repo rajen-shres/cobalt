@@ -479,7 +479,10 @@ class MemberMembershipType(models.Model):
     def is_in_effect(self):
         """Is this currently in the effective date range"""
         today = timezone.now().date()
-        return (self.start_date <= today) and (self.end_date >= today)
+        if self.end_date:
+            return (self.start_date <= today) and (self.end_date >= today)
+        else:
+            return self.start_date <= today
 
     def refresh_state(self, as_at_date=None, commit=True):
         """Ensure that the membership state is correct.
@@ -665,17 +668,11 @@ class MemberClubDetails(models.Model):
             membership_type=self.latest_membership.membership_type,
         ).order_by("start_date")
 
-        # JPG debug
-        # print(" ============ scanning history =============")
-
         #  scan the history looking for the contigous block containin the current
         earliest_start = None
         latest_end = None
         current_found = False
         for mmt in history:
-
-            # JPG debug
-            # print(f" {mmt.start_date} - {mmt.end_date} {'*' if mmt == self.latest_membership else ''}")
 
             if not earliest_start:
                 earliest_start = mmt.start_date
@@ -692,9 +689,6 @@ class MemberClubDetails(models.Model):
 
             latest_end = mmt.end_date
             current_found = current_found or mmt == self.latest_membership
-
-        # JPG debug
-        # print(" ============= end of history ==============")
 
         if current_found:
             return (earliest_start, latest_end)

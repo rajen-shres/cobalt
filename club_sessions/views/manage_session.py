@@ -704,9 +704,6 @@ def add_misc_payment_htmx(request, club, session, session_entry):
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
-    # JPG Debug
-    # print(f">>> Starting process_bridge_credits_htmx {session.id}")
-
     logger.info(
         f"process_bridge_credits_htmx {os.getpid()}: Starting session {session.id}"
     )
@@ -715,12 +712,12 @@ def process_bridge_credits_htmx(request, club, session):
 
     with transaction.atomic():
 
-        # JPG debug - for COB-804 race condition testing
+        # JPG TESTING - for COB-804 race condition testing
         # print(f"{os.getpid()} process_bridge_credits_htmx acquiring lock ...")
 
         session = Session.objects.select_for_update().get(pk=session.id)
 
-        # JPG debug - for COB-804 race condition testing
+        # JPG TESTING - for COB-804 race condition testing
         # print(f"{os.getpid()} process_bridge_credits_htmx acquired lock")
 
         # Get bridge credits for this org
@@ -746,11 +743,6 @@ def process_bridge_credits_htmx(request, club, session):
         logger.info(
             f"process_bridge_credits_htmx {os.getpid()}: {bc_txn_count} to process, session {session.id}"
         )
-
-        # JPG Debug
-        # print(
-        #     f"... {bc_txn_count} bridge credit payments to process for session {session.id}"
-        # )
 
         # Process payments if we have any to make
         if session_entries or extras:
@@ -784,9 +776,6 @@ def process_bridge_credits_htmx(request, club, session):
     logger.info(
         f"process_bridge_credits_htmx {os.getpid()}: Finished session {session.id}"
     )
-
-    # JPG Debug
-    # print(f"<<< Ending process_bridge_credits_htmx {session.id}")
 
     # Include HX-Trigger in response so we know to update the totals too
     response = tab_session_htmx(

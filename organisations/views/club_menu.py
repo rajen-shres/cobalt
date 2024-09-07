@@ -138,9 +138,6 @@ def club_menu(
 def tab_access_htmx(request, club):
     """build the access tab in club menu"""
 
-    # JPG debug
-    print("********** LOADING ACCESS TAB ****************")
-
     # Access tab - we have basic or advanced which are very different so use two functions for this
     rbac_basic, rbac_advanced = rbac_get_basic_and_advanced(club)
 
@@ -219,9 +216,6 @@ def tab_dashboard_htmx(request, club):
 def tab_congress_htmx(request, club):
     """build the congress tab in club menu"""
 
-    # JPG debug
-    print("********** LOADING CONGRESS TAB ****************")
-
     congress_masters = CongressMaster.objects.filter(org=club)
 
     for congress_master in congress_masters:
@@ -247,7 +241,7 @@ def tab_congress_htmx(request, club):
 def tab_sessions_htmx(request, club, message=""):
     """build the sessions tab in club menu"""
 
-    # JPG debug
+    # JPG To Do - should not be loading all the time
     print("********** LOADING SESSION TAB ****************")
 
     sessions = (
