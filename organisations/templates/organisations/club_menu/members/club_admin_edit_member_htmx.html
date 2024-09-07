@@ -91,203 +91,216 @@
 
         {% endif %}
 
-        <!-- MEMBERSHIP DETAILS -->
 
-        <div class="card mt-5">
-            <div class="card-header card-header-warning">
-                Membership Details
-            </div>
-            <div class="container">
-                <div class="card-body">
+        {% if club.full_club_admin %}
 
-                    <div class="row">
-                        <div class="col-10">
-                            <h4>{{ member_description }}</h4>
+            <!-- MEMBERSHIP DETAILS -->
+
+            <div class="card mt-5">
+                <div class="card-header card-header-warning">
+                    Membership Details
+                </div>
+                <div class="container">
+                    <div class="card-body">
+
+                        <div class="row">
+                            <div class="col-10">
+                                <h4>{{ member_description }}</h4>
+                            </div>
+                            <div class="col text-right">
+                                <button
+                                    class="btn btn-sm btn-info"
+                                    id="id-history-button"
+                                    data-toggle="collapse"
+                                    data-target="#id-history-table"
+                                    aria-expanded="{{ show_history|yesno:'true,false' }}"
+                                    aria-controls="myTable"
+                                >
+                                    {{ show_history|yesno:"Hide history,Show history" }}
+                                </button>
+                            </div>
                         </div>
-                        <div class="col text-right">
-                            <button
-                                class="btn btn-sm btn-info"
-                                id="id-history-button"
-                                data-toggle="collapse"
-                                data-target="#id-history-table"
-                                aria-expanded="{{ show_history|yesno:'true,false' }}"
-                                aria-controls="myTable"
-                            >
-                                {{ show_history|yesno:"Hide history,Show history" }}
-                            </button>
-                        </div>
-                    </div>
 
-                    <!-- MEMBERSHIP HISTORY TABLE -->
+                        <!-- MEMBERSHIP HISTORY TABLE -->
 
-                    <div class="collapse {% if show_history %}show{% endif %}" id="id-history-table">
-                        <div class="table-responsive">
-                            <table class="table table-condensed table-hover">
-                                <thead>
-                                    <tr>
-                                        <th class="text-left">Type</th>
-                                        <th class="text-left">Status</th>
-                                        <th class="text-left">Start</th>
-                                        <th class="text-left">Fee</th>
-                                        <th class="text-left">Due</th>
-                                        <th class="text-left">Paid Unit</th>
-                                        <th class="text-left">End</th>
-                                        {% if member_admin %}
-                                            <th class="text-left">Actions</th>
-                                        {% endif %}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for mmt in member_history %}
-                                        <tr
-                                            {% if forloop.counter0 == current_index %}
-                                                class="font-weight-bold"
-                                            {% else %}
-                                                class="text-muted"
-                                            {% endif %}
-                                        >
-                                            <td class="text-left">{{ mmt.membership_type.name }}</td>
-                                            <td class="text-left">{{ mmt.get_membership_state_display }}</td>
-                                            <td class="text-left">{{ mmt.start_date }}</td>
-                                            {% if mmt.fee %}
-                                                <td class="text-left
-                                                    {% if  mmt.paid_until_date != mmt.end_date %}
-                                                        {% if forloop.counter0 == current_index or mmt.membership_state == 'FUT'%}
-                                                            text-danger
-                                                        {% endif %}
-                                                    {% endif %}"
-                                                >
-                                                    {{ mmt.fee }}
-                                                </td>
-                                            {% else %}
-                                                <td class="text-left">-</td>
-                                            {% endif %}
-                                            <td class="text-left">
-                                                {% if mmt.due_date %}
-                                                    {{ mmt.due_date }}
-                                                {% else %}
-                                                    -
-                                                {% endif %}
-                                            </td>
-                                            <td class="text-left">
-                                                {% if mmt.paid_until_date %}
-                                                    {{ mmt.paid_until_date }}
-                                                {% else %}
-                                                    -
-                                                {% endif %}
-                                            </td>
-                                            <td class="text-left">
-                                                {% if mmt.end_date %}
-                                                    {{ mmt.end_date }}
-                                                {% else %}
-                                                    Perpetual
-                                                {% endif %}
-                                            </td>
+                        <div class="collapse {% if show_history %}show{% endif %}" id="id-history-table">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-left">Type</th>
+                                            <th class="text-left">Status</th>
+                                            <th class="text-left">Start</th>
+                                            <th class="text-left">Fee</th>
+                                            <th class="text-left">Due</th>
+                                            <th class="text-left">Paid Unit</th>
+                                            <th class="text-left">End</th>
                                             {% if member_admin %}
-                                                <td>
-                                                    <button
-                                                        class="btn btn-sm btn-warning"
-                                                        hx-post="{% url 'organisations:club_admin_edit_member_edit_mmt_htmx' %}"
-                                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
-                                                        hx-target="#id_action_pane"
+                                                <th class="text-left">Actions</th>
+                                            {% endif %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for mmt in member_history %}
+                                            <tr
+                                                {% if forloop.counter0 == current_index %}
+                                                    class="font-weight-bold"
+                                                {% else %}
+                                                    class="text-muted"
+                                                {% endif %}
+                                            >
+                                                <td class="text-left">{{ mmt.membership_type.name }}</td>
+                                                <td class="text-left">{{ mmt.get_membership_state_display }}</td>
+                                                <td class="text-left">{{ mmt.start_date }}</td>
+                                                {% if mmt.fee %}
+                                                    <td class="text-left
+                                                        {% if  mmt.paid_until_date != mmt.end_date %}
+                                                            {% if forloop.counter0 == current_index or mmt.membership_state == 'FUT'%}
+                                                                text-danger
+                                                            {% endif %}
+                                                        {% endif %}"
                                                     >
-                                                        <i class="material-icons">edit</i>
-                                                    </button>
-                                                    {% if forloop.counter0 != current_index %}
+                                                        {{ mmt.fee }}
+                                                    </td>
+                                                {% else %}
+                                                    <td class="text-left">-</td>
+                                                {% endif %}
+                                                <td class="text-left">
+                                                    {% if mmt.due_date %}
+                                                        {{ mmt.due_date }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-left">
+                                                    {% if mmt.paid_until_date %}
+                                                        {{ mmt.paid_until_date }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-left">
+                                                    {% if mmt.end_date %}
+                                                        {{ mmt.end_date }}
+                                                    {% else %}
+                                                        Perpetual
+                                                    {% endif %}
+                                                </td>
+                                                {% if member_admin %}
+                                                    <td>
                                                         <button
-                                                            class="btn btn-sm btn-danger"
-                                                            hx-post="{% url 'organisations:club_admin_edit_member_delete_mmt_htmx' %}"
+                                                            class="btn btn-sm btn-warning"
+                                                            hx-post="{% url 'organisations:club_admin_edit_member_edit_mmt_htmx' %}"
                                                             hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
                                                             hx-target="#id_action_pane"
                                                         >
-                                                            <i class="material-icons">delete</i>
+                                                            <i class="material-icons">edit</i>
                                                         </button>
-                                                    {% endif %}
-                                                </td>
-                                            {% endif %}
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                                        {% if forloop.counter0 != current_index %}
+                                                            <button
+                                                                class="btn btn-sm btn-danger"
+                                                                hx-post="{% url 'organisations:club_admin_edit_member_delete_mmt_htmx' %}"
+                                                                hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
+                                                                hx-target="#id_action_pane"
+                                                            >
+                                                                <i class="material-icons">delete</i>
+                                                            </button>
+                                                        {% endif %}
+                                                    </td>
+                                                {% endif %}
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- ACTION BUTTONS -->
+                        <!-- ACTION BUTTONS -->
 
-                    <div class="row" id="id_action_pane">
-                        <div class="col">
+                        <div class="row" id="id_action_pane">
+                            <div class="col">
 
-                            {% if 'change_status' in valid_actions %}
+                                {% if 'change_status' in valid_actions %}
 
-                                <!-- CHANGE STATUS DROPDOWN -->
+                                    <!-- CHANGE STATUS DROPDOWN -->
 
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Change Status
-                                    </button>
-                                    <div class="dropdown-menu">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Change Status
+                                        </button>
+                                        <div class="dropdown-menu">
 
-                                        <!-- LAPSED -->
-                                        {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='lapsed' label='Lapsed' %}
+                                            <!-- LAPSED -->
+                                            {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='lapsed' label='Lapsed' %}
 
-                                        <!-- RESIGNED -->
-                                        {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='resigned' label='Resigned' %}
+                                            <!-- RESIGNED -->
+                                            {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='resigned' label='Resigned' %}
 
-                                        <!-- TERMINATED-->
-                                        {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='terminated' label='Terminated' %}
+                                            <!-- TERMINATED-->
+                                            {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='terminated' label='Terminated' %}
 
-                                        <!-- DECEASED-->
-                                        {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='deceased' label='Deceased' %}
+                                            <!-- DECEASED-->
+                                            {% include 'organisations/club_menu/members/club_admin_edit_member_status_button.html' with action_name='deceased' label='Deceased' %}
+                                        </div>
                                     </div>
-                                </div>
-                            {% endif %}
+                                {% endif %}
 
-                            <!-- PAID -->
-                            {% if 'paid' in valid_actions %}
-                                <button
-                                    class="btn btn-sm btn-primary"
-                                    hx-post="{% url 'organisations:club_admin_edit_member_payment_htmx' %}"
-                                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
-                                    hx-target="#id_action_pane"
-                                >
-                                    Make Payment
-                                </button>
-                            {% endif %}
+                                <!-- PAID -->
+                                {% if 'paid' in valid_actions %}
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        hx-post="{% url 'organisations:club_admin_edit_member_payment_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
+                                        hx-target="#id_action_pane"
+                                    >
+                                        Make Payment
+                                    </button>
+                                {% endif %}
 
-                            <!-- EXTEND-->
-                            {% if 'extend' in valid_actions %}
-                                <button
-                                    class="btn btn-sm btn-primary"
-                                    hx-post="{% url 'organisations:club_admin_edit_member_extend_htmx' %}"
-                                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
-                                    hx-target="#id_action_pane"
-                                >
-                                    Renew Membership
-                                </button>
-                            {% endif %}
+                                <!-- EXTEND-->
+                                {% if 'extend' in valid_actions %}
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        hx-post="{% url 'organisations:club_admin_edit_member_extend_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
+                                        hx-target="#id_action_pane"
+                                    >
+                                        Renew Membership
+                                    </button>
+                                {% endif %}
 
-                            <!-- CHANGE-->
-                            {% if 'change' in valid_actions %}
-                                <button
-                                    class="btn btn-sm btn-primary"
-                                    hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' %}"
-                                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
-                                    hx-target="#id_action_pane"
-                                >
-                                    Change Membership Type
-                                </button>
-                            {% endif %}
+                                <!-- CHANGE-->
+                                {% if 'change' in valid_actions %}
+                                    <button
+                                        class="btn btn-sm btn-primary"
+                                        hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
+                                        hx-target="#id_action_pane"
+                                    >
+                                        Change Membership Type
+                                    </button>
+                                {% endif %}
 
-                            <!-- REINSTATE-->
-                            {% include 'organisations/club_menu/members/club_admin_edit_member_action_button.html' with action_name='reinstate' label='Reinstate previous status' %}
+                                <!-- REINSTATE-->
+                                {% include 'organisations/club_menu/members/club_admin_edit_member_action_button.html' with action_name='reinstate' label='Reinstate previous status' %}
 
-                            <!-- DELETE-->
-                            {% include 'organisations/club_menu/members/club_admin_edit_member_action_button.html' with action_name='delete' label='Delete' %}
+                                <!-- DELETE-->
+                                {% if 'delete' in valid_actions %}
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-primary"
+                                        onclick="confirmDeleteMember(this, '#id-action-pane')"
+                                    >
+                                        Delete Member
+                                    </button>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+        {% endif %}
 
         <!-- MEMBER DETAILS -->
 
@@ -296,19 +309,33 @@
                 Member Details
             </div>
             <div class="container">
-                <div class="card-body">
+                <div class="card-body" id="id-member-details">
+
+                    {% if not club.full_club_admin %}
+
+                        <!-- SIMPLIFIED MEMBERSHIP MANAGEMENT -->
+
+                        <p class="font-italic text-center">Your club is currently using simplified membership management. Full membership management can be enabled under Settings | General</p>
+
+                        {% include "organisations/club_menu/members/club_admin_edit_member_simplified_htmx.html" %}
+
+                    {% endif %}
+
                     <form
                         hx-target="#id_panel_members"
                         hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
                         hx-vars="club_id:{{ club.id }}, system_number: {{ member_details.system_number }}, save:'YES'"
+                        {% if not club.full_club_admin %}
+                            hx-include="#id-ssm-form"
+                        {% endif %}
                     >
                         {% csrf_token %}
 
                         {% include "organisations/club_admin/common_details.html" %}
 
-                        <div class="row">
+                        {% if edit_details %}
 
-                            {% if edit_details %}
+                            <div class="row">
 
                                 <!-- SAVE / CANCEL BUTTONS -->
 
@@ -332,26 +359,46 @@
                                     </button>
                                 </div>
 
-                            {% else %}
+                            </div>
 
-                                <div class="col">
-                                    <button
-                                        class="btn btn-sm btn-primary"
-                                        hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
-                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'YES'"
-                                        hx-target="#id_panel_members"
-                                    >
-                                        Edit Details
-                                    </button>
-                                </div>
-
-                            {% endif %}
-                        </div>
+                        {% endif %}
 
                     </form>
+
+                    {% if not edit_details %}
+
+                        <div class="row">
+
+                            <div class="col">
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'YES'"
+                                    hx-target="#id_panel_members"
+                                >
+                                    Edit Details
+                                </button>
+                            </div>
+
+                            {% if not club.full_club_admin %}
+
+                                <!-- DELETE MEMBER - IN SIMPLIFIED MODE -->
+
+                                <div class="col text-right">
+                                    {% if 'delete' in valid_actions %}
+                                        <button
+                                            class="btn btn-sm btn-primary"
+                                            onclick="confirmDeleteMember(this, '#id-member-details')"
+                                        >
+                                            Delete Member
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-
         </div>
 
         <!-- MEMBER ACTIVITY -->
@@ -468,5 +515,34 @@
             initialiseActivityView();
         }
     });
+
+    function confirmDeleteMember(button, target) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "The member will become a contact and membership history will be deleted.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                // Define your custom post data
+                const postData = {
+                    'club_id': '{{ club.id }}',
+                    'system_number': '{{ member_details.system_number }}',
+                    'action_name': 'delete'
+                };
+
+                // Make the HTMX request
+                htmx.ajax('POST', '{% url "organisations:club_admin_edit_member_membership_action_htmx" %}', {
+                    'values': postData,
+                    'target': target
+                });
+
+            }
+        });
+    }
 
 </script>

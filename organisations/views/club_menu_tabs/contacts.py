@@ -269,6 +269,7 @@ def convert_select_system_number_htmx(request, club):
 
     system_number = request.POST.get("system_number", None)
     contact_details = get_contact_details(club, system_number)
+    last_name_only = request.POST.get("last_name_only", "NO") == "YES"
 
     if not contact_details.internal:
         # not an internal system number, so just go to the next stage
@@ -280,6 +281,7 @@ def convert_select_system_number_htmx(request, club):
     user_list, is_more = search_for_user_in_cobalt_and_mpc(
         contact_details.first_name,
         contact_details.last_name,
+        last_name_only=last_name_only,
     )
 
     # Now highlight users who are already club members
@@ -342,7 +344,7 @@ def convert_htmx(request, club):
     today = timezone.now().date()
     fees_and_due_dates = {
         f"{mt.id}": {
-            "annual_fee": float(mt.annual_fee),
+            "annual_fee": float(mt.annual_fee) if club.full_club_admin else 0,
             "due_date": (today + timedelta(mt.grace_period_days)).strftime("%Y-%m-%d"),
             "end_date": " "
             if mt.does_not_renew
@@ -369,6 +371,9 @@ def convert_htmx(request, club):
             registered=(contact_details.user_type == f"{GLOBAL_TITLE} User"),
         )
         if form.is_valid():
+
+            # JPG debug
+            print(f"Form fee = {form.cleaned_data['fee']}")
 
             membership_type = get_object_or_404(
                 MembershipType, pk=int(form.cleaned_data["membership_type"])

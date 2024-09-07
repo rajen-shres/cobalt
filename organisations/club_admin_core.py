@@ -297,6 +297,7 @@ def get_club_options_for_user(user):
 
     Checks that records exist for all club memberships for the user,
     and creates any missing records with the default values.
+    Adds the current membership_status (or None) to each option record
 
     Args:
         user (User): the registered user
@@ -307,13 +308,18 @@ def get_club_options_for_user(user):
 
     # get existing options records, and build a dictionary keyed on club
 
-    club_options = list(
+    club_options_qs = (
         MemberClubOptions.objects.filter(
             user=user,
         )
         .select_related("club")
         .order_by("club__name")
     )
+
+    club_options = []
+    for option in club_options_qs:
+        option.membership_status = None
+        club_options.append(option)
 
     options_dict = {club_option.club: club_option for club_option in club_options}
 
@@ -336,8 +342,13 @@ def get_club_options_for_user(user):
                 user=user,
             )
             missing_options.save()
+            missing_options.membership_status = membership.get_membership_status_display
             club_options.append(missing_options)
             options_dict[membership.club] = missing_options
+        else:
+            options_dict[
+                membership.club
+            ].membership_status = membership.get_membership_status_display
 
     return club_options
 
@@ -594,12 +605,16 @@ def get_club_members(
 
     members = MemberClubDetails.objects.filter(club=club)
 
+    # Note: status should never be future, but included here to cater
+    # for simplified membership management where anything goes
+
     if active_only:
         members = members.filter(
             membership_status__in=[
                 MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
                 MemberClubDetails.MEMBERSHIP_STATUS_DUE,
                 MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
+                MemberClubDetails.MEMBERSHIP_STATUS_FUTURE,
             ]
         )
 
@@ -1134,6 +1149,7 @@ def get_club_memberships_for_person(system_number):
 def get_outstanding_membership_fees_for_user(user):
     """Return club memberships (MemberMembershipType objects) with outstanding
     fees for the user. Only returns those with an active state (current, future, due)
+    and for clubs using full membership management
 
     Args:
         user (User): the user to check for
@@ -1151,6 +1167,7 @@ def get_outstanding_membership_fees_for_user(user):
             MemberMembershipType.MEMBERSHIP_STATE_DUE,
             MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
         ],
+        membership_type__organisation__full_club_admin=True,
     ).select_related("membership_type", "membership_type__organisation")
 
 
@@ -1399,6 +1416,9 @@ def get_valid_actions(member_details):
     the preceeding), paid, extend, change, reinstate, delete
     """
 
+    if not member_details.club.full_club_admin:
+        return ["delete"]
+
     valid_actions = []
     for action in MEMBER_ACTIONS:
         if can_perform_action(action, member_details)[0]:
@@ -1643,6 +1663,9 @@ def _process_membership_payment(
 
     from payments.views.payments_api import payment_api_batch
 
+    # JPG debug
+    print("_process_membership_payment")
+
     message = ""
     success = True
 
@@ -1651,6 +1674,10 @@ def _process_membership_payment(
 
     def _has_paid(ok):
         """Updates when paid status is known"""
+
+        # JPG debug
+        print(f"_has_paid {ok}, fee = {membership.fee}")
+
         membership.is_paid = ok
         membership.paid_until_date = membership.end_date if ok else None
 
@@ -1672,7 +1699,11 @@ def _process_membership_payment(
                     MemberMembershipType.MEMBERSHIP_STATE_LAPSED
                 )
         else:
-            if membership.start_date > today:
+            if membership.fee == 0:
+                membership.membership_state = (
+                    MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+                )
+            elif membership.start_date > today:
                 membership.membership_state = (
                     MemberMembershipType.MEMBERSHIP_STATE_FUTURE
                 )
@@ -2783,6 +2814,9 @@ def convert_contact_to_member(
         string: explanatory message or None
     """
 
+    # jpg debug
+    print(f"convert_contact_to_member, fee = {fee}")
+
     if not is_player_allowing_club_membership(club, system_number):
         return (False, "This user is blocking memberships from this club")
 
@@ -2855,7 +2889,7 @@ def convert_contact_to_member(
         system_number=system_number,
         last_modified_by=requester,
         membership_type=membership_type,
-        fee=fee if fee else membership_type.annual_fee,
+        fee=membership_type.annual_fee if fee is None else fee,
         start_date=start_date_actual,
         end_date=end_date_actual,
     )
@@ -2868,7 +2902,7 @@ def convert_contact_to_member(
 
     payment_method = _get_payment_method(club, payment_method_id)
 
-    payment_success, paymnet_message = _process_membership_payment(
+    payment_success, payment_message = _process_membership_payment(
         club,
         (type(new_user_or_unreg) == User),
         new_membership,
@@ -2888,7 +2922,7 @@ def convert_contact_to_member(
     member_details.save()
 
     # and log it
-    message = f"Contact converted to member ({membership_type.name}) " + paymnet_message
+    message = f"Contact converted to member ({membership_type.name}) " + payment_message
 
     log_member_change(
         club,
@@ -2899,11 +2933,11 @@ def convert_contact_to_member(
 
     if type(new_user_or_unreg) == User:
         share_user_data_with_clubs(
-            new_user_or_unreg.system_number,
-            this_membership=new_membership,
+            new_user_or_unreg,
+            this_membership=member_details,
             initial=True,
         )
-        _notify_user_of_membership(new_membership, new_user_or_unreg)
+        _notify_user_of_membership(member_details, new_user_or_unreg)
 
     return (True, message)
 
@@ -3457,6 +3491,7 @@ def get_clubs_with_auto_pay_memberships(date=None):
     target_date = date if date else timezone.now().date()
 
     return Organisation.objects.filter(
+        full_club_admin=True,
         membershiptype__membermembershiptype__is_paid=False,
         membershiptype__membermembershiptype__auto_pay_date=target_date,
         membershiptype__membermembershiptype__membership_state__in=[

@@ -237,6 +237,19 @@ def cobalt_dict_key_tag(my_dict, my_keyname):
         return False
 
 
+@register.filter(name="cobalt_dict_int_key")
+def cobalt_dict_int_key(my_dict, my_keyname):
+    """Return the doctionary value for a int key
+
+    Use this for {{ }}
+    """
+
+    try:
+        return my_dict[int(my_keyname)]
+    except (KeyError, TypeError):
+        return ""
+
+
 @register.simple_tag
 def cobalt_bs4_field(field, no_label=False):
     """Format a field for a standard Bootstrap 4 form element.

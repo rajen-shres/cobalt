@@ -1,0 +1,135 @@
+{#--------------------------------------------------------------------------#}
+{#  Simplified membership management - view or edit membership details      #}
+{#                                                                          #}
+{#  Displayed within the Member Details card using simplified memberhip     #}
+{#  management.                                                             #}
+{#                                                                          #}
+{#  The edit mode and submission of the form are controlled with the        #}
+{#  the member details form.                                                #}
+{#--------------------------------------------------------------------------#}
+
+{% load static %}
+{% load cobalt_tags %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+<form id="id-ssm-form">
+
+    {% csrf_token %}
+
+    <div class="row pb-2">
+        <div class="col-2 justify-content-center align-self-center pt-3">
+            Membership Type
+        </div>
+        <div class="col-3">
+            <div id="div_id_membership_type" class="form-group">
+                <span class="cobalt-form-error" id="id_membership_type_errors">
+                    {{ smm_form.membership_type.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_field smm_form.membership_type class+="form-control" %}
+                {% else %}
+                    {% for key, desc in smm_form.membership_type.field.choices %}
+                        {% if smm_form.membership_type.value == key %}
+                            {{ desc }}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-2 justify-content-center align-self-center pt-3">
+            Membership State
+        </div>
+        <div class="col-3">
+            <div id="div_id_membership_state" class="form-group">
+                <span class="cobalt-form-error" id="id_membership_state_errors">
+                    {{ smm_form.membership_state.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_field smm_form.membership_state class+="form-control" %}
+                {% else %}
+                    {% for key, desc in smm_form.membership_state.field.choices %}
+                        {% if smm_form.membership_state.value == key %}
+                            {{ desc }}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row pb-2">
+        <div class="col-2 justify-content-center align-self-center pt-3">
+            Start date
+        </div>
+        <div class="col-3">
+            <div id="div_id_start_date" class="form-group">
+                <span class="cobalt-form-error" id="id_start_date_errors">
+                    {{ smm_form.start_date.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_field smm_form.start_date class+="form-control datepicker" %}
+                {% else %}
+                    {{ smm_form.start_date.value|default:'-' }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-2 justify-content-center align-self-center pt-3">
+            End date
+        </div>
+        <div class="col-3">
+            <div id="div_id_end_date" class="form-group">
+                <span class="cobalt-form-error" id="id_end_date_errors">
+                    {{ smm_form.end_date.errors.value|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_field smm_form.end_date class+="form-control datepicker" %}
+                {% else %}
+                    {{ smm_form.end_date.value|default:'-' }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row pb-2">
+        <div class="col-2 justify-content-center align-self-center pt-3">
+            Paid date
+        </div>
+        <div class="col-3">
+            <div id="div_id_start_date" class="form-group">
+                <span class="cobalt-form-error" id="id_start_date_errors">
+                    {{ smm_form.paid_date.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_field smm_form.paid_date class+="form-control datepicker" %}
+                {% else %}
+                    {{ smm_form.paid_date.value|default:'-' }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-2 justify-content-center align-self-center pt-3">
+            Paid until date
+        </div>
+        <div class="col-3">
+            <div id="div_id_end_date" class="form-group">
+                <span class="cobalt-form-error" id="id_end_date_errors">
+                    {{ smm_form.paid_until_date.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_field smm_form.paid_until_date class+="form-control datepicker" %}
+                {% else %}
+                    {{ smm_form.paid_until_date.value|default:'-' }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Hidden fields to preserve the fields not used #}
+
+    {% render_field smm_form.fee class+="form-control d-none" %}
+    {% render_field smm_form.payment_method class+="form-control d-none" %}
+    {% render_field smm_form.due_date class+="form-control d-none" %}
+    {% render_field smm_form.auto_pay_date class+="form-control d-none" %}
+    {% render_field smm_form.is_paid class+="form-control d-none" %}
+
+</form>

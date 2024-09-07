@@ -10,7 +10,7 @@
 
         {% if club_options %}
 
-            <p>You have memberships with the following clubs. You can control your interactions with these clubs here:</p>
+            <p>You have or have had memberships with the following club{{ club_options|length|pluralize }}. You can control your interactions with these clubs here:</p>
 
             {% if membership_message %}
                 <h4
@@ -25,6 +25,7 @@
                     <thead>
                         <tr>
                             <th class="text-left">Club</th>
+                            <th class="text-left">Membership Type</th>
                             <th class="text-center">Block</th>
                             <th class="text-center">Share profile data</th>
                             <th class="text-center">Auto pay fees</th>
@@ -35,6 +36,14 @@
                             <tr style="height: 50px;">
                                 <td class="text-left">
                                     {{ club_option.club.name }}
+                                </td>
+
+                                <td class="text-left">
+                                    {% if club_option.membership_status %}
+                                        {{ club_option.membership_status }}
+                                    {% else %}
+                                        No membership
+                                    {% endif %}
                                 </td>
 
                                 {% if club_option.allow_membership %}

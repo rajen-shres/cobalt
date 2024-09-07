@@ -92,6 +92,7 @@ from organisations.models import (
     Organisation,
     MemberClubEmail,
     MemberClubOptions,
+    MemberClubDetails,
     ClubLog,
     MemberClubTag,
     ClubTag,
@@ -1535,11 +1536,12 @@ def club_admin_edit_member_htmx(request, club, message=None):
     show_history = request.POST.get("show_history", "NO") == "YES"
 
     if not system_number:
-        # JPG to do - this call will not work. perhaps raise an exception instead
-        return list_htmx(request, message="System number required")
+        # this should never happen, perhaps should just be an exception
+        return _refresh_member_list(
+            request, club, message="Error: system number required"
+        )
 
     member_details = get_member_details(club, system_number)
-
     valid_actions = get_valid_actions(member_details)
 
     #  check whether always sharing profile data
@@ -1557,34 +1559,38 @@ def club_admin_edit_member_htmx(request, club, message=None):
     else:
         always_shared = False
 
-    # get the members complete set of memberships
-    member_history = (
-        MemberMembershipType.objects.filter(
-            system_number=system_number,
-            membership_type__organisation=club,
+    if club.full_club_admin:
+
+        # get the members complete set of memberships
+        member_history = (
+            MemberMembershipType.objects.filter(
+                system_number=system_number,
+                membership_type__organisation=club,
+            )
+            .select_related("membership_type")
+            .order_by("-created_at")
         )
-        .select_related("membership_type")
-        .order_by("-created_at")
-    )
 
-    # work out the index of the current membership for highlighting
-    # in the history list
+        # work out the index of the current membership for highlighting
+        # in the history list
 
-    current_index = None
-    for index, mmt in enumerate(member_history):
-        if mmt == member_details.latest_membership:
-            current_index = index
-            break
+        current_index = None
+        for index, mmt in enumerate(member_history):
+            if mmt == member_details.latest_membership:
+                current_index = index
+                break
+
+        simplified_membership = None
+
+    else:
+        simplified_membership = member_details.latest_membership
+        member_history = None
+        current_index = None
 
     # get the members log history
     log_history_full = get_member_log(club, system_number)
     log_history = cobalt_paginator(
         request, log_history_full, items_per_page=5, page_no=request.POST.get("page", 1)
-    )
-
-    # jpg debug
-    print(
-        f"*** log_history.paginator.num_pages = {log_history.paginator.num_pages} ***"
     )
 
     if request.POST.get("save", "NO") == "LOG":
@@ -1627,25 +1633,99 @@ def club_admin_edit_member_htmx(request, club, message=None):
         user_pending_payments = None
 
     if saving:
-        form = MemberClubDetailsForm(request.POST, instance=member_details)
-        if form.is_valid():
-            form.save()
-            message = "Updates saved"
+
+        # Note: if using simplified membership management both the member details
+        # and membership details form will be returned
+
+        if not club.full_club_admin:
+            smm_form = MembershipRawEditForm(
+                request.POST,
+                instance=simplified_membership,
+                club=club,
+                registered=member_details.user_type == f"{ GLOBAL_TITLE } User",
+            )
+            if smm_form.is_valid():
+                form = MemberClubDetailsForm(request.POST, instance=member_details)
+                if form.is_valid():
+
+                    # save the updates
+                    smm_form.save()
+                    form.save()
+                    member_details.membership_status = smm_form.cleaned_data[
+                        "membership_state"
+                    ]
+                    member_details.save()
+
+                    # reload to ensure that the new state is reflected corrcetly
+                    request.POST = request.POST.copy()
+                    request.POST["save"] = "NO"
+                    request.POST["edit"] = "NO"
+                    return club_admin_edit_member_htmx(request, message="Updates saved")
+                else:
+                    message = "Error saving updates"
+                    editing = True
+            else:
+                message = "Error saving updates"
+                editing = True
         else:
-            message = "Error saving updates"
-            editing = True
+            smm_form = None
+            form = MemberClubDetailsForm(request.POST, instance=member_details)
+            if form.is_valid():
+                form.save()
+                message = "Updates saved"
+            else:
+                message = "Error saving updates"
+                editing = True
 
     else:
-        form = MemberClubDetailsForm(instance=member_details)
+        # initialisation
 
-    # member_description = member_details_description(member_details)
-    member_description = member_details_short_description(member_details)
+        form = MemberClubDetailsForm(instance=member_details)
+        if club.full_club_admin:
+            smm_form = None
+        else:
+
+            smm_initial_data = {
+                "membership_type": (
+                    simplified_membership.membership_type.id
+                    if simplified_membership.membership_type
+                    else -1
+                ),
+                "payment_method": (
+                    simplified_membership.payment_method.id
+                    if simplified_membership.payment_method
+                    else -1
+                ),
+            }
+
+            smm_form = MembershipRawEditForm(
+                instance=simplified_membership,
+                initial=smm_initial_data,
+                club=club,
+                registered=(member_details.user_type == f"{ GLOBAL_TITLE } User"),
+            )
+
+            # jpg debug
+            print(
+                f"AFTER INIT: type choices = {smm_form.fields['membership_type'].choices}"
+            )
+            print(
+                f"AFTER INIT: type initial = {smm_form.initial.get('membership_type')}"
+            )
+            print(f"AFTER INIT: state = {smm_form.data.get('membership_state')}")
+            print(f"AFTER INIT: type = {smm_form.data.get('membership_type')}")
 
     # which recent activities should be shown?
     permitted_activities = get_valid_activities(member_details)
 
+    member_description = member_details_short_description(member_details)
+
     # Note: member_admin is used in conditioning the member nav area.
     # The user has this access if they have got this far.
+
+    # Note: there is some inexplicable issue with getting the membership type and
+    # state from teh form when not edittign and in simplified membership management
+    # Seems to work fine when editing. Work around is to pass the values separately.
 
     return render(
         request,
@@ -1657,6 +1737,17 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "current_index": current_index,
             "log_history": log_history,
             "form": form,
+            "smm_form": smm_form,
+            # "smm_membership_type" : (
+            #     simplified_membership.membership_type.name
+            #     if simplified_membership and not editing
+            #     else None
+            # ),
+            # "smm_membership_state" : (
+            #     simplified_membership.get_membership_state_display
+            #     if simplified_membership and not editing
+            #     else None
+            # ),
             "valid_actions": valid_actions,
             "message": message,
             "member_admin": True,
@@ -1701,7 +1792,7 @@ def _refresh_edit_member(request, club, system_number, message, show_history=Fal
     )
 
 
-def _refresh_member_list(request, club):
+def _refresh_member_list(request, club, message=None):
     """Refreshes the member list view from within the view
     ie. call as the result of an htmx end point to refresh the view
     """
@@ -1711,6 +1802,7 @@ def _refresh_member_list(request, club):
         "organisations/club_menu/members/club_admin_member_list_refresh_htmx.html",
         {
             "club_id": club.id,
+            "message": message,
         },
     )
 

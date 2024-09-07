@@ -60,8 +60,14 @@ def delete_session_ajax(request):
     return JsonResponse({"data": response_data})
 
 
-def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
-    """Search for a user in Cobalt or MPC"""
+def search_for_user_in_cobalt_and_mpc(
+    first_name_search, last_name_search, last_name_only=False
+):
+    """Search for a user in Cobalt or MPC
+
+    If last_name_only is specified the MPC serach will be on last name only. This is useful
+    if the provided first name is the prefered name (eg Jack versus John)
+    """
 
     # Cobalt registered users
     registered_users = User.objects.exclude(pk__in=ALL_SYSTEM_ACCOUNTS)
@@ -90,7 +96,10 @@ def search_for_user_in_cobalt_and_mpc(first_name_search, last_name_search):
     un_registered_users = un_registered_users[:11]
 
     # Masterpoints Centre
-    mpc_users = search_mpc_users_by_name(first_name_search, last_name_search)
+    if last_name_only:
+        mpc_users = search_mpc_users_by_name(None, last_name_search)
+    else:
+        mpc_users = search_mpc_users_by_name(first_name_search, last_name_search)
 
     # Combine the lists
     user_list = []

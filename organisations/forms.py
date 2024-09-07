@@ -368,6 +368,63 @@ class MembershipRawEditForm(forms.ModelForm):
             self.club, registered
         )
 
+        # handle initialisation of excluded fields
+        # Set initial values manually if an instance is provided
+        if self.instance and self.instance.pk:
+            self.fields["membership_type"].initial = (
+                self.instance.membership_type.id
+                if self.instance.membership_type
+                else None
+            )
+            self.fields["payment_method"].initial = (
+                self.instance.payment_method.id
+                if self.instance.payment_method
+                else None
+            )
+            self.fields["membership_state"].initial = self.instance.membership_state
+
+        # Alternatively, if initial values were passed in the form initialization
+        if "initial" in kwargs:
+            self.fields["membership_type"].initial = kwargs["initial"].get(
+                "membership_type", self.fields["membership_type"].initial
+            )
+            self.fields["payment_method"].initial = kwargs["initial"].get(
+                "payment_method", self.fields["payment_method"].initial
+            )
+            self.fields["membership_state"].initial = kwargs["initial"].get(
+                "membership_state", self.fields["membership_state"].initial
+            )
+
+    def save(self, commit=True):
+        instance = super(MembershipRawEditForm, self).save(commit=False)
+        # Update the instance with the form's cleaned data
+        instance.membership_state = self.cleaned_data.get("membership_state")
+        if self.cleaned_data.get("membership_type") == -1:
+            new_membership_type = None
+        else:
+            try:
+                new_membership_type = MembershipType.objects.get(
+                    pk=self.cleaned_data.get("membership_type")
+                )
+            except MembershipType.DoesNotExist:
+                new_membership_type = None
+        instance.membership_type = new_membership_type
+
+        if self.cleaned_data.get("payment_method") == -1:
+            new_payment_method = None
+        else:
+            try:
+                new_payment_method = OrgPaymentMethod.objects.get(
+                    pk=self.cleaned_data.get("payment_method")
+                )
+            except OrgPaymentMethod.DoesNotExist:
+                new_payment_method = None
+        instance.payment_method = new_payment_method
+
+        if commit:
+            instance.save()
+        return instance
+
 
 class MembershipChangeTypeForm(forms.Form):
     """Form for changing or creating a new membership

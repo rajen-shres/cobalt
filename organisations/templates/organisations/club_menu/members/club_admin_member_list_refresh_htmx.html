@@ -5,7 +5,7 @@
     id="trigger-post-list"
     hx-post="{% url 'organisations:club_menu_tab_members_htmx' %}"
     hx-target="#id_panel_members"
-    hx-vars="club_id:{{ club_id }}, former_members:'off'"
+    hx-vars="club_id:{{ club_id }}, former_members:'off', message='{{ message }}'"
     hx-trigger="load"
     style="display: none;"
 ></div>

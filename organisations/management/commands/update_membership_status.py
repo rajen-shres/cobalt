@@ -81,6 +81,7 @@ class Command(BaseCommand):
             .filter(
                 membership_status=MemberClubDetails.MEMBERSHIP_STATUS_DUE,
                 latest_membership__due_date__lt=today,
+                club__full_club_admin=True,
             )
             .values_list("club_id", "system_number")
         )
@@ -105,6 +106,7 @@ class Command(BaseCommand):
             .filter(
                 membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CURRENT,
                 latest_membership__paid_until_date__lt=today,
+                club__full_club_admin=True,
             )
             .values_list("club_id", "system_number")
         )
@@ -128,6 +130,7 @@ class Command(BaseCommand):
             MemberMembershipType.objects.filter(
                 membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
                 start_date__lte=today,
+                membership_type__organisation__full_club_admin=True,
             )
             .order_by("start_date")
             .values_list(

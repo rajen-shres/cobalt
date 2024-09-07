@@ -112,49 +112,59 @@
                         </div>
                     </div>
 
-                    <div class="row pb-2">
+                    {% if club.full_club_admin %}
 
-                        <div class="col-2 justify-content-center align-self-center pt-3">
-                            Fee
-                        </div>
-                        <div class="col-3">
-                            <div id="div_id_fee" class="form-group">
-                                <span class="cobalt-form-error" id="id_fee_errors">
-                                    {{ form.new_end_date.errors|striptags }}
-                                </span>
-                                {% render_field form.fee class+="form-control" %}
-                            </div>
-                        </div>
-
-                        <div class="col-2 justify-content-center align-self-center pt-3">
-                            Payment method
-                        </div>
-                        <div class="col-3">
-                            <div id="div_id_payment_method" class="form-group">
-                                <span class="cobalt-form-error" id="id_is_paid_errors">
-                                    {{ form.payment_method.errors|striptags }}
-                                </span>
-                                {% render_field form.payment_method class+="form-control" %}
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div id="id_optional_due_date">
                         <div class="row pb-2">
+
                             <div class="col-2 justify-content-center align-self-center pt-3">
-                                Due date
+                                Fee
                             </div>
                             <div class="col-3">
-                                <div id="div_id_due_date" class="form-group">
-                                    <span class="cobalt-form-error" id="id_new_date_errors">
-                                        {{ form.due_date.errors|striptags }}
+                                <div id="div_id_fee" class="form-group">
+                                    <span class="cobalt-form-error" id="id_fee_errors">
+                                        {{ form.new_end_date.errors|striptags }}
                                     </span>
-                                    {% render_field form.due_date class+="form-control" %}
+                                    {% render_field form.fee class+="form-control" %}
+                                </div>
+                            </div>
+
+                            <div class="col-2 justify-content-center align-self-center pt-3">
+                                Payment method
+                            </div>
+                            <div class="col-3">
+                                <div id="div_id_payment_method" class="form-group">
+                                    <span class="cobalt-form-error" id="id_is_paid_errors">
+                                        {{ form.payment_method.errors|striptags }}
+                                    </span>
+                                    {% render_field form.payment_method class+="form-control" %}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div id="id_optional_due_date">
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center pt-3">
+                                    Due date
+                                </div>
+                                <div class="col-3">
+                                    <div id="div_id_due_date" class="form-group">
+                                        <span class="cobalt-form-error" id="id_new_date_errors">
+                                            {{ form.due_date.errors|striptags }}
+                                        </span>
+                                        {% render_field form.due_date class+="form-control" %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+
+                    {% else %}
+
+                        {% render_field form.fee class+="form-control d-none" %}
+                        {% render_field form.payment_method class+="form-control d-none" %}
+                        {% render_field form.due_date class+="form-control d-none" %}
+
+                    {% endif %}
 
                     {% if adding %}
 
@@ -200,7 +210,7 @@
                     <div class="row pb-2">
                         <div class="col">
                             <button
-                                type="Save"
+                                type="submit"
                                 class="btn btn-sm btn-success cobalt-save"
                             >
                                 Save

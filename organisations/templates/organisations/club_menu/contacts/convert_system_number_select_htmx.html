@@ -138,9 +138,19 @@
 
                 {% else %}
                     <h4>
-                        No {{ GLOBAL_ORG }} player matches this contact's name. Ensure that they have an active {{ GLOBAL_ORG }} number in the Masterpoint Centre, and that the contact's name matches the name in the Masterpoint Centre.
+                        No {{ GLOBAL_ORG }} player matches this contact's name. Ensure that they have an active {{ GLOBAL_ORG }} number in the Masterpoint Centre, and that the contact's name matches the name in the Masterpoint Centre. You can try searching by last name only if the player may be using a preferred first name in the Masterpoint Centre.
                     </h4>
                     <div class="row">
+                        <div class="col-6">
+                            <button
+                                class="btn btn-sm btn-primary"
+                                hx-post="{% url 'organisations:club_admin_edit_covert_contact_select_htmx' %}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', last_name_only: 'YES'"
+                                hx-target="#id_contact_action_pane"
+                            >
+                                Last Name Only
+                            </button>
+                        </div>
                         <div class="col text-right">
                             <button
                                 class="btn btn-sm btn-info"
