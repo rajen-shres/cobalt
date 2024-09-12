@@ -77,7 +77,7 @@
                             </td>
                             <td class="text-left">
                                 {% if thing.due_date %}
-                                    {{ thing.due_date|date:"d-m-Y" }}
+                                    {{ thing.due_date|date:"d/m/Y" }}
                                 {% else %}
                                     -
                                 {% endif %}
@@ -86,7 +86,7 @@
                                 {% if thing.auto_pay_date %}
                                     {% if thing.allow_auto_pay %}
                                         <span class="material-icons text-success">check_circle_outline</span>
-                                        {{ thing.auto_pay_date }}
+                                        {{ thing.auto_pay_date|date:"d/m/Y" }}
                                     {% elif thing.user_type != 'Unregistered Use' %}
                                         <span class="material-icons text-warning">highlight_off</span>
                                     {% endif %}

@@ -1,0 +1,65 @@
+{% load cobalt_tags %}
+
+<tr
+    {% if forloop.counter0 == current_index %}
+        class="font-weight-bold"
+    {% else %}
+        class="text-muted"
+    {% endif %}
+>
+
+    <td class="text-left">
+        {{ mmt.membership_type.name }}
+    </td>
+
+    <td class="text-left">
+        {{ mmt.get_membership_state_display }}
+    </td>
+
+    <td class="text-left">
+        {{ mmt.start_date|date:'d/m/Y'|default_if_none:'-' }}
+    </td>
+
+    <td class="text-left">
+        {{ mmt.end_date|date:'d/m/Y'|default_if_none:'Perpetual' }}
+    </td>
+
+    {% if mmt.fee %}
+        <td class="text-center
+            {% if not mmt.is_paid and forloop.counter0 <= current_index %}
+                text-danger
+            {% endif %}"
+        >
+            {{ mmt.fee|cobalt_number }}
+        </td>
+    {% else %}
+        <td class="text-center">-</td>
+    {% endif %}
+
+    <td class="text-left">
+        {{ mmt.due_date|date:'d/m/Y'|default_if_none:'-' }}
+    </td>
+
+    {% if member_admin %}
+        <td>
+            <button
+                class="btn btn-sm btn-warning"
+                hx-post="{% url 'organisations:club_admin_edit_member_edit_mmt_htmx' %}"
+                hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
+                hx-target="#id_action_pane"
+            >
+                <i class="material-icons">edit</i>
+            </button>
+            {% if forloop.counter0 != current_index %}
+                <button
+                    class="btn btn-sm btn-danger"
+                    hx-post="{% url 'organisations:club_admin_edit_member_delete_mmt_htmx' %}"
+                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
+                    hx-target="#id_action_pane"
+                >
+                    <i class="material-icons">delete</i>
+                </button>
+            {% endif %}
+        </td>
+    {% endif %}
+</tr>

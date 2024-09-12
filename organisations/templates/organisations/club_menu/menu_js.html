@@ -64,7 +64,8 @@
 
     document.body.addEventListener('htmx:afterSwap', function(event) {
         // Check if the triggered element is the one you're interested in
-        if(event.detail.triggeringElement.id === 'post-trigger') {
+        const triggeringElement = event.detail.triggeringElement;
+        if (triggeringElement && triggeringElement.id === 'post-trigger') {
             // Attempt to find and click the new button
             const nextActionBtn = document.getElementById('next-action');
             if(nextActionBtn) {

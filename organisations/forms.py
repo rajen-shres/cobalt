@@ -35,13 +35,19 @@ from .models import (
 )
 
 
-def membership_type_choices(club):
+def membership_type_choices(club, exclude_id=None):
     """Return membership choices for a club"""
 
     # Get membership type drop down
-    membership_types = MembershipType.objects.filter(organisation=club).values_list(
-        "id", "name"
-    )
+    membership_type_qs = MembershipType.objects.filter(organisation=club)
+
+    if exclude_id:
+        membership_type_qs = membership_type_qs.exclude(
+            id=exclude_id,
+        )
+
+    membership_types = membership_type_qs.values_list("id", "name")
+
     return [
         (membership_type[0], membership_type[1]) for membership_type in membership_types
     ]
@@ -270,9 +276,11 @@ class MemberClubDetailsForm(forms.ModelForm):
             "address2",
             "state",
             "postcode",
-            "mobile",
+            "preferred_phone",
             "other_phone",
             "dob",
+            "joined_date",
+            "left_date",
             "club_membership_number",
             "emergency_contact",
             "notes",
@@ -461,10 +469,20 @@ class MembershipChangeTypeForm(forms.Form):
     send_welcome_pack = forms.BooleanField(initial=True, required=False)
 
     def __init__(self, *args, **kwargs):
+        """Form initialiser
+        Note: must have club and registered arguements. Can optionally have
+        exclude_id.
+        """
         self.club = kwargs.pop("club")
         registered = kwargs.pop("registered")
+        if "exclude_id" in kwargs:
+            exclude_id = kwargs.pop("exclude_id")
+        else:
+            exclude_id = None
         super(MembershipChangeTypeForm, self).__init__(*args, **kwargs)
-        self.fields["membership_type"].choices = membership_type_choices(self.club)
+        self.fields["membership_type"].choices = membership_type_choices(
+            self.club, exclude_id=exclude_id
+        )
         self.fields["payment_method"].choices = membership_payment_method_choices(
             self.club, registered
         )
@@ -596,6 +614,7 @@ class CSVUploadForm(forms.Form):
 
     membership_type = forms.ChoiceField()
     home_club = forms.BooleanField(initial=True, required=False)
+    overwrite = forms.BooleanField(initial=False, required=False)
     file_type = forms.ChoiceField(
         choices=[
             ("CSV", "Generic CSV"),
@@ -996,25 +1015,25 @@ class BulkRenewalLineForm(forms.Form):
 
     due_date = forms.DateField(
         label="Payment due date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
 
     auto_pay_date = forms.DateField(
         label="Auto pay date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
 
     start_date = forms.DateField(
         label="Start date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
 
     end_date = forms.DateField(
         label="End date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
 

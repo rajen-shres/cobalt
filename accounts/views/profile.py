@@ -68,9 +68,9 @@ def profile(request):
             if has_club_email_bounced(form.cleaned_data["email"]):
                 clear_club_email_bounced(form.cleaned_data["email"])
 
-            updated_clubs = share_user_data_with_clubs(request.user)
-            if updated_clubs:
-                feedback += f", {updated_clubs} club membership{'s' if updated_clubs>1 else ''} updated"
+        updated_clubs = share_user_data_with_clubs(request.user)
+        if updated_clubs:
+            feedback += f", {updated_clubs} club membership{'s' if updated_clubs>1 else ''} updated"
 
         messages.success(request, feedback, extra_tags="cobalt-message-success")
 

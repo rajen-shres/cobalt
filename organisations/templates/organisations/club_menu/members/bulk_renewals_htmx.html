@@ -124,35 +124,35 @@
                                 Membership type
                             </th>
                             <th
-                                class="text-center"
+                                class="text-left"
                                 data-toggle="tooltip"
                                 title="The start date of the renewal period"
                             >
                                 From
                             </th>
                             <th
-                                class="text-center"
+                                class="text-left"
                                 data-toggle="tooltip"
                                 title="The end date of the renewal period"
                             >
                                 To
                             </th>
                             <th
-                                class="text-right"
+                                class="text-center"
                                 data-toggle="tooltip"
                                 title="The membership fee"
                             >
                                 Fee
                             </th>
                             <th
-                                class="text-center"
+                                class="text-left"
                                 data-toggle="tooltip"
                                 title="The due date for the payment"
                             >
                                 Due Date
                             </th>
                             <th
-                                class="text-center"
+                                class="text-left"
                                 data-toggle="tooltip"
                                 title="The date on which eligible members will be charged using {{ BRIDGE_CREDITS }}"
                             >
@@ -164,27 +164,54 @@
                         {% for form in formset %}
                             <tr>
                                 <td class="text-center">
-                                    {% render_field form.selected class+="form-control" %}
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input
+                                                class="form-check-input"
+                                                id="id_form-{{ forloop.counter0 }}-selected"
+                                                name="form-{{ forloop.counter0 }}-selected"
+                                                type="checkbox" {% if form.selected.value %}checked="Checked" {% endif %}
+                                            >
+                                            <span class="form-check-sign">
+                                                <span class="check"></span>
+                                            </span>
+                                        </label>
+                                    </div>
                                 </td>
                                 <td class="text-left">
                                     {{ form.membership_type_name.value }}
                                     {% render_field form.membership_type_name class+="form-control d-none" %}
                                     {% render_field form.membership_type_id class+="form-control d-none" %}
                                 </td>
-                                <td class="text-center">
-                                    {% render_field form.start_date class+="form-control text-center" %}
+                                <td>
+                                    <span class="cobalt-form-error" id="id_start_date_errors">
+                                        {{ form.start_date.errors|striptags }}
+                                    </span>
+                                    {% render_cobalt_datepicker form.start_date form_no=forloop.counter0 %}
+                                </td>
+                                <td>
+                                    <span class="cobalt-form-error" id="id_end_date_errors">
+                                        {{ form.end_date.errors|striptags }}
+                                    </span>
+                                    {% render_cobalt_datepicker form.end_date form_no=forloop.counter0 %}
                                 </td>
                                 <td class="text-center">
-                                    {% render_field form.end_date class+="form-control text-center" %}
+                                    <span class="cobalt-form-error" id="id_fee_errors">
+                                        {{ form.fee.errors|striptags }}
+                                    </span>
+                                    {% render_field form.fee class+="form-control text-center" %}
                                 </td>
-                                <td class="text-right">
-                                    {% render_field form.fee class+="form-control text-right" %}
+                                <td>
+                                    <span class="cobalt-form-error" id="id_due_date_errors">
+                                        {{ form.due_date.errors|striptags }}
+                                    </span>
+                                    {% render_cobalt_datepicker form.due_date form_no=forloop.counter0 %}
                                 </td>
-                                <td class="text-center">
-                                    {% render_field form.due_date class+="form-control text-center" %}
-                                </td>
-                                <td class="text-center">
-                                    {% render_field form.auto_pay_date class+="form-control text-center" %}
+                                <td>
+                                    <span class="cobalt-form-error" id="id_auto_pay_date_errors">
+                                        {{ form.auto_pay_date.errors|striptags }}
+                                    </span>
+                                    {% render_cobalt_datepicker form.auto_pay_date form_no=forloop.counter0 %}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -204,13 +231,14 @@
                     <div class="col-2 justify-content-center align-self-center pt-3">
                         Send renewal notice emails
                     </div>
-
                     <div class="col-3">
-                        <div id="div_id_send_notice" class="form-group">
-                            <span class="cobalt-form-error" id="id_send_notice_errors">
-                                {{ options_form.send_notice.errors|striptags }}
-                            </span>
-                            {% render_field options_form.send_notice class+="form-control" %}
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" id="id_send_notice" name="send_notice" type="checkbox" {% if form.send_notice.value %}checked="Checked" {% endif %}>
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -528,7 +556,86 @@
 
 </div> <!-- card -->
 
+<script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+<script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
+
 <script>
+
+    $(document).ready(function() {
+
+        if ($('.datepicker').length) {
+            $('.datepicker').datetimepicker({
+                format: 'DD/MM/YYYY',
+                showTodayButton: true,
+                showClear: true,
+                showClose: true,
+                widgetParent: this.id,
+                icons: {
+                    previous: 'fa fa-chevron-left',
+                    next: 'fa fa-chevron-right',
+                    today: 'fa fa-calendar-day',
+                    close: 'fa fa-times',
+                    clear: 'fa fa-trash'
+                }
+            });
+
+            // $('.datepicker').data("DateTimePicker").widgetParent($(this));
+        }
+    });
+
+    document.addEventListener('htmx:afterSettle', function(event) {
+
+        console.log("htmx:afterSettle "+event.detail.target.id+" - "+event.detail.elt.id)
+
+        if ($('.datepicker').length) {
+            $('.datepicker').datetimepicker({
+                format: 'DD/MM/YYYY',
+                showTodayButton: true,
+                showClear: true,
+                showClose: true,
+                widgetParent: this.id,
+                icons: {
+                    previous: 'fa fa-chevron-left',
+                    next: 'fa fa-chevron-right',
+                    today: 'fa fa-calendar-day',
+                    close: 'fa fa-times',
+                    clear: 'fa fa-trash'
+                }
+            });
+
+            // $('.datepicker').data("DateTimePicker").widgetParent($(this));
+        }
+    });
+
+    function confirmDeleteMember(button, target) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "The member will become a contact and membership history will be deleted.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                // Define your custom post data
+                const postData = {
+                    'club_id': '{{ club.id }}',
+                    'system_number': '{{ member_details.system_number }}',
+                    'action_name': 'delete'
+                };
+
+                // Make the HTMX request
+                htmx.ajax('POST', '{% url "organisations:club_admin_edit_member_membership_action_htmx" %}', {
+                    'values': postData,
+                    'target': target
+                });
+
+            }
+        });
+    }
+
     function confirmSend(button) {
         Swal.fire({
             title: 'Are you sure?',
@@ -575,4 +682,5 @@
         });
     }
 </script>
+
 

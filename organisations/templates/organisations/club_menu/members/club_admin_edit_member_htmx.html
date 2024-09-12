@@ -57,7 +57,7 @@
                                     <th class="text-primary text-left">Club</th>
                                     <th class="text-primary text-left">Description</th>
                                     <th class="text-primary text-left">Date</th>
-                                    <th class="text-primary text-right">Amount</th>
+                                    <th class="text-primary text-center">Amount</th>
                                     <th class="text-primary">Action</th>
                                 </tr>
                             </thead>
@@ -104,116 +104,53 @@
                     <div class="card-body">
 
                         <div class="row">
-                            <div class="col-10">
+                            <div class="col-10 text-center">
                                 <h4>{{ member_description }}</h4>
                             </div>
-                            <div class="col text-right">
-                                <button
-                                    class="btn btn-sm btn-info"
-                                    id="id-history-button"
-                                    data-toggle="collapse"
-                                    data-target="#id-history-table"
-                                    aria-expanded="{{ show_history|yesno:'true,false' }}"
-                                    aria-controls="myTable"
-                                >
-                                    {{ show_history|yesno:"Hide history,Show history" }}
-                                </button>
-                            </div>
+                            {% if is_past_history %}
+                                <div class="col text-right">
+                                    <button
+                                        class="btn btn-sm btn-info"
+                                        hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO', show_history: {% if show_history %}'NO'{% else %}'YES'{% endif %}"
+                                        hx-target="#id_panel_members"
+                                    >
+                                        {{ show_history|yesno:"Hide history,Show history" }}
+                                    </button>
+                                </div>
+                            {% endif %}
                         </div>
 
                         <!-- MEMBERSHIP HISTORY TABLE -->
 
-                        <div class="collapse {% if show_history %}show{% endif %}" id="id-history-table">
-                            <div class="table-responsive">
-                                <table class="table table-condensed table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-left">Type</th>
-                                            <th class="text-left">Status</th>
-                                            <th class="text-left">Start</th>
-                                            <th class="text-left">Fee</th>
-                                            <th class="text-left">Due</th>
-                                            <th class="text-left">Paid Until</th>
-                                            <th class="text-left">End</th>
-                                            {% if member_admin %}
-                                                <th class="text-left">Actions</th>
-                                            {% endif %}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for mmt in member_history %}
-                                            <tr
-                                                {% if forloop.counter0 == current_index %}
-                                                    class="font-weight-bold"
-                                                {% else %}
-                                                    class="text-muted"
-                                                {% endif %}
-                                            >
-                                                <td class="text-left">{{ mmt.membership_type.name }}</td>
-                                                <td class="text-left">{{ mmt.get_membership_state_display }}</td>
-                                                <td class="text-left">{{ mmt.start_date }}</td>
-                                                {% if mmt.fee %}
-                                                    <td class="text-left
-                                                        {% if  mmt.paid_until_date != mmt.end_date %}
-                                                            {% if forloop.counter0 == current_index or mmt.membership_state == 'FUT'%}
-                                                                text-danger
-                                                            {% endif %}
-                                                        {% endif %}"
-                                                    >
-                                                        {{ mmt.fee }}
-                                                    </td>
-                                                {% else %}
-                                                    <td class="text-left">-</td>
-                                                {% endif %}
-                                                <td class="text-left">
-                                                    {% if mmt.due_date %}
-                                                        {{ mmt.due_date }}
-                                                    {% else %}
-                                                        -
-                                                    {% endif %}
-                                                </td>
-                                                <td class="text-left">
-                                                    {% if mmt.paid_until_date %}
-                                                        {{ mmt.paid_until_date }}
-                                                    {% else %}
-                                                        -
-                                                    {% endif %}
-                                                </td>
-                                                <td class="text-left">
-                                                    {% if mmt.end_date %}
-                                                        {{ mmt.end_date }}
-                                                    {% else %}
-                                                        Perpetual
-                                                    {% endif %}
-                                                </td>
-                                                {% if member_admin %}
-                                                    <td>
-                                                        <button
-                                                            class="btn btn-sm btn-warning"
-                                                            hx-post="{% url 'organisations:club_admin_edit_member_edit_mmt_htmx' %}"
-                                                            hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
-                                                            hx-target="#id_action_pane"
-                                                        >
-                                                            <i class="material-icons">edit</i>
-                                                        </button>
-                                                        {% if forloop.counter0 != current_index %}
-                                                            <button
-                                                                class="btn btn-sm btn-danger"
-                                                                hx-post="{% url 'organisations:club_admin_edit_member_delete_mmt_htmx' %}"
-                                                                hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, mmt_id:{{ mmt.id }}"
-                                                                hx-target="#id_action_pane"
-                                                            >
-                                                                <i class="material-icons">delete</i>
-                                                            </button>
-                                                        {% endif %}
-                                                    </td>
-                                                {% endif %}
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-hover">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">Type</th>
+                                        <th class="text-left">Status</th>
+                                        <th class="text-left">From</th>
+                                        <th class="text-left">To</th>
+                                        <th class="text-center">Fee</th>
+                                        <th class="text-left">Due</th>
+                                        {% if member_admin %}
+                                            <th class="text-center">Actions</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for mmt in member_history %}
+                                        {% if show_history or forloop.counter0 <= current_index %}
+                                            {% include "organisations/club_menu/members/club_admin_edit_member_history_row.html" %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
+
+                        {% if current_index > 0 %}
+                            <p class="small">Note: This member has a future dated membership which limits what can be done to the current membership. The future dated membership can be deleted if no longer required.</p>
+                        {% endif %}
 
                         <!-- ACTION BUTTONS -->
 
@@ -289,7 +226,7 @@
                                     <button
                                         type="submit"
                                         class="btn btn-sm btn-primary"
-                                        onclick="confirmDeleteMember(this, '#id-action-pane')"
+                                        onclick="confirmDeleteMember(this, '#id_panel_members')"
                                     >
                                         Delete Member
                                     </button>
@@ -350,7 +287,7 @@
 
                                 <div class="col text-right">
                                     <button
-                                        class="btn btn-sm btn-primary"
+                                        class="btn btn-sm btn-info"
                                         hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
                                         hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO'"
                                         hx-target="#id_panel_members"
@@ -388,7 +325,7 @@
                                     {% if 'delete' in valid_actions %}
                                         <button
                                             class="btn btn-sm btn-primary"
-                                            onclick="confirmDeleteMember(this, '#id-member-details')"
+                                            onclick="confirmDeleteMember(this, '#id_panel_members')"
                                         >
                                             Delete Member
                                         </button>
@@ -462,7 +399,7 @@
                                 <tbody>
                                     {% for log in log_history %}
                                         <tr>
-                                            <td class="text-left">{{ log.date }}</td>
+                                            <td class="text-left">{{ log.date|date:'d/m/Y h:i A' }}</td>
                                             <td class="text-left">{{ log.description }}</td>
                                             <td class="text-left">{{ log.actor }}</td>
                                         </tr>
@@ -480,69 +417,93 @@
     </div>
 </div>
 
+{% block footer %}
 
+    <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
 
-<script>
+    <script>
 
-    $(document).ready(function() {
+        $(document).ready(function() {
 
-        // change the text on the history table toggle button when pressed
-        $('#id-history-button').click(function() {
-            var button = $(this);
-            var target = $(button.data('target'));
-
-            // Wait for the collapse animation to finish before changing the button text
-            target.on('shown.bs.collapse', function () {
-                button.text('Hide History');
-            });
-            target.on('hidden.bs.collapse', function () {
-                button.text('Show History');
-            });
-        });
-    });
-
-    document.addEventListener('htmx:afterSettle', function(event) {
-
-        console.log("htmx:afterSettle "+event.detail.target.id+" - "+event.detail.elt.id)
-
-        if (event.detail.target.id == 'id_action_pane') {
-            // hook for any initialisation required for the form entry in the action pane
-            console.log("calling initialiseHTMXForm()")
-            initialiseHTMXForm();
-        }
-
-        if (event.detail.target.id === 'id-activity-card') {
-            initialiseActivityView();
-        }
-    });
-
-    function confirmDeleteMember(button, target) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "The member will become a contact and membership history will be deleted.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes'
-        }).then((result) => {
-            if (result.isConfirmed) {
-
-                // Define your custom post data
-                const postData = {
-                    'club_id': '{{ club.id }}',
-                    'system_number': '{{ member_details.system_number }}',
-                    'action_name': 'delete'
-                };
-
-                // Make the HTMX request
-                htmx.ajax('POST', '{% url "organisations:club_admin_edit_member_membership_action_htmx" %}', {
-                    'values': postData,
-                    'target': target
+            if ($('.datepicker').length) {
+                $('.datepicker').datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    showTodayButton: true,
+                    showClear: true,
+                    showClose: true,
+                    icons: {
+                        previous: 'fa fa-chevron-left',
+                        next: 'fa fa-chevron-right',
+                        today: 'fa fa-calendar-day',
+                        close: 'fa fa-times',
+                        clear: 'fa fa-trash'
+                    },
                 });
-
             }
         });
-    }
 
-</script>
+
+        document.addEventListener('htmx:afterSettle', function(event) {
+
+            console.log("htmx:afterSettle "+event.detail.target.id+" - "+event.detail.elt.id)
+
+            if ($('.datepicker').length) {
+                $('.datepicker').datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    showTodayButton: true,
+                    showClear: true,
+                    showClose: true,
+                    icons: {
+                        previous: 'fa fa-chevron-left',
+                        next: 'fa fa-chevron-right',
+                        today: 'fa fa-calendar-day',
+                        close: 'fa fa-times',
+                        clear: 'fa fa-trash'
+                    },
+                });
+            }
+
+            if (event.detail.target.id == 'id_action_pane') {
+                // hook for any initialisation required for the form entry in the action pane
+                console.log("calling initialiseHTMXForm()")
+                initialiseHTMXForm();
+            }
+
+            if (event.detail.target.id === 'id-activity-card') {
+                initialiseActivityView();
+            }
+        });
+
+        function confirmDeleteMember(button, target) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "The member will become a contact and membership history will be deleted.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    // Define your custom post data
+                    const postData = {
+                        'club_id': '{{ club.id }}',
+                        'system_number': '{{ member_details.system_number }}',
+                        'action_name': 'delete'
+                    };
+
+                    // Make the HTMX request
+                    htmx.ajax('POST', '{% url "organisations:club_admin_edit_member_membership_action_htmx" %}', {
+                        'values': postData,
+                        'target': target
+                    });
+
+                }
+            });
+        }
+
+    </script>
+
+{% endblock %}

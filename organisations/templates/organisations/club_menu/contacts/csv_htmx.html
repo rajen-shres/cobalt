@@ -57,6 +57,33 @@
                                 </div>
                             </div>
 
+                            <div class="row fom-group">
+                                <div class="col-6 text-right">
+                                    <label class="bmd-label-static" for="id_overwrite">
+                                        Overwrite existing values
+                                    </label>
+                                </div>
+                                <div class="col">
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input
+                                                class="form-check-input"
+                                                id="id_overwrite"
+                                                name="overwrite"
+                                                type="checkbox"
+                                                {% if form.overwrite.value %}checked="Checked" {% endif %}
+                                            >
+                                            <span class="form-check-sign"
+                                                data-toggle="tooltip"
+                                                title="If selected existing values will be overwritten with uploaded non-blank values"
+                                            >
+                                                <span class="check"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <input type='file'
                                 accept=".csv"
                                 name='file'
@@ -95,7 +122,7 @@
                 <br>
                 <br>
                 <p>Optional columns can also be included:</p>
-                <code>Email Address, {{ GLOBAL_ORG }} Number, Address 1, Address 2, State, Postcode, Mobile, Other Phone, Date of Birth, Emergency Contact, Notes</code>
+                <code>Email Address, {{ GLOBAL_ORG }} Number, Address 1, Address 2, State, Postcode, Preferred Phone, Other Phone, Date of Birth, Emergency Contact, Notes</code>
                 <br>
                 <br>
                 <p>Note: If an optional column is included, all prior optional columns must also be included</p>
@@ -126,7 +153,7 @@
                 "The file needs to have comma-separated values (CSV) with the following required columns:</p>" +
                 "<code>First Name, Last Name</code><br><br>" +
                 "<p>Optional columns can also be included:</p>" +
-                "<code>Email Address, {{ GLOBAL_ORG }} Number, Address 1, Address 2, State, Postcode, Mobile, Other Phone, Date of Birth, Emergency Contact, Notes</code><br><br>" +
+                "<code>Email Address, {{ GLOBAL_ORG }} Number, Address 1, Address 2, State, Postcode, Preferred Phone, Other Phone, Date of Birth, Emergency Contact, Notes</code><br><br>" +
                 "<p>Note: If an optional column is included, all prior optional columns must also be included</p>" +
                 "<p>A header row is expected, you will lose the first row if data of you do not have one.</p>");
         }

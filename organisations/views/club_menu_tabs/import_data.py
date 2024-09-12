@@ -52,14 +52,14 @@ GENERIC_MEMBER_MAPPING = {
     "first_name": {"csv_col": 1, "required": True},
     "last_name": {"csv_col": 2, "required": True},
     "email": {"csv_col": 3, "type": "email"},
-    "membership_type": {"csv_col": 4, "opt_column": True},
+    "membership_type": {"csv_col": 4, "type": "str", "len": 20, "opt_column": True},
     "address1": {"csv_col": 5, "len": 100, "opt_column": True},
     "address2": {"csv_col": 6, "len": 100, "opt_column": True},
     "state": {"csv_col": 7, "type": "str", "len": 3, "opt_column": True},
     "postcode": {"csv_col": 8, "type": "str", "len": 10, "opt_column": True},
-    "mobile": {"csv_col": 9, "type": "mobile", "opt_column": True},
-    "other_phone": {"csv_col": 10, "type": "phone", "opt_column": True},
-    "dob": {"csv_col": 11, "type": "date", "opt_column": True},
+    "preferred_phone": {"csv_col": 9, "type": "str", "len": 15, "opt_column": True},
+    "other_phone": {"csv_col": 10, "type": "str", "len": 15, "opt_column": True},
+    "dob": {"csv_col": 11, "type": "date", "opt_column": True, "no_future": None},
     "club_membership_number": {"csv_col": 12, "opt_column": True},
     "joined_date": {"csv_col": 13, "type": "date", "opt_column": True},
     "left_date": {"csv_col": 14, "type": "date", "opt_column": True},
@@ -77,9 +77,9 @@ GENERIC_CONTACT_MAPPING = {
     "address2": {"csv_col": 5, "len": 100, "opt_column": True},
     "state": {"csv_col": 6, "type": "str", "len": 3, "opt_column": True},
     "postcode": {"csv_col": 7, "type": "str", "len": 10, "opt_column": True},
-    "mobile": {"csv_col": 8, "type": "mobile", "opt_column": True},
-    "other_phone": {"csv_col": 9, "type": "phone", "opt_column": True},
-    "dob": {"csv_col": 10, "type": "date", "opt_column": True},
+    "preferred_phone": {"csv_col": 8, "type": "str", "len": 15, "opt_column": True},
+    "other_phone": {"csv_col": 9, "type": "str", "len": 15, "opt_column": True},
+    "dob": {"csv_col": 10, "type": "date", "opt_column": True, "no_future": None},
     "emergency_contact": {"csv_col": 11, "opt_column": True},
     "notes": {"csv_col": 12, "opt_column": True},
 }
@@ -94,12 +94,8 @@ PIANOLA_MAPPING = {
     "address2": {"csv_col": 12, "type": "concat", "other": 13, "len": 100},
     "state": {"csv_col": 14, "type": "str", "len": 3},
     "postcode": {"csv_col": 15, "type": "str", "len": 10},
-    "mobile": {
-        "csv_col": 9,
-        "type": "mobile",
-    },
-    "other_phone": {"csv_col": 8, "type": "phone"},
-    "dob": {"csv_col": 20, "type": "date"},
+    "dob": {"csv_col": 20, "type": "date", "no_future": None},
+    "membership_type": {"csv_col": 21, "type": "str", "len": 20},
     "club_membership_number": {"csv_col": 0},
     "joined_date": {"csv_col": 22, "type": "date"},
     "left_date": {
@@ -111,7 +107,7 @@ PIANOLA_MAPPING = {
 }
 
 # Mapping for PIANOLA CSV contacts imports, same as for members, but system number optional
-PIANOLA_MAPPING = {
+PIANOLA_CONTACT_MAPPING = {
     "system_number": {"csv_col": 1, "type": "sysnum"},
     "first_name": {"csv_col": 5, "required": True},
     "last_name": {"csv_col": 6, "required": True},
@@ -120,18 +116,7 @@ PIANOLA_MAPPING = {
     "address2": {"csv_col": 12, "type": "concat", "other": 13, "len": 100},
     "state": {"csv_col": 14, "type": "str", "len": 3},
     "postcode": {"csv_col": 15, "type": "str", "len": 10},
-    "mobile": {
-        "csv_col": 9,
-        "type": "mobile",
-    },
-    "other_phone": {"csv_col": 8, "type": "phone"},
-    "dob": {"csv_col": 20, "type": "date"},
-    "club_membership_number": {"csv_col": 0},
-    "joined_date": {"csv_col": 22, "type": "date"},
-    "left_date": {
-        "csv_col": 26,
-        "type": "date",
-    },
+    "dob": {"csv_col": 20, "type": "date", "no_future": None},
     "emergency_contact": {"csv_col": 30},
     "notes": {"csv_col": 29},
 }
@@ -145,22 +130,27 @@ COMPSCORE_MEMBER_MAPPING = {
     "address1": {"csv_col": 2, "type": "str", "len": 100},
     "address2": {"csv_col": 3, "type": "str", "len": 100},
     "postcode": {"csv_col": 4, "type": "str", "len": 10},
-    "other_phone": {"csv_col": 5, "type": "phone"},
+    "preferred_phone": {"csv_col": 5, "type": "str", "len": 15},
+    "other_phone": {"csv_col": 6, "type": "str", "len": 15},
     "emergency_contact": {"csv_col": 10},
     "notes": {"csv_col": 11},
-    "dob": {"csv_col": 12, "type": "date"},
+    "dob": {"csv_col": 12, "type": "date", "no_future": None},
     "club_membership_number": {"csv_col": 14},
 }
 
 DATE_FORMATS = [
     "%d/%m/%Y",
     "%d/%m/%y",
+    "%d-%b-%Y",
+    "%d-%b-%y",
     "%d/%m/%Y %H:%M",
     "%d/%m/%y %H:%M",
+    "%x",
+    "%c",
 ]
 
 
-def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
+def _map_csv_to_columns(mapping, csv, strict=False):
     """Use a mapping specification to build a dictionary of import values
     from a list of column values from a csv file row.
 
@@ -188,11 +178,12 @@ def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
         case : str, specifying case conversion for str values:
             cap : capitalise
             upper : upper
+        date_formats : list of date format strings for interpreting date fields
+        no_future : if this key exists (any value), it error if it is a date field in the future
 
     Args:
         mapping (dict): a mapping specification dictionary
         csv (list): a list of teh data columns from a csv row
-        date_formats (list): a list of date format strings for interpreting date fields
         strict (bool): error if any field fails conversion or validation
 
     Returns:
@@ -311,13 +302,24 @@ def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
                     # a date, in a variety of formats
 
                     date_obj = None
-                    for date_format in date_formats if date_formats else DATE_FORMATS:
+                    for date_format in (
+                        spec["date_formats"] if "date_formats" in spec else DATE_FORMATS
+                    ):
                         try:
                             date_obj = datetime.strptime(source, date_format).date()
+                            break
                         except ValueError:
                             date_obj = None
                     if date_obj:
-                        item[attr_name] = date_obj
+                        if "no_future" in spec and date_obj > timezone.now().date():
+                            if spec.get("required", False) or strict:
+                                return (
+                                    False,
+                                    f"Invalid {attr_name} ({spec['type']}) in column {spec['csv_col']} '{source}' - future date not allowed",
+                                    None,
+                                )
+                        else:
+                            item[attr_name] = date_obj
                     else:
                         if spec.get("required", False) or strict:
                             return (
@@ -341,13 +343,13 @@ def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
                             )
 
                 elif spec["type"] == "mobile":
-                    # a mobile number
+                    # an Australian mobile number
 
                     digits_only = re.sub(r"\D", "", source)
-                    try:
-                        MemberClubDetails.mobile_regex(digits_only)
+                    mobile_regex = r"^04\d{8}$"
+                    if re.match(mobile_regex, digits_only):
                         item[attr_name] = digits_only
-                    except ValidationError:
+                    else:
                         if spec.get("required", False) or strict:
                             return (
                                 False,
@@ -359,10 +361,10 @@ def _map_csv_to_columns(mapping, csv, date_formats=None, strict=False):
                     # a phone number
 
                     digits_only = re.sub(r"\D", "", source)
-                    try:
-                        MemberClubDetails.phone_regex(digits_only)
+                    phone_regex = r"^\+?1?\d{9,15}$"
+                    if re.match(phone_regex, digits_only):
                         item[attr_name] = digits_only
-                    except ValidationError:
+                    else:
                         if spec.get("required", False) or strict:
                             return (
                                 False,
@@ -397,13 +399,16 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
 
     updated = False
     for attr_name in new_details:
-        try:
-            old_value = getattr(member_details, attr_name)
-            if not old_value or overwrite:
-                setattr(member_details, attr_name, new_details[attr_name])
-                updated = True
-        except (AttributeError, TypeError):
-            pass
+        # do not update with falsey values
+        if new_details[attr_name]:
+            try:
+                old_value = getattr(member_details, attr_name)
+                if not old_value or overwrite:
+                    if old_value != new_details[attr_name]:
+                        setattr(member_details, attr_name, new_details[attr_name])
+                        updated = True
+            except (AttributeError, TypeError):
+                pass
 
     if updated:
         member_details.save()
@@ -411,11 +416,66 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
     return updated
 
 
+def _csv_pianola_phone_numbers(club_member, item):
+    """Handle processing for Pianola phone number columns for an import row
+
+    Pianola has two phone number columns (column 8 'Phone number' and
+    column 9 'Mobile Number'). Either may be blank. One may have '(P)'
+    indicating preferred phone number.
+
+    Args:
+        club_member (list): a row from spreadsheet
+        item (dict): previously mapped values
+
+    Returns:
+        Bool: True for success, False for failure
+        error: message describing error (if there was one)
+        item: dict with mapped values
+    """
+
+    if len(club_member) < 10:
+        return (
+            False,
+            "Phone number columns missing",
+            item,
+        )
+
+    MARKER = "(P)"
+    MAX_LEN = 15
+
+    pianola_phone = club_member[8]
+    phone = pianola_phone.replace(MARKER, "")[:MAX_LEN] if pianola_phone else None
+    pianola_mobile = club_member[9]
+    mobile = pianola_mobile.replace(MARKER, "")[:MAX_LEN] if pianola_mobile else None
+
+    if pianola_mobile and pianola_mobile.find(MARKER) != -1:
+        item["preferred_phone"] = mobile
+        if pianola_phone:
+            # ignore the marker being against both, should not happen
+            # if it does, will use mobile as preferred
+            item["other_phone"] = phone
+    elif pianola_phone and pianola_phone.find(MARKER) != -1:
+        item["preferred_phone"] = phone
+        if pianola_mobile:
+            item["other_phone"] = mobile
+    else:
+        # no marked preferred phone
+        if pianola_mobile:
+            item["preferred_phone"] = mobile
+            if pianola_phone:
+                item["other_phone"] = phone
+        elif pianola_phone:
+            item["preferred_phone"] = phone
+
+    return (True, None, item)
+
+
 def _csv_pianola(club_member, contacts=False):
     """Pianola specific formatting for CSV files
 
     Args:
         club_member (list): a row from spreadsheet
+        overwrite (bool): overwrite existign values with non-blank
         contacts (bool): process only visitor rows
 
     Returns:
@@ -428,7 +488,9 @@ def _csv_pianola(club_member, contacts=False):
     if contacts:
 
         if club_member[21].find("Visitor") >= 0:
-            return _map_csv_to_columns(PIANOLA_MAPPING, club_member)
+            success, error, item = _map_csv_to_columns(
+                PIANOLA_CONTACT_MAPPING, club_member
+            )
         else:
             return False, f"{club_member[1]} - skipped non-visitor", None
 
@@ -437,7 +499,12 @@ def _csv_pianola(club_member, contacts=False):
         if club_member[21].find("Visitor") >= 0:
             return False, f"{club_member[1]} - skipped visitor", None
         else:
-            return _map_csv_to_columns(PIANOLA_MAPPING, club_member)
+            success, error, item = _map_csv_to_columns(PIANOLA_MAPPING, club_member)
+
+    if success:
+        return _csv_pianola_phone_numbers(club_member, item)
+    else:
+        return (success, error, item)
 
 
 def _csv_generic(club_member, contacts=False):
@@ -495,6 +562,7 @@ def upload_csv_htmx(request, club):
     file_type = form.cleaned_data["file_type"]
     membership_type = form.cleaned_data["membership_type"]
     home_club = form.cleaned_data["home_club"]
+    overwrite = form.cleaned_data["overwrite"]
 
     default_membership = get_object_or_404(MembershipType, pk=membership_type)
 
@@ -531,6 +599,7 @@ def upload_csv_htmx(request, club):
         user=request.user,
         origin=file_type,
         default_membership=default_membership,
+        overwrite=overwrite,
         home_club=home_club,
     )
 
@@ -595,9 +664,14 @@ def import_mpc_htmx(request, club):
         except ValidationError:
             email_address = ""
 
+        try:
+            system_no_as_int = int(club_member["ABFNumber"])
+        except ValueError:
+            continue
+
         member_data.append(
             {
-                "system_number": club_member["ABFNumber"],
+                "system_number": system_no_as_int,
                 "first_name": club_member["GivenNames"],
                 "last_name": club_member["Surname"],
                 "email": email_address,
@@ -615,8 +689,11 @@ def import_mpc_htmx(request, club):
         user=request.user,
         origin="MPC",
         default_membership=default_membership,
+        overwrite=True,
         home_club=True,
     )
+
+    # JPG to do - include overwrite option in UI?
 
     # Build results table
     table = render_to_string(
@@ -642,6 +719,7 @@ def add_member_to_membership(
     club_member: dict,
     user: User,
     default_membership: MembershipType,
+    overwrite: bool = False,
     home_club: bool = False,
     is_registered_user: bool = True,
 ):
@@ -673,8 +751,28 @@ def add_member_to_membership(
 
     if member_details and member_details.membership_status in MEMBERSHIP_STATES_ACTIVE:
         updated = _augment_member_details(
-            club, club_member["system_number"], club_member
+            club,
+            club_member["system_number"],
+            club_member,
+            overwrite=overwrite,
         )
+
+        if (
+            member_details.latest_membership.membership_type != default_membership
+            and overwrite
+        ):
+            # member exists, but the membership type has changed!
+            success, message = change_membership(
+                club,
+                club_member["system_number"],
+                default_membership,
+                user,
+            )
+            if success:
+                updated = True
+            else:
+                return 0, f"{name} - {message}"
+
         if not updated:
             return 0, f"{name} - Already an active member"
         else:
@@ -707,32 +805,37 @@ def add_member_to_membership(
 
     else:
         # create the member details and membership records
+
+        # calculate a reasonable start date, based on joined date (if provided)
+        start_date = None
+        if "joined_date" in club_member:
+            club_year_start = club.last_renewal_date
+            if club_member["joined_date"] >= club_year_start:
+                start_date = club_member["joined_date"]
+            else:
+                start_date = club_year_start
+
         success, message = add_member(
             club,
             club_member["system_number"],
             is_registered_user,
             default_membership,
             user,
+            start_date=start_date,
         )
 
     # update membership details with MCP email address and other values unless there is already one
 
     if success:
-        _augment_member_details(club, club_member["system_number"], club_member)
-
-    # if club_member.get("email", None):
-
-    #     member_detail_record = MemberClubDetails.objects.get(
-    #         club=club,
-    #         system_number=club_member["system_number"],
-    #     )
-
-    #     if not member_detail_record.email:
-    #         member_detail_record.email = club_member['email']
-    #         member_detail_record.save()
+        _augment_member_details(
+            club,
+            club_member["system_number"],
+            club_member,
+            overwrite=overwrite,
+        )
 
     if success:
-        return 1, None
+        return 1, f"{name} - {message}" if message else None
     else:
         return 0, message
 
@@ -743,6 +846,7 @@ def process_member_import(
     user: User,
     origin: str,
     default_membership: MembershipType,
+    overwrite: bool,
     home_club: bool = False,
 ):
     """Common function to process a list of members
@@ -771,7 +875,7 @@ def process_member_import(
 
         if user_match:
             added, error = add_member_to_membership(
-                club, club_member, user, default_membership, home_club
+                club, club_member, user, default_membership, overwrite, home_club
             )
             added_users += added
         else:
@@ -797,7 +901,8 @@ def process_member_import(
                 club_member,
                 user,
                 default_membership,
-                home_club,
+                overwrite=overwrite,
+                home_club=home_club,
                 is_registered_user=False,
             )
 
@@ -827,6 +932,7 @@ def contact_upload_csv_htmx(request, club):
     # Get params
     csv_file = request.FILES["file"]
     file_type = form.cleaned_data["file_type"]
+    overwrite = form.cleaned_data["overwrite"]
 
     # get CSV reader (convert bytes to strings)
     csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
@@ -860,6 +966,7 @@ def contact_upload_csv_htmx(request, club):
         contact_data=contact_data,
         user=request.user,
         origin=file_type,
+        overwrite=overwrite,
     )
 
     # Build results table
@@ -886,6 +993,7 @@ def process_contact_import(
     contact_data: list,
     user: User,
     origin: str,
+    overwrite: bool,
 ):
     """Process a list of imported contacts
 
@@ -894,6 +1002,7 @@ def process_contact_import(
         contact_data (list): list of contact details (dictionaries keyed by attribute name)
         user (User): processing user
         origin (str): file type being uploaded
+        overwrite (bool): overwrite existing values with new
 
     Returns:
         int: number of contacts added
@@ -984,6 +1093,7 @@ def process_contact_import(
             club,
             contact["system_number"],
             contact,
+            overwrite=overwrite,
         )
 
         # log it

@@ -379,3 +379,73 @@ def cobalt_add_days(days):
     """add days to today"""
 
     return datetime.date.today() + datetime.timedelta(days=days)
+
+
+@register.simple_tag
+def render_cobalt_datepicker(field, add_classes=None, form_no=None):
+    """Template tag to render a datepicker for a form field.
+    If the form is part of a formset the form number must be provided (0 relative)
+    otherwise teh name will not be set correctly.
+
+    Usage:
+        {% render_cobalt_date_picker form.<field> %}
+
+    Args:
+        field (Field): the form field
+        add_class (str): str of classes to add to the definition
+        form_no (int): the sequence number of the form in a formset (or None)
+
+    Returns
+        str: HTML for an input element named for the field, with datepicker class.
+    """
+
+    init_value = ""
+    if field.value():
+        if type(field.value()) == str:
+            input_formats = ["%Y-%m-%d", "%Y/%m/%d", "%d/%m/%Y"]
+            init_date = None
+            for input_format in input_formats:
+                try:
+                    init_date = datetime.datetime.strptime(field.value(), input_format)
+                    if init_date:
+                        break
+                except ValueError:
+                    pass
+            init_value = init_date.strftime("%d/%m/%Y") if init_date else ""
+        elif (
+            type(field.value()) == datetime.date
+            or type(field.value()) == datetime.datetime
+        ):
+            init_value = field.value().strftime("%d/%m/%Y")
+
+    form_qualifier = f"form-{form_no}-" if form_no is not None else ""
+
+    html = f"""
+        <input
+            type="text"
+            class="form-control datepicker{f' {add_classes}' if add_classes else ''}"
+            name="{form_qualifier}{field.name}"
+            id="id_{form_qualifier}{field.name}"
+            value="{init_value}"
+        >
+    """
+
+    return mark_safe(html)
+
+
+@register.filter(name="cobalt_date_field_value", expects_localtime=True)
+def cobalt_date_field_value(field):
+    """Filter to display the non-editable vlaue of a date field
+    Value may be a str or date or datetime"""
+
+    if not field.value():
+        return "-"
+
+    if type(field.value()) == str:
+        return field.value()
+    elif (
+        type(field.value()) == datetime.date or type(field.value()) == datetime.datetime
+    ):
+        return field.value().strftime("%d/%m/%Y")
+    else:
+        return "?"

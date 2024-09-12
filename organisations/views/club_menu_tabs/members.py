@@ -130,6 +130,12 @@ logger = logging.getLogger("cobalt")
 def list_htmx(request: HttpRequest, club: Organisation, message: str = None):
     """build the members tab in club menu"""
 
+    post_message = request.POST.get("message", None)
+    if message and post_message:
+        message = f"{message}. {post_message}"
+    elif post_message:
+        message = post_message
+
     DEFAULT_SORT = "last_desc"
 
     def save_sort_order(new_order):
@@ -1578,12 +1584,14 @@ def club_admin_edit_member_htmx(request, club, message=None):
                 current_index = index
                 break
 
+        is_past_history = member_history.count() > (current_index + 1)
         simplified_membership = None
 
     else:
         simplified_membership = member_details.latest_membership
         member_history = None
         current_index = None
+        is_past_history = False
 
     # get the members log history
     log_history_full = get_member_log(club, system_number)
@@ -1719,6 +1727,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "member_details": member_details,
             "member_history": member_history,
             "current_index": current_index,
+            "is_past_history": is_past_history,
             "log_history": log_history,
             "form": form,
             "smm_form": smm_form,
@@ -1829,21 +1838,23 @@ def club_admin_edit_member_change_htmx(request, club):
     # When the user selects a type in the form the corresponding fee and dates need to be set
     # Note: end_date is not set for types which do not renew (eg Life membership)
     # Note: values are converted to types that JavaScript can ingest
-    # Note: allow a change to the same type to allow details to be changed
+    # Note: don't allow changes to the currnt type (edit or renew instead)
+
     membership_types = (
         MembershipType.objects.filter(organisation=club)
         .exclude(id=member_details.latest_membership.membership_type.id)
         .all()
     )
+
     membership_choices = [(mt.id, mt.name) for mt in membership_types]
     today = timezone.now().date()
     fees_and_due_dates = {
         f"{mt.id}": {
             "annual_fee": float(mt.annual_fee),
-            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%Y-%m-%d"),
+            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%d/%m/%Y"),
             "end_date": " "
             if mt.does_not_renew
-            else club.current_end_date.strftime("%Y-%m-%d"),
+            else club.current_end_date.strftime("%d/%m/%Y"),
             "perpetual": "Y" if mt.does_not_renew else "N",
         }
         for mt in membership_types
@@ -1864,6 +1875,7 @@ def club_admin_edit_member_change_htmx(request, club):
             request.POST,
             club=club,
             registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            exclude_id=member_details.latest_membership.membership_type.id,
         )
         if form.is_valid():
 
@@ -1904,6 +1916,7 @@ def club_admin_edit_member_change_htmx(request, club):
             initial=initial_data,
             club=club,
             registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            exclude_id=member_details.latest_membership.membership_type.id,
         )
 
     return render(
@@ -1941,7 +1954,7 @@ def club_admin_edit_member_membership_action_htmx(request, club):
     if success and action_name == "delete":
         # member is now a contact so can't refresh the member edit view
 
-        return _refresh_member_list(request, club)
+        return _refresh_member_list(request, club, message="Member deleted")
 
     return _refresh_edit_member(
         request,
@@ -2197,10 +2210,10 @@ def club_admin_add_member_detail_htmx(request, club):
     fees_and_due_dates = {
         f"{mt.id}": {
             "annual_fee": float(mt.annual_fee),
-            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%Y-%m-%d"),
+            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%d/%m/%Y"),
             "end_date": " "
             if mt.does_not_renew
-            else club.current_end_date.strftime("%Y-%m-%d"),
+            else club.current_end_date.strftime("%d/%m/%Y"),
             "perpetual": "Y" if mt.does_not_renew else "N",
         }
         for mt in membership_types
@@ -2609,15 +2622,17 @@ def bulk_renewals_htmx(request, club):
                 days=membership_type.grace_period_days
             )
 
+            # .strftime("%d/%m/%Y"),
+
             defaults = {
                 "selected": False,
                 "membership_type_id": membership_type.id,
                 "membership_type_name": membership_type.name,
                 "fee": membership_type.annual_fee if membership_type.annual_fee else 0,
-                "due_date": default_due_date.strftime("%Y-%m-%d"),
-                "auto_pay_date": default_due_date.strftime("%Y-%m-%d"),
-                "start_date": default_start_date.strftime("%Y-%m-%d"),
-                "end_date": default_end_date.strftime("%Y-%m-%d"),
+                "due_date": default_due_date,
+                "auto_pay_date": default_due_date,
+                "start_date": default_start_date,
+                "end_date": default_end_date,
             }
 
             initial_data.append(defaults)
@@ -2640,14 +2655,24 @@ def bulk_renewals_htmx(request, club):
         formset = BulkRenewalFormSet(request.POST)
         options_form = BulkRenewalOptionsForm(request.POST, club=club)
 
-        if not (formset.is_valid() and options_form.is_valid()):
+        form_level_errors = False
+        if formset.is_valid() and options_form.is_valid():
+            for form_index, form in enumerate(formset):
+                if form.cleaned_data["selected"]:
+                    if not form.cleaned_data["start_date"]:
+                        form_level_errors = True
+                        message = "Start date is required"
+                        break
 
-            message = "Please fix errors before proceeding"
+        if not (formset.is_valid() and options_form.is_valid()) or form_level_errors:
+
+            if not message:
+                message = "Please fix errors before proceeding"
             mode = "OPTIONS"
 
         else:
             if mode == "SEND":
-                # process the renewals in teh background
+                # process the renewals in the background
 
                 args = {
                     "club": club,
@@ -2842,6 +2867,13 @@ def view_unpaid_htmx(request, club):
 
     memberships, stats = get_outstanding_memberships(club, sort_option=sort_option)
 
+    if len(memberships) == 0:
+        # nothing to show, so go back to the menu with a message
+
+        return _refresh_renewal_menu(
+            request, club, message="No outstanding membership fees"
+        )
+
     # Note: need to pass the page number because the common routine
     # expects GET rather than POST
     things = cobalt_paginator(
@@ -2877,6 +2909,13 @@ def email_unpaid(request, club_id):
         return rbac_forbidden(request, member_role)
 
     memberships, _ = get_outstanding_memberships(club)
+
+    if len(memberships) == 0:
+        # nobody to email, so go back to the menu with a message
+
+        return _refresh_renewal_menu(
+            request, club, message="No outstanding membership fees"
+        )
 
     candidates = [
         (

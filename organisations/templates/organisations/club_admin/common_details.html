@@ -15,7 +15,7 @@
 
 <!-- EMAIL -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center pt-3">
+    <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
         Email
         {% if always_shared and member_details.membership_status != "CON" %}
             <span
@@ -43,7 +43,7 @@
 {% if member_details.email_hard_bounce %}
     <div class="row pb-2">
         <div class="col-2"></div>
-        <div class="col-8">
+        <div class="col-8 text-danger">
             Warning - this email address bounced!
         </div>
     </div>
@@ -51,8 +51,8 @@
 
 <!-- MOBILE AND OTHER PHONE -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center">
-        Mobile
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
+        Preferred phone
         {% if always_shared and member_details.membership_status != "CON" %}
             <span
                 class="material-icons text-success"
@@ -64,18 +64,18 @@
         {% endif %}
     </div>
     <div class="col-3">
-        <div id="div_id_mobile" class="form-group">
-            <span class="cobalt-form-error" id="id_mobile_errors">
-                {{ form.mobile.errors|striptags }}
+        <div id="div_id_preferred_phone" class="form-group">
+            <span class="cobalt-form-error" id="preferred_phone">
+                {{ form.preferred_phone.errors|striptags }}
             </span>
             {% if edit_details %}
-                {% render_field form.mobile class+="form-control" %}
+                {% render_field form.preferred_phone class+="form-control" %}
             {% else %}
-                {{ form.mobile.value|default:'-' }}
+                {{ form.preferred_phone.value|default:'-' }}
             {% endif %}
         </div>
     </div>
-    <div class="col-2 justify-content-center align-self-center">
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
         Other phone
     </div>
     <div class="col-3">
@@ -94,7 +94,7 @@
 
 <!-- ADDRESS 1 -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center pt-3">
+    <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
         Address 1
     </div>
     <div class="col-8">
@@ -113,7 +113,7 @@
 
 <!-- ADDRESS 2 -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center">
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
         Address 2
     </div>
     <div class="col-8">
@@ -132,7 +132,7 @@
 
 <!-- STATE POSTCODE -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center">
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
         State
     </div>
     <div class="col-3">
@@ -147,7 +147,7 @@
             {% endif %}
         </div>
     </div>
-    <div class="col-2 justify-content-center align-self-center">
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
         Postcode
     </div>
     <div class="col-3">
@@ -166,7 +166,7 @@
 
 <!-- DOB -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center">
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
         Date of birth
         {% if always_shared and member_details.membership_status != "CON" %}
             <span
@@ -177,7 +177,6 @@
                 account_circle
             </span>
         {% endif %}
-
     </div>
     <div class="col-3">
         <div id="div_id_dob" class="form-group">
@@ -185,14 +184,14 @@
                 {{ form.dob.errors|striptags }}
             </span>
             {% if edit_details %}
-                {% render_field form.dob class+="form-control datepicker" %}
+                {% render_cobalt_datepicker form.dob %}
             {% else %}
-                {{ form.dob.value|default:'-' }}
+                {{ form.dob|cobalt_date_field_value }}
             {% endif %}
         </div>
     </div>
     {% if member_details.membership_status != "CON" %}
-        <div class="col-2 justify-content-center align-self-center">
+        <div class="col-2 justify-content-center align-self-center font-weight-bold">
             Club membership number
         </div>
         <div class="col-3">
@@ -210,9 +209,45 @@
     {% endif %}
 </div>
 
+<!-- JOINED AND LEFT DATES -->
+{% if member_details.membership_status != "CON" %}
+    <div class="row pb-2">
+        <div class="col-2 justify-content-center align-self-center font-weight-bold">
+            Joined date
+        </div>
+        <div class="col-3">
+            <div id="div_id_joined_date" class="form-group">
+                <span class="cobalt-form-error" id="id_joined_date_errors">
+                    {{ form.joined_date.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_cobalt_datepicker form.joined_date %}
+                {% else %}
+                    {{ form.joined_date|cobalt_date_field_value }}
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-2 justify-content-center align-self-center font-weight-bold">
+            Left date
+        </div>
+        <div class="col-3">
+            <div id="div_id_left_date" class="form-group">
+                <span class="cobalt-form-error" id="id_left_date_errors">
+                    {{ form.left_date.errors|striptags }}
+                </span>
+                {% if edit_details %}
+                    {% render_cobalt_datepicker form.left_date %}
+                {% else %}
+                    {{ form.left_date|cobalt_date_field_value }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <!-- EMERGENCY CONTACT -->
 <div class="row pb-2">
-    <div class="col-2 justify-content-center align-self-center">
+    <div class="col-2 justify-content-center align-self-center font-weight-bold">
         Emergency contact
     </div>
     <div class="col-8">
@@ -233,7 +268,11 @@
 <div class="row pb-2">
     <div class="col-12 my-4">
         <div class="form-group">
-            <label class="bmd-label-floating" for="id_notes">
+            <label
+                class="bmd-label-floating font-weight-bold text-dark"
+                style="font-weight: bold !important;"
+                for="id_notes"
+            >
                 Notes
             </label>
             {% if edit_details %}

@@ -91,7 +91,7 @@
                                 <span class="cobalt-form-error" id="id_start_date_errors">
                                     {{ form.start_date.errors|striptags }}
                                 </span>
-                                {% render_field form.start_date class+="form-control" %}
+                                {% render_cobalt_datepicker form.start_date %}
                             </div>
                         </div>
                     </div>
@@ -106,7 +106,7 @@
                                     <span class="cobalt-form-error" id="id_end_date_errors">
                                         {{ form.end_date.errors|striptags }}
                                     </span>
-                                    {% render_field form.end_date class+="form-control" %}
+                                    {% render_cobalt_datepicker form.end_date %}
                                 </div>
                             </div>
                         </div>
@@ -152,7 +152,7 @@
                                         <span class="cobalt-form-error" id="id_new_date_errors">
                                             {{ form.due_date.errors|striptags }}
                                         </span>
-                                        {% render_field form.due_date class+="form-control" %}
+                                        {% render_cobalt_datepicker form.due_date %}
                                     </div>
                                 </div>
                             </div>
@@ -277,7 +277,7 @@
         });
 
         feeField.addEventListener('change', function() {
-            if (this.value == 0 || isPaidField.checked) {
+            if (this.value == 0) {
                 dueDateDiv.style.display = 'none';
             } else {
                 dueDateDiv.style.display = 'block';
@@ -297,7 +297,7 @@
         // Trigger change event on page load to set initial values
         membershipTypeField.dispatchEvent(new Event('change'));
         feeField.dispatchEvent(new Event('change'));
-        isPaidField.dispatchEvent(new Event('change'));
+        // isPaidField.dispatchEvent(new Event('change'));
     };
 
 </script>

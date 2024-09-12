@@ -88,11 +88,13 @@
                         Use full club membership management
                     </div>
                     <div class="col-2">
-                        <div id="div_id_full_club_admin" class="form-group">
-                            <span class="cobalt-form-error" id="id_full_club_admin_errors">
-                                {{ form.full_club_admin.errors|striptags }}
-                            </span>
-                            {% render_field form.full_club_admin class+="form-control" %}
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" id="id_full_club_admin" name="full_club_admin" type="checkbox" {% if form.full_club_admin.value %}checked="Checked" {% endif %}>
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
                         </div>
                     </div>
                 </div>

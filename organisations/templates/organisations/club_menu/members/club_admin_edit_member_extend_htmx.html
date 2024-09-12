@@ -39,7 +39,7 @@ This will be rendered in the action pane of the club admin edit member window
                                 <span class="cobalt-form-error" id="id_new_end_date_errors">
                                     {{ form.new_end_date.errors|striptags }}
                                 </span>
-                                {% render_field form.new_end_date class+="form-control" %}
+                                {% render_cobalt_datepicker form.new_end_date %}
                             </div>
                         </div>
 
@@ -51,7 +51,7 @@ This will be rendered in the action pane of the club admin edit member window
                                 <span class="cobalt-form-error" id="id_new_date_errors">
                                     {{ form.due_date.errors|striptags }}
                                 </span>
-                                {% render_field form.due_date class+="form-control" %}
+                                {% render_cobalt_datepicker form.due_date %}
                             </div>
                         </div>
                     </div>
@@ -91,7 +91,7 @@ This will be rendered in the action pane of the club admin edit member window
                                 <span class="cobalt-form-error" id="id_auto_pay_date_errors">
                                     {{ form.auto_pay_date.errors|striptags }}
                                 </span>
-                                {% render_field form.auto_pay_date class+="form-control" %}
+                                {% render_cobalt_datepicker form.auto_pay_date %}
                             </div>
                         </div>
 
@@ -99,11 +99,13 @@ This will be rendered in the action pane of the club admin edit member window
                             Send notice
                         </div>
                         <div class="col-3">
-                            <div id="div_id_send_notice" class="form-group">
-                                <span class="cobalt-form-error" id="id_send_notice_errors">
-                                    {{ form.send_notice.errors|striptags }}
-                                </span>
-                                {% render_field form.send_notice class+="form-control" %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" id="id_send_notice" name="send_notice" type="checkbox" {% if form.send_notice.value %}checked="Checked" {% endif %}>
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -168,7 +170,6 @@ This will be rendered in the action pane of the club admin edit member window
                             </button>
                         </div>
                     </div>
-
                 </form>
             </div>
         </div>

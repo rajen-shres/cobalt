@@ -35,6 +35,8 @@ from cobalt.settings import (
     GLOBAL_ORG,
 )
 
+from utils.templatetags.cobalt_tags import cobalt_nice_date_short
+
 from notifications.models import (
     BatchID,
     Recipient,
@@ -181,14 +183,6 @@ def member_has_future(club, system_number):
 def member_details_short_description(member_details):
     """A brief description of the membership status"""
 
-    future_memberships_qs = MemberMembershipType.objects.filter(
-        membership_type__organisation=member_details.club,
-        system_number=member_details.system_number,
-        membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
-    )
-
-    future_membership_count = future_memberships_qs.count()
-
     if member_details.membership_status in MEMBERSHIP_STATES_ACTIVE:
         desc = f"Current {member_details.latest_membership.membership_type.name} member"
     else:
@@ -197,12 +191,13 @@ def member_details_short_description(member_details):
             f"{member_details.latest_membership.membership_type.name} member"
         )
 
+    latest_paid_until = member_details.latest_paid_until_date
+    if latest_paid_until:
+        desc += f", paid until {cobalt_nice_date_short(latest_paid_until)}"
+
     os_fees = member_details.outstanding_fees
     if os_fees > 0:
         desc += f", {os_fees} membership fees to pay"
-
-    if future_membership_count:
-        desc += " (note: a future dated membership exists for this member)"
 
     return desc
 
@@ -1233,6 +1228,9 @@ def get_count_for_membership_type(membership_type, active_only=True):
 def can_mark_as_lapsed(member_details):
     """Can the member validly be marked as lapsed?"""
 
+    if member_has_future(member_details.club, member_details.system_number):
+        return (False, "Member has a future dated membership")
+
     if member_details.is_active_status:
         return (True, None)
 
@@ -1241,6 +1239,9 @@ def can_mark_as_lapsed(member_details):
 
 def can_mark_as_resigned(member_details):
     """Can the member validly be marked as resigned?"""
+
+    if member_has_future(member_details.club, member_details.system_number):
+        return (False, "Member has a future dated membership")
 
     if (
         member_details.is_active_status
@@ -1254,6 +1255,9 @@ def can_mark_as_resigned(member_details):
 
 def can_mark_as_terminated(member_details):
     """Can the member validly be marked as terminated?"""
+
+    if member_has_future(member_details.club, member_details.system_number):
+        return (False, "Member has a future dated membership")
 
     if (
         member_details.is_active_status
@@ -1269,6 +1273,9 @@ def can_mark_as_terminated(member_details):
 
 def can_mark_as_deceased(member_details):
     """Can the member validly be marked as deceased?"""
+
+    if member_has_future(member_details.club, member_details.system_number):
+        return (False, "Member has a future dated membership")
 
     if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
         return (False, "Member is already marked as deceased")
@@ -1338,6 +1345,9 @@ def can_change_membership(member_details):
 
     if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
         return (False, "Contacts do not have memberships")
+
+    if member_has_future(member_details.club, member_details.system_number):
+        return (False, "Member already has a future dated membership")
 
     return (True, None)
 
@@ -1562,7 +1572,7 @@ def add_member(
         system_number=system_number,
         last_modified_by=requester,
         membership_type=membership_type,
-        fee=fee if fee else membership_type.annual_fee,
+        fee=fee if fee is not None else 0,
         start_date=start_date if start_date else today,
     )
     new_membership.due_date = (
@@ -2273,7 +2283,7 @@ def renew_membership(
             f"Membership paid using {new_membership.payment_method.payment_method}",
         )
 
-    return (True, "Membership extended " + message)
+    return (True, "Membership extended" + (f". {message}" if message else ""))
 
 
 def _format_renewal_notice_email(
@@ -2454,25 +2464,42 @@ def change_membership(
     # allow any start date. Work out when to end the current
 
     start_date_for_new = start_date if start_date else today
-    is_after_current = start_date_for_new >= (
-        member_details.latest_membership.end_date + timedelta(days=1)
-    )
+    if member_details.latest_membership.end_date:
+        is_after_current = (
+            start_date_for_new > member_details.latest_membership.end_date
+        )
+    else:
+        #  current has no end date (ie perptual), so will need to end it
+        is_after_current = False
 
     if is_after_current:
         # no change
         end_date_for_current = member_details.latest_membership.end_date
+
+        if member_details.membership_status in MEMBERSHIP_STATES_TERMINAL:
+            # not an active member, so new membership should start today
+            if start_date_for_new != today:
+                return False, "New membership cannot start in the future"
+        elif end_date_for_current != start_date_for_new - timedelta(days=1):
+            return (
+                False,
+                "New membership must start at or before the end of the current",
+            )
     else:
         end_date_for_current = start_date_for_new - timedelta(days=1)
         if end_date_for_current < member_details.latest_membership.start_date:
             # would be odd to back-date before the start of the current, but handle it sensibly anyway
-            end_date_for_current = member_details.latest_membership.start_date
+            return (
+                False,
+                "New membership cannot be back dated before the start of the current",
+            )
 
     # build the new membership record
     new_membership = MemberMembershipType(
         system_number=system_number,
         last_modified_by=requester,
         membership_type=membership_type,
-        fee=fee if fee is not None else membership_type.annual_fee,
+        fee=fee if fee is not None else 0,
         start_date=start_date_for_new,
     )
 
@@ -2512,7 +2539,7 @@ def change_membership(
 
     if (
         member_details.latest_membership.membership_state in MEMBERSHIP_STATES_ACTIVE
-        and not is_after_current
+        and end_date_for_current != member_details.latest_membership.end_date
     ):
         member_details.latest_membership.end_date = end_date_for_current
         if end_date_for_current < today:
@@ -2587,11 +2614,15 @@ def share_user_data_with_clubs(user, this_membership=None, initial=False):
         overwrite = club_options.share_data == MemberClubOptions.SHARE_DATA_ALWAYS
 
         # update any fields
-        for field_name in ["email", "dob", "mobile"]:
-            if getattr(user, field_name) and (
-                not getattr(membership, field_name) or overwrite
+        for profile_field_name, club_field_name in [
+            ("email", "email"),
+            ("dob", "dob"),
+            ("mobile", "preferred_phone"),
+        ]:
+            if getattr(user, profile_field_name) and (
+                not getattr(membership, club_field_name) or overwrite
             ):
-                setattr(membership, field_name, getattr(user, field_name))
+                setattr(membership, club_field_name, getattr(user, profile_field_name))
                 updated = True
 
         # if the club is using the same email make sure that the email bounce data
@@ -2882,7 +2913,7 @@ def convert_contact_to_member(
         system_number=system_number,
         last_modified_by=requester,
         membership_type=membership_type,
-        fee=membership_type.annual_fee if fee is None else fee,
+        fee=fee if fee is not None else 0,
         start_date=start_date_actual,
         end_date=end_date_actual,
     )
@@ -2915,7 +2946,9 @@ def convert_contact_to_member(
     member_details.save()
 
     # and log it
-    message = f"Contact converted to member ({membership_type.name}) " + payment_message
+    message = f"Contact converted to member ({membership_type.name})"
+    if payment_message:
+        message += ". " + payment_message
 
     log_member_change(
         club,
@@ -3386,7 +3419,8 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
         stats[metric] = stats.get(metric, 0) + 1
 
     def add_to_total(metric, amount):
-        stats[metric] = stats.get(metric, 0) + amount
+        if amount:
+            stats[metric] = stats.get(metric, 0) + amount
 
     init_metrics(["total_fees", "auto_pay_fees"])
 
@@ -3395,6 +3429,7 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
     memberships = MemberMembershipType.objects.filter(
         membership_type__organisation=club,
         is_paid=False,
+        fee__gt=0,
         membership_state__in=[
             MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
             MemberMembershipType.MEMBERSHIP_STATE_DUE,
@@ -3448,9 +3483,8 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
             for key in player_dict[membership.system_number]:
                 setattr(membership, key, player_dict[membership.system_number][key])
             add_to_total("total_fees", membership.fee)
-            if membership.allow_auto_pay:
-                add_to_total("auto_pay_fees", membership.fee)
             if membership.allow_auto_pay and membership.auto_pay_date:
+                add_to_total("auto_pay_fees", membership.fee)
                 membership.auto_pay_sort_date = membership.auto_pay_date
             else:
                 membership.auto_pay_sort_date = date(1900, 1, 1)

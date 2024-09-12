@@ -234,6 +234,25 @@ class Organisation(models.Model):
         return renewal_date
 
     @property
+    def last_renewal_date(self):
+        """the most recent past renewal date, ie the start of the current
+        club membership year"""
+
+        today = timezone.now().date()
+        renewal_date = date(
+            today.year,
+            self.membership_renewal_date_month,
+            self.membership_renewal_date_day,
+        )
+        if renewal_date >= today:
+            renewal_date = date(
+                today.year - 1,
+                self.membership_renewal_date_month,
+                self.membership_renewal_date_day,
+            )
+        return renewal_date
+
+    @property
     def current_end_date(self):
         """The end date of the current membership period (today or later)"""
         today = timezone.now().date()
@@ -593,7 +612,7 @@ class MemberClubDetails(models.Model):
 
     joined_date = models.DateField("Date Joined", null=True, blank=True)
 
-    left_date = models.DateField("Date Joined", null=True, blank=True, default=None)
+    left_date = models.DateField("Date Left", null=True, blank=True, default=None)
 
     address1 = models.CharField("Address Line 1", max_length=100, blank=True, null=True)
 
@@ -603,30 +622,20 @@ class MemberClubDetails(models.Model):
 
     postcode = models.CharField(max_length=10, blank=True, null=True)
 
-    mobile_regex = RegexValidator(
-        regex=r"^04\d{8}$",
-        message="We only accept Australian phone numbers starting 04 which are 10 numbers long.",
-    )
-    mobile = models.CharField(
-        "Mobile Number",
+    preferred_phone = models.CharField(
+        "Preferred Phone",
         blank=True,
         unique=False,
         null=True,
         max_length=15,
-        validators=[mobile_regex],
     )
 
-    phone_regex = RegexValidator(
-        regex=r"^(\d{8}|\d{10})$",
-        message="We only accept Australian phone numbers with 8 or 10 digits.",
-    )
     other_phone = models.CharField(
         "Phone",
         blank=True,
         unique=False,
         null=True,
         max_length=15,
-        validators=[phone_regex],
     )
 
     dob = models.DateField(blank="True", null=True, validators=[no_future])
@@ -720,6 +729,26 @@ class MemberClubDetails(models.Model):
         ).aggregate(os_fees=models.Sum("fee"))
 
         return os_fees_dict["os_fees"] if os_fees_dict["os_fees"] else 0
+
+    @property
+    def latest_paid_until_date(self):
+        """Return the current paid util date, or the latest paid until date
+        from none curren memberships, or None
+        """
+
+        if self.latest_membership.paid_until_date:
+            return self.latest_membership.paid_until_date
+        else:
+            latest_paid_membership = (
+                MemberMembershipType.objects.filter(system_number=self.system_number)
+                .order_by("paid_until_date")
+                .last()
+            )
+            return (
+                latest_paid_membership.paid_until_date
+                if latest_paid_membership
+                else None
+            )
 
     def refresh_status(self, as_at_date=None, commit=True):
         """Ensure that the membership status and current membership are correct.
