@@ -515,8 +515,11 @@ def get_users_or_unregistered_users_from_email_list(email_list):
 
     # Get Unregistered Users
     club_member_list = get_club_member_list_for_emails(None, email_list)
+    club_member_dict = {
+        system_no: club_email for (system_no, club_email) in club_member_list
+    }
     un_regs = UnregisteredUser.objects.filter(
-        system_number__in=[system_number for system_number, _ in club_member_list]
+        system_number__in=club_member_dict,
     ).distinct()
     un_reg_dict = {un_reg.system_number: un_reg for un_reg in un_regs}
 
@@ -530,11 +533,11 @@ def get_users_or_unregistered_users_from_email_list(email_list):
         mixed_dict[user.email] = user
 
     # Add unregistered to dictionary
-    for (system_number, email) in un_reg_dict:
+    for system_number in un_reg_dict:
         un_reg = un_reg_dict[system_number]
         un_reg.is_un_reg = True
         un_reg.is_user = False
-        mixed_dict[email] = un_reg
+        mixed_dict[club_member_dict[system_number]] = un_reg
 
     return mixed_dict
 

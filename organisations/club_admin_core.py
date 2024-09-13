@@ -848,14 +848,14 @@ def get_club_member_list_for_emails(
     exclude_contacts=True,
     exclude_deceased=True,
 ):
-    """Return a list of member's system numbers, matching a list of emails
+    """Return a list of member's system numbers to emails, matching a list of emails
 
     Args:
         club (Organisation): the club or None for all clubs
         email_list (list): list of email addresses
 
     Returns:
-        List: list of (system numbers, email)
+        list: list of (system numbers, email)
 
     Note that this only searches on the member's email, not the email in the user record"""
 
@@ -3275,10 +3275,18 @@ def get_members_for_renewal(
 
     users = User.objects.filter(system_number__in=system_numbers)
     unreg_users = UnregisteredUser.all_objects.filter(system_number__in=system_numbers)
-    options = MemberClubOptions.objects.filter(club=club, user__in=users)
-    system_numbers_allowing_auto_pay = [
-        option.user.system_number for option in options if option.allow_membership
-    ]
+
+    # NOTE: Options records are created when someone looks at their profile, so we
+    # need to check for people who have blocked (default is allow).
+
+    system_numbers_blocking_auto_pay = MemberClubOptions.objects.filter(
+        club=club,
+        user__in=users,
+        allow_auto_pay=False,
+    ).values_list(
+        "user__system_number",
+        flat=True,
+    )
 
     player_dict = {
         player.system_number: {
@@ -3287,7 +3295,10 @@ def get_members_for_renewal(
             else "Unregistered User",
             "user_or_unreg": player,
             "user_email": player.email if type(player) is User else None,
-            "allow_auto_pay": player.system_number in system_numbers_allowing_auto_pay,
+            "allow_auto_pay": (
+                (player.system_number not in system_numbers_blocking_auto_pay)
+                and (type(player) is User)
+            ),
         }
         for player in chain(users, unreg_users)
     }

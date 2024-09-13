@@ -2622,8 +2622,6 @@ def bulk_renewals_htmx(request, club):
                 days=membership_type.grace_period_days
             )
 
-            # .strftime("%d/%m/%Y"),
-
             defaults = {
                 "selected": False,
                 "membership_type_id": membership_type.id,
@@ -2648,6 +2646,11 @@ def bulk_renewals_htmx(request, club):
 
         options_form = BulkRenewalOptionsForm(initial=default_options, club=club)
 
+        # JPG debug
+        print(
+            f"*** bulk_renewals_htmx *** send_notice init = {options_form.initial['send_notice']}"
+        )
+
         mode = "OPTIONS"
 
     else:
@@ -2671,6 +2674,11 @@ def bulk_renewals_htmx(request, club):
             mode = "OPTIONS"
 
         else:
+            # JPG debug
+            print(
+                f"*** bulk_renewals_htmx *** send_notice = {'T' if options_form.cleaned_data['send_notice'] else 'F'}"
+            )
+
             if mode == "SEND":
                 # process the renewals in the background
 
@@ -2740,6 +2748,11 @@ def bulk_renewals_htmx(request, club):
                         member_details,
                         renewal_parameters,
                     )
+
+    # JPG debug
+    print(
+        f"*** bulk_renewals_htmx *** send_notice render = {options_form.fields['send_notice']}"
+    )
 
     context = {
         "club": club,

@@ -233,8 +233,16 @@
                     </div>
                     <div class="col-3">
                         <div class="form-check">
-                            <label class="form-check-label">
-                                <input class="form-check-input" id="id_send_notice" name="send_notice" type="checkbox" {% if form.send_notice.value %}checked="Checked" {% endif %}>
+                            <label
+                                class="form-check-label"
+                            >
+                                <input
+                                    class="form-check-input"
+                                    id="id_send_notice"
+                                    name="send_notice"
+                                    type="checkbox"
+                                    {% if options_form.send_notice.value %}checked{% endif %}
+                                >
                                 <span class="form-check-sign">
                                     <span class="check"></span>
                                 </span>
@@ -378,10 +386,12 @@
                                         {{ member_details.latest_membership.fee|cobalt_currency }}
                                     </td>
                                     <td class="text-center">
-                                        {% if member_details.allow_auto_pay %}
-                                            <span class="material-icons text-success">check_circle_outline</span>
-                                        {% elif member_details.user_type != 'Unregistered Use' %}
-                                            <span class="material-icons text-warning">highlight_off</span>
+                                        {% if member_details.user_type != 'Unregistered User' %}
+                                            {% if member_details.allow_auto_pay %}
+                                                <span class="material-icons text-success">check_circle_outline</span>
+                                            {% else %}
+                                                <span class="material-icons text-danger">highlight_off</span>
+                                            {% endif %}
                                         {% endif %}
                                     </td>
                                     <td class="text-left">
