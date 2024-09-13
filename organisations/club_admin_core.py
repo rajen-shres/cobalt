@@ -3312,6 +3312,7 @@ def get_members_for_renewal(
             member.allow_auto_pay = player_dict[member.system_number]["allow_auto_pay"]
             member.form_index = form_index
             member.fee = renewal_parameters.fee
+            member.auto_pay_date = renewal_parameters.auto_pay_date
             add_to_total("total_fees", member.fee)
             increment_count("member_count")
             if member.allow_auto_pay:
@@ -3384,7 +3385,7 @@ def _sort_memberships(membership_list, sort_option):
         membership_list.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
         membership_list.sort(key=lambda x: x.due_date, reverse=True)
 
-    elif sort_option == "auto_asc":
+    elif sort_option == "auto_desc":
         membership_list.sort(
             key=lambda x: (
                 x.auto_pay_sort_date,
@@ -3393,7 +3394,7 @@ def _sort_memberships(membership_list, sort_option):
             )
         )
 
-    elif sort_option == "auto_desc":
+    elif sort_option == "auto_asc":
         membership_list.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
         membership_list.sort(key=lambda x: x.auto_pay_sort_date, reverse=True)
 
@@ -3457,15 +3458,17 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
     member_details = MemberClubDetails.objects.filter(
         club=club, system_number__in=system_numbers
     )
-    options = MemberClubOptions.objects.filter(
-        club=club, user__in=users
-    ).select_related("user")
 
     # build a dictionary of the player data
 
-    options_dict = {
-        option.user.system_number: option.allow_auto_pay for option in options
-    }
+    system_numbers_blocking_auto_pay = MemberClubOptions.objects.filter(
+        club=club,
+        user__in=users,
+        allow_auto_pay=False,
+    ).values_list(
+        "user__system_number",
+        flat=True,
+    )
 
     club_email_dict = {
         member_detail.system_number: member_detail.email
@@ -3481,7 +3484,10 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
             "user_type": f"{GLOBAL_TITLE} User"
             if type(player) == User
             else "Unregistered User",
-            "allow_auto_pay": options_dict.get(player.system_number, False),
+            "allow_auto_pay": (
+                (player.system_number not in system_numbers_blocking_auto_pay)
+                and (type(player) is User)
+            ),
         }
         for player in chain(users, unreg)
     }
@@ -3494,11 +3500,20 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
             for key in player_dict[membership.system_number]:
                 setattr(membership, key, player_dict[membership.system_number][key])
             add_to_total("total_fees", membership.fee)
-            if membership.allow_auto_pay and membership.auto_pay_date:
-                add_to_total("auto_pay_fees", membership.fee)
-                membership.auto_pay_sort_date = membership.auto_pay_date
+            if not membership.auto_pay_date:
+                # No auto pay, so sort last
+                membership.auto_pay_sort_date = date(2100, 1, 3)
             else:
-                membership.auto_pay_sort_date = date(1900, 1, 1)
+                if type(membership.user_or_unreg) == User:
+                    if membership.allow_auto_pay:
+                        add_to_total("auto_pay_fees", membership.fee)
+                        membership.auto_pay_sort_date = membership.auto_pay_date
+                    else:
+                        # blocking, sort after real dates
+                        membership.auto_pay_sort_date = date(2100, 1, 1)
+                else:
+                    # unreg user, sort after blocked
+                    membership.auto_pay_sort_date = date(2100, 1, 2)
             if membership.system_number in club_email_dict:
                 membership.club_email = club_email_dict[membership.system_number]
             else:

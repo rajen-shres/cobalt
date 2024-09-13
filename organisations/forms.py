@@ -1042,7 +1042,7 @@ BulkRenewalFormSet = formset_factory(BulkRenewalLineForm, extra=0)
 
 
 class BulkRenewalOptionsForm(forms.Form):
-    """A form for teh common options for a batch"""
+    """A form for the common options for a batch"""
 
     send_notice = forms.BooleanField(label="Send renewal notices", required=False)
     club_template = forms.ChoiceField(label="Club email template", required=True)

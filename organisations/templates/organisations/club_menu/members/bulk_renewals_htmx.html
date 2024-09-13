@@ -386,12 +386,39 @@
                                         {{ member_details.latest_membership.fee|cobalt_currency }}
                                     </td>
                                     <td class="text-center">
-                                        {% if member_details.user_type != 'Unregistered User' %}
-                                            {% if member_details.allow_auto_pay %}
-                                                <span class="material-icons text-success">check_circle_outline</span>
+                                        {% if member_details.auto_pay_date %}
+                                            {% if member_details.user_type == 'Unregistered User' %}
+                                                <span
+                                                    class="material-icons text-warning"
+                                                    data-toggle="tooltip"
+                                                    title="Unregistered User"
+                                                >
+                                                    highlight_off
+                                                </span>
                                             {% else %}
-                                                <span class="material-icons text-danger">highlight_off</span>
+                                                {% if member_details.allow_auto_pay %}
+                                                    <span
+                                                        data-toggle="tooltip"
+                                                        title="Auto pay enabled"
+                                                    >
+                                                        {{ member_details.auto_pay_date|date:"d/m/Y" }}
+                                                    </span>
+                                                {% else %}
+                                                    <span
+                                                        data-toggle="tooltip"
+                                                        title="This member does not allow auto pay"
+                                                    >
+                                                        Blocked
+                                                    </span>
+                                                {% endif %}
                                             {% endif %}
+                                        {% else %}
+                                            <span
+                                                data-toggle="tooltip"
+                                                title="Auto pay not set-up for this payment"
+                                            >
+                                                -
+                                            </span>
                                         {% endif %}
                                     </td>
                                     <td class="text-left">

@@ -50,8 +50,10 @@
 
                         {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='due' sort_label='Due Date' %}
 
-                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='auto' sort_label='Auto Pay' %}
+                        {% include 'organisations/club_menu/members/outstanding_memberships_column_headers' with sort_field='auto' sort_label='Auto Pay' add_classes='text-center'%}
 
+                        <th class="text-right">
+                        </th>
                         <th class="text-right">
                             Action
                         </th>
@@ -82,16 +84,53 @@
                                     -
                                 {% endif %}
                             </td>
-                            <td class="text-left">
+                            <td class="text-center">
                                 {% if thing.auto_pay_date %}
-                                    {% if thing.allow_auto_pay %}
-                                        <span class="material-icons text-success">check_circle_outline</span>
-                                        {{ thing.auto_pay_date|date:"d/m/Y" }}
-                                    {% elif thing.user_type != 'Unregistered Use' %}
-                                        <span class="material-icons text-warning">highlight_off</span>
+                                    {% if thing.user_type == 'Unregistered User' %}
+                                        <span
+                                            class="material-icons text-warning"
+                                            data-toggle="tooltip"
+                                            title="Unregistered User"
+                                        >
+                                            highlight_off
+                                        </span>
+                                    {% else %}
+                                        {% if thing.allow_auto_pay %}
+                                            <span
+                                                data-toggle="tooltip"
+                                                title="Auto pay enabled"
+                                            >
+                                                {{ thing.auto_pay_date|date:"d/m/Y" }}
+                                            </span>
+                                        {% else %}
+                                            <span
+                                                data-toggle="tooltip"
+                                                title="This member does not allow auto pay"
+                                            >
+                                                Blocked
+                                            </span>
+                                        {% endif %}
                                     {% endif %}
                                 {% else %}
-                                    -
+                                    <span
+                                        data-toggle="tooltip"
+                                        title="Auto pay not set-up for this payment"
+                                    >
+                                        -
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if thing.user_type == 'Unregistered User' %}
+                                    {% if not thing.club_email %}
+                                        <span
+                                            class="material-icons text-danger"
+                                            data-toggle="tooltip"
+                                            title="No email address for this member"
+                                        >
+                                            email
+                                        </span>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td class="text-right">
@@ -122,7 +161,7 @@
                                 <li class="page-item">
                                     <a class="page-link"
                                         hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
-                                        hx-vars="page: {{ things.previous_page_number }}"
+                                        hx-vars="page: {{ things.previous_page_number }}, sort_option:'{{ sort_option }}'"
                                         hx-target="#id_member_renewals_tab"
                                         style="cursor: pointer"
                                     >
@@ -145,7 +184,7 @@
                                     <li class="page-item">
                                         <a class="page-link"
                                             hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
-                                            hx-vars="page: {{ num }}"
+                                            hx-vars="page: {{ num }}, sort_option:'{{ sort_option }}'"
                                             hx-target="#id_member_renewals_tab"
                                             style="cursor: pointer"
                                         >
@@ -164,7 +203,7 @@
                                 <li class="page-item">
                                     <a class="page-link"
                                         hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
-                                        hx-vars="page: {{ things.next_page_number }}"
+                                        hx-vars="page: {{ things.next_page_number }}, sort_option:'{{ sort_option }}'"
                                         hx-target="#id_member_renewals_tab"
                                         style="cursor: pointer"
                                     >

@@ -1,4 +1,4 @@
-<th class="text-left">
+<th class="text-left {{ add_classes }}">
     <a href="javascript:void(0)"
         hx-post="{% url 'organisations:club_menu_tab_members_view_unpaid_htmx' %}"
 
