@@ -126,8 +126,13 @@
                         <div class="col text-right">
                             <button
                                 class="btn btn-sm btn-info"
-                                hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
-                                hx-target="#id_panel_contacts"
+                                {% if caller == "contacts" %}
+                                    hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                    hx-target="#id_panel_contacts"
+                                    {% else }
+                                    hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                {% endif %}
                                 hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}"
                                 hx-trigger="click"
                             >
@@ -154,8 +159,13 @@
                         <div class="col text-right">
                             <button
                                 class="btn btn-sm btn-info"
-                                hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
-                                hx-target="#id_panel_contacts"
+                                {% if caller == "contacts" %}
+                                    hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                    hx-target="#id_panel_contacts"
+                                {% else %}
+                                    hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                {% endif %}
                                 hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}"
                                 hx-trigger="click"
                             >

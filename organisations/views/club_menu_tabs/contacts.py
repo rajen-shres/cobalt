@@ -19,6 +19,7 @@ from cobalt.settings import (
 )
 from organisations.club_admin_core import (
     add_contact_with_system_number,
+    club_email_for_member,
     convert_contact_to_member,
     delete_contact,
     get_club_contacts,
@@ -26,6 +27,7 @@ from organisations.club_admin_core import (
     get_club_member_list,
     get_contact_details,
     get_contact_system_numbers,
+    get_membership_details_for_club,
     get_member_log,
     get_member_system_numbers,
     get_valid_activities,
@@ -39,6 +41,8 @@ from organisations.forms import (
 )
 from organisations.views.club_menu_tabs.members import (
     _refresh_edit_member,
+    _refresh_member_list,
+    _send_welcome_pack,
 )
 from organisations.views.general import (
     get_rbac_model_for_state,
@@ -48,6 +52,7 @@ from organisations.models import (
     MemberClubTag,
     MembershipType,
     Organisation,
+    WelcomePack,
 )
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
@@ -270,6 +275,7 @@ def convert_select_system_number_htmx(request, club):
     system_number = request.POST.get("system_number", None)
     contact_details = get_contact_details(club, system_number)
     last_name_only = request.POST.get("last_name_only", "NO") == "YES"
+    caller = request.POST.get("caller", "contacts")
 
     if not contact_details.internal:
         # not an internal system number, so just go to the next stage
@@ -306,6 +312,7 @@ def convert_select_system_number_htmx(request, club):
             "contact_details": contact_details,
             "user_list": user_list,
             "is_more": is_more,
+            "caller": caller,
         },
     )
 
@@ -330,29 +337,17 @@ def convert_htmx(request, club):
     """
 
     message = None
+    today = timezone.now().date()
+
     system_number = request.POST.get("system_number")
     new_system_number = request.POST.get("new_system_number")
+    caller = request.POST.get("caller", "contacts")
+
+    welcome_pack = WelcomePack.objects.filter(organisation=club).exists()
 
     contact_details = get_contact_details(club, system_number)
 
-    # Build the list of available membership types, and associated default fees and dates.
-    # When the user selects a type in the form the corresponding fee and dates need to be set
-    # Note: end_date is not set for types which do not renew (eg Life membership)
-    # Note: values are converted to types that JavaScript can ingest
-    membership_types = MembershipType.objects.filter(organisation=club).all()
-    membership_choices = [(mt.id, mt.name) for mt in membership_types]
-    today = timezone.now().date()
-    fees_and_due_dates = {
-        f"{mt.id}": {
-            "annual_fee": float(mt.annual_fee) if club.full_club_admin else 0,
-            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%Y-%m-%d"),
-            "end_date": " "
-            if mt.does_not_renew
-            else club.current_end_date.strftime("%Y-%m-%d"),
-            "perpetual": "Y" if mt.does_not_renew else "N",
-        }
-        for mt in membership_types
-    }
+    membership_choices, fees_and_due_dates = get_membership_details_for_club(club)
 
     if len(membership_choices) == 0:
         # no choices so go back to the main view
@@ -397,11 +392,36 @@ def convert_htmx(request, club):
 
             if success:
 
-                return _refresh_contact_list(
-                    request,
-                    club,
-                    message if message else "Contact converted to member",
-                )
+                if form.cleaned_data["send_welcome_pack"]:
+                    email = club_email_for_member(club, system_number)
+                    if email:
+                        resp = _send_welcome_pack(
+                            club, contact_details.first_name, email, request.user, False
+                        )
+                        if resp:
+                            if message:
+                                message = f"{message}. {resp}"
+                            else:
+                                message = f"Contact converted to member. {resp}"
+
+                # JPG debug
+                print(f"Convert contcat succeeded: caller = {caller}")
+
+                if caller == "contacts":
+
+                    return _refresh_contact_list(
+                        request,
+                        club,
+                        message if message else "Contact converted to member",
+                    )
+
+                else:
+
+                    return _refresh_member_list(
+                        request,
+                        club,
+                        message if message else "Contact converted to member",
+                    )
 
         else:
             # Invalid form
@@ -431,6 +451,8 @@ def convert_htmx(request, club):
             "message": message,
             "converting": True,
             "internal": contact_details.internal,
+            "welcome_pack": welcome_pack,
+            "caller": caller,
         },
     )
 

@@ -32,7 +32,11 @@
                         hx-target="#id_add_member_pane"
                     {% elif converting %}
                         hx-post="{% url 'organisations:club_admin_edit_covert_contact_htmx' %}"
-                        hx-target="#id_contact_action_pane"
+                        {% if caller == "contacts" %}
+                            hx-target="#id_contact_action_pane"
+                        {% else %}
+                            hx-target="#id_add_member_pane"
+                        {% endif %}
                     {% else %}
                         hx-post="{% url 'organisations:club_admin_edit_member_change_htmx' %}"
                         hx-target="#id_action_pane"
@@ -128,10 +132,10 @@
                                 </div>
                             </div>
 
-                            <div class="col-2 justify-content-center align-self-center pt-3">
+                            <div class="col-2 justify-content-center align-self-center pt-3 optional_payment_method">
                                 Payment method
                             </div>
-                            <div class="col-3">
+                            <div class="col-3 optional_payment_method">
                                 <div id="div_id_payment_method" class="form-group">
                                     <span class="cobalt-form-error" id="id_is_paid_errors">
                                         {{ form.payment_method.errors|striptags }}
@@ -139,7 +143,6 @@
                                     {% render_field form.payment_method class+="form-control" %}
                                 </div>
                             </div>
-
                         </div>
 
                         <div id="id_optional_due_date">
@@ -181,7 +184,9 @@
                                 </div>
                             </div>
                         </div>
+                    {% endif %}
 
+                    {% if adding or converting %}
                         {% if welcome_pack %}
                             <div class="row pb-2">
                                 <div class="col-3">
@@ -204,8 +209,13 @@
                                     </div>
                                 </div>
                             </div>
+                        {% else %}
+                            {% render_field form.send_welcome_pack class+="form-control d-none" %}
                         {% endif %}
                     {% endif %}
+
+                    <!-- Hidden field for 'caller' -->
+                    <input type="hidden" name="caller" value="{{ caller }}">
 
                     <div class="row pb-2">
                         <div class="col">
@@ -224,8 +234,13 @@
                                     hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
                                     hx-target="#id_panel_members"
                                 {% elif converting %}
-                                    hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
-                                    hx-target="#id_panel_contacts"
+                                    {% if caller == "contacts" %}
+                                        hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
+                                        hx-target="#id_panel_contacts"
+                                    {% else %}
+                                        hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
+                                        hx-target="#id_panel_members"
+                                    {% endif %}
                                 {% else %}
                                     hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
                                     hx-target="#id_panel_members"
@@ -279,8 +294,10 @@
         feeField.addEventListener('change', function() {
             if (this.value == 0) {
                 dueDateDiv.style.display = 'none';
+                $('.optional_payment_method').hide();
             } else {
                 dueDateDiv.style.display = 'block';
+                $('.optional_payment_method').show();
             }
         });
 

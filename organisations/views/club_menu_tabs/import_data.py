@@ -149,6 +149,53 @@ DATE_FORMATS = [
     "%c",
 ]
 
+# post code ranges to states
+# Note: needs to be searched in order to pick up exceptions
+POSTCODE_RANGES = [
+    (200, 221, "ACT"),
+    (800, 899, "NT"),
+    (1000, 1999, "NSW"),
+    (2600, 2617, "ACT"),
+    (2900, 2906, "ACT"),
+    (2913, 2914, "ACT"),
+    (2000, 2899, "NSW"),
+    (3586, 3586, "NSW"),
+    (3644, 3644, "NSW"),
+    (3707, 3707, "NSW"),
+    (3000, 3999, "VIC"),
+    (4000, 4999, "QLD"),
+    (5000, 5999, "SA"),
+    (6000, 6999, "WA"),
+    (7000, 7999, "TAS"),
+    (8000, 8999, "VIC"),
+    (9000, 9999, "QLD"),
+]
+
+
+def state_from_postcode(postcode):
+    """Returns the three leter Australian state string for a given postcode
+
+    Args:
+        postcode (str): some postcode string
+
+    Returns:
+        str: state string or None
+    """
+
+    if not postcode:
+        return None
+
+    try:
+        pc_int = int(postcode)
+    except ValueError:
+        return None
+
+    for low, high, state_str in POSTCODE_RANGES:
+        if low <= pc_int <= high:
+            return state_str
+
+    return None
+
 
 def _map_csv_to_columns(mapping, csv, strict=False):
     """Use a mapping specification to build a dictionary of import values
@@ -529,6 +576,7 @@ def _csv_generic(club_member, contacts=False):
 
 def _csv_compscore(club_member):
     """formatting for Compscore 2/3 files
+    Populates state code from the postcode
 
     Args:
         club_member: list (a row from spreadsheet)
@@ -539,7 +587,14 @@ def _csv_compscore(club_member):
         item: dict with formatted values
 
     """
-    return _map_csv_to_columns(COMPSCORE_MEMBER_MAPPING, club_member)
+    success, error, item = _map_csv_to_columns(COMPSCORE_MEMBER_MAPPING, club_member)
+
+    if "postcode" in item:
+        state_str = state_from_postcode(item["postcode"])
+        if state_str:
+            item["state"] = state_str
+
+    return (success, error, item)
 
 
 @check_club_menu_access()

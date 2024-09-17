@@ -18,7 +18,7 @@
     {% csrf_token %}
 
     <div class="row pb-2">
-        <div class="col-2 justify-content-center align-self-center pt-3">
+        <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
             Membership Type
         </div>
         <div class="col-3">
@@ -37,7 +37,7 @@
                 {% endif %}
             </div>
         </div>
-        <div class="col-2 justify-content-center align-self-center pt-3">
+        <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
             Membership State
         </div>
         <div class="col-3">
@@ -59,7 +59,7 @@
     </div>
 
     <div class="row pb-2">
-        <div class="col-2 justify-content-center align-self-center pt-3">
+        <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
             Start date
         </div>
         <div class="col-3">
@@ -68,13 +68,13 @@
                     {{ smm_form.start_date.errors|striptags }}
                 </span>
                 {% if edit_details %}
-                    {% render_field smm_form.start_date class+="form-control datepicker" %}
+                    {% render_cobalt_datepicker smm_form.start_date %}
                 {% else %}
-                    {{ smm_form.start_date.value|default:'-' }}
+                    {{ smm_form.start_date|cobalt_date_field_value }}
                 {% endif %}
             </div>
         </div>
-        <div class="col-2 justify-content-center align-self-center pt-3">
+        <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
             End date
         </div>
         <div class="col-3">
@@ -83,16 +83,16 @@
                     {{ smm_form.end_date.errors.value|striptags }}
                 </span>
                 {% if edit_details %}
-                    {% render_field smm_form.end_date class+="form-control datepicker" %}
+                    {% render_cobalt_datepicker smm_form.end_date %}
                 {% else %}
-                    {{ smm_form.end_date.value|default:'-' }}
+                    {{ smm_form.end_date|cobalt_date_field_value }}
                 {% endif %}
             </div>
         </div>
     </div>
 
     <div class="row pb-2">
-        <div class="col-2 justify-content-center align-self-center pt-3">
+        <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
             Paid date
         </div>
         <div class="col-3">
@@ -101,13 +101,13 @@
                     {{ smm_form.paid_date.errors|striptags }}
                 </span>
                 {% if edit_details %}
-                    {% render_field smm_form.paid_date class+="form-control datepicker" %}
+                    {% render_cobalt_datepicker smm_form.paid_date %}
                 {% else %}
-                    {{ smm_form.paid_date.value|default:'-' }}
+                    {{ smm_form.paid_date|cobalt_date_field_value }}
                 {% endif %}
             </div>
         </div>
-        <div class="col-2 justify-content-center align-self-center pt-3">
+        <div class="col-2 justify-content-center align-self-center pt-3 font-weight-bold">
             Paid until date
         </div>
         <div class="col-3">
@@ -116,9 +116,9 @@
                     {{ smm_form.paid_until_date.errors|striptags }}
                 </span>
                 {% if edit_details %}
-                    {% render_field smm_form.paid_until_date class+="form-control datepicker" %}
+                    {% render_cobalt_datepicker smm_form.paid_until_date %}
                 {% else %}
-                    {{ smm_form.paid_until_date.value|default:'-' }}
+                    {{ smm_form.paid_until_date|cobalt_date_field_value }}
                 {% endif %}
             </div>
         </div>

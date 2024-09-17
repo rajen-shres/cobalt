@@ -396,7 +396,9 @@ class MemberMembershipType(models.Model):
 
     home_club = models.BooleanField("Is Member's Home Club", default=False)
 
-    start_date = models.DateField("Started At")
+    # Note: start date is required in full club admin, but not otherwise
+    # so this needs to validated in the code, not the scema
+    start_date = models.DateField("Started At", blank=True, null=True, default=None)
 
     end_date = models.DateField("Ends At", blank=True, null=True, default=None)
     """ Membership end date, None if membershipy type is perpetual """
@@ -485,7 +487,7 @@ class MemberMembershipType(models.Model):
 
     @property
     def period(self):
-        """A string representation of teh effective period"""
+        """A string representation of the effective period"""
         if self.end_date:
             if self.start_date.year == self.end_date.year:
                 return f"{self.start_date:%-d-%b} - {self.end_date:%-d-%b-%y}"
@@ -502,6 +504,16 @@ class MemberMembershipType(models.Model):
             return (self.start_date <= today) and (self.end_date >= today)
         else:
             return self.start_date <= today
+
+    @property
+    def description(self):
+        """A description of the record, for use in logging"""
+
+        return (
+            f"{self.membership_type.name} "
+            + f"({self.get_membership_state_display()}) "
+            + self.period
+        )
 
     def refresh_state(self, as_at_date=None, commit=True):
         """Ensure that the membership state is correct.
@@ -732,23 +744,25 @@ class MemberClubDetails(models.Model):
 
     @property
     def latest_paid_until_date(self):
-        """Return the current paid util date, or the latest paid until date
-        from none curren memberships, or None
+        """Return the current paid until date (may be from a future dated membership),
+        or the latest paid until date from non-current memberships, or None
         """
 
-        if self.latest_membership.paid_until_date:
-            return self.latest_membership.paid_until_date
-        else:
-            latest_paid_membership = (
-                MemberMembershipType.objects.filter(system_number=self.system_number)
-                .order_by("paid_until_date")
-                .last()
+        latest_paid_membership = (
+            MemberMembershipType.objects.filter(
+                membership_type__organisation=self.club,
+                system_number=self.system_number,
             )
-            return (
-                latest_paid_membership.paid_until_date
-                if latest_paid_membership
-                else None
+            .exclude(
+                paid_until_date=None,
             )
+            .order_by("paid_until_date")
+            .last()
+        )
+
+        return (
+            latest_paid_membership.paid_until_date if latest_paid_membership else None
+        )
 
     def refresh_status(self, as_at_date=None, commit=True):
         """Ensure that the membership status and current membership are correct.

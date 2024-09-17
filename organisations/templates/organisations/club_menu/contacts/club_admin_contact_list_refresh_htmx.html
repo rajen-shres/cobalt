@@ -6,7 +6,7 @@
     hx-post="{% url 'organisations:club_menu_tab_contacts_htmx' %}"
     hx-target="#id_panel_contacts"
     hx-vals='{
-    "club_id":{{ club.id }},
+    "club_id":"{{ club_id }}",
     "message":"{{ message }}"
     }'
     hx-trigger="load"

@@ -31,6 +31,12 @@
                 {% endif %}
             </h2>
 
+            {% if contact_details.blocking_membership %}
+                <h4 class="text-danger">
+                    This person is blocking membership of this club
+                </h4>
+            {% endif %}
+
             {% if message %}
                 <h3
                     class="text-danger"
@@ -100,14 +106,16 @@
                                         Edit Details
                                     </button>
 
-                                    <button
-                                        class="btn btn-sm btn-primary"
-                                        hx-post="{% url 'organisations:club_admin_edit_covert_contact_select_htmx' %}"
-                                        hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', last_name_only: 'NO'"
-                                        hx-target="#id_contact_action_pane"
-                                    >
-                                        Convert to Member
-                                    </button>
+                                    {% if not contact_details.blocking_membership %}
+                                        <button
+                                            class="btn btn-sm btn-primary"
+                                            hx-post="{% url 'organisations:club_admin_edit_covert_contact_select_htmx' %}"
+                                            hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', last_name_only: 'NO'"
+                                            hx-target="#id_contact_action_pane"
+                                        >
+                                            Convert to Member
+                                        </button>
+                                    {% endif %}
 
                                     <button
                                         type="button"

@@ -50,14 +50,15 @@ from rbac.core import (
 )
 
 from .models import (
-    Organisation,
+    ClubLog,
+    ClubMemberLog,
     MembershipType,
     MemberMembershipType,
     MemberClubDetails,
     MemberClubEmail,
-    ClubMemberLog,
     MemberClubTag,
     MemberClubOptions,
+    Organisation,
     OrgEmailTemplate,
     RenewalParameters,
 )
@@ -276,6 +277,45 @@ def member_details_description(member_details):
             desc += f", {paid_until}"
 
     return desc
+
+
+def get_membership_details_for_club(club, exclude_id=None):
+    """Return a membership type details for this club, for use by JavaScript in
+    defaulting fields driven by membership type.
+
+    Args:
+        club (Organisation): the club
+        exclude_id (int): a membership type id to exclude (eg the current one)
+
+    Returns:
+        list: membership choices list (tuples of id and name), with values
+                in a form that JavaScript can ingest.
+        dict: membership details keyed by membership type id
+    """
+
+    membership_types = MembershipType.objects.filter(organisation=club)
+    if exclude_id:
+        membership_types = membership_types.exclude(id=exclude_id)
+    membership_types = membership_types.all()
+
+    membership_choices = [(mt.id, mt.name) for mt in membership_types]
+
+    today = timezone.now().date()
+    fees_and_due_dates = {
+        f"{mt.id}": {
+            "annual_fee": float(mt.annual_fee)
+            if club.full_club_admin and mt.annual_fee
+            else 0,
+            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%d/%m/%Y"),
+            "end_date": ""
+            if mt.does_not_renew
+            else club.current_end_date.strftime("%d/%m/%Y"),
+            "perpetual": "Y" if mt.does_not_renew else "N",
+        }
+        for mt in membership_types
+    }
+
+    return (membership_choices, fees_and_due_dates)
 
 
 # -------------------------------------------------------------------------------------
@@ -950,10 +990,10 @@ def get_club_contacts(
     )
 
     # augment with additional details
-    return _augment_contact_details(contacts, sort_option=sort_option)
+    return _augment_contact_details(club, contacts, sort_option=sort_option)
 
 
-def _augment_contact_details(contact_qs, sort_option="last_desc"):
+def _augment_contact_details(club, contact_qs, sort_option="last_desc"):
     """Augments a query set of contacts with user/unregistered user details
 
     Args:
@@ -970,6 +1010,14 @@ def _augment_contact_details(contact_qs, sort_option="last_desc"):
 
     users = User.objects.filter(system_number__in=system_numbers)
     unreg_users = UnregisteredUser.all_objects.filter(system_number__in=system_numbers)
+
+    # get system numbers of registered users blocking membership of this club
+    blocking_system_numbers = MemberClubOptions.objects.filter(
+        club=club,
+        user__in=users,
+        allow_membership=False,
+    ).values_list("user__system_number", flat=True)
+
     player_dict = {
         player.system_number: {
             "first_name": player.first_name,
@@ -983,6 +1031,7 @@ def _augment_contact_details(contact_qs, sort_option="last_desc"):
             "internal": False
             if type(player) is User
             else player.internal_system_number,
+            "blocking_membership": player.system_number in blocking_system_numbers,
         }
         for player in chain(users, unreg_users)
     }
@@ -998,6 +1047,9 @@ def _augment_contact_details(contact_qs, sort_option="last_desc"):
             contact.internal = player_dict[contact.system_number]["internal"]
             # Note: only ever use the contact email for a contact (ie don't use User email)
             contact.club_email = contact.email
+            contact.blocking_membership = player_dict[contact.system_number][
+                "blocking_membership"
+            ]
         else:
             contact.first_name = "Unknown"
             contact.last_name = "Unknown"
@@ -1005,6 +1057,7 @@ def _augment_contact_details(contact_qs, sort_option="last_desc"):
             contact.user_or_unreg_id = None
             contact.internal = True
             contact.club_email = contact.email
+            contact.blocking_membership = True
 
     # sort
     if sort_option == "first_desc":
@@ -1042,7 +1095,7 @@ def get_contact_details(club, system_number):
         membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT,
     )
 
-    augmented_list = _augment_contact_details(member_qs, None)
+    augmented_list = _augment_contact_details(club, member_qs, None)
 
     if len(augmented_list) == 0:
         return None
@@ -1622,7 +1675,9 @@ def add_member(
     member_details.save()
 
     # and log it
-    message = f"Joined club ({membership_type.name}) " + payment_message
+    message = f"Joined club ({membership_type.name})"
+    if payment_message:
+        message += ". " + payment_message
 
     log_member_change(
         club,
@@ -2063,6 +2118,13 @@ def _delete_member(club, member_details, requester=None):
     member_details.left_date = None
     member_details.save()
 
+    log_member_change(
+        club,
+        member_details.system_number,
+        requester,
+        "Membership deleted. Details saved as a contact",
+    )
+
     return (True, "Membership information deleted. Details saved as a contact")
 
 
@@ -2184,6 +2246,20 @@ def make_membership_payment(
     )
 
     membership.save()
+
+    if payment_success:
+        # see if the member details level needs to be updated
+        member_details = MemberClubDetails.objects.get(
+            system_number=membership.system_number,
+            club=club,
+        )
+        if member_details.latest_membership == membership:
+            # generally should just make it current, but there might be edge
+            # cases with paying historic memberships. Leave that to user to edit
+            member_details.membership_status = (
+                MemberClubDetails.MEMBERSHIP_STATUS_CURRENT
+            )
+            member_details.save()
 
     log_member_change(
         club,
@@ -2560,7 +2636,9 @@ def change_membership(
         member_details.save()
 
     # and log it
-    message = f"Membership changed to {membership_type.name} " + payment_message
+    message = f"Membership changed to {membership_type.name}"
+    if payment_message:
+        message += ". " + payment_message
 
     log_member_change(
         club,
@@ -3054,6 +3132,21 @@ def block_club_for_user(club_id, user):
 
     _notify_club_of_block(club, user)
 
+    # log it
+
+    log_member_change(
+        club,
+        user.system_number,
+        user,
+        "User has blocked club membership",
+    )
+
+    ClubLog(
+        organisation=club,
+        actor=user,
+        action=f"{user} has blocked club membership",
+    ).save()
+
     return (True, None, None)
 
 
@@ -3087,6 +3180,19 @@ def unblock_club_for_user(club_id, user):
             return (True, "Club is already allowed", club)
         else:
             club_options.delete()
+
+    log_member_change(
+        club,
+        user.system_number,
+        user,
+        "User has unblocked club membership",
+    )
+
+    ClubLog(
+        organisation=club,
+        actor=user,
+        action=f"{user} has unblocked club membership",
+    ).save()
 
     return (True, None, club)
 

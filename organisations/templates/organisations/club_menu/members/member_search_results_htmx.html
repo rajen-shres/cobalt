@@ -83,7 +83,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if user.source == "member" or user.source == "contact" %}
+                            {% if user.source == "member" %}
                                 <button class="btn btn-sm btn-primary" disabled>Add</button>
                             {% elif user.source == "registered" or user.source == "unregistered" or user.source == "mpc" %}
                                 <button
@@ -93,6 +93,15 @@
                                     hx-vars='{ "club_id": {{ club_id }}, "system_number": {{ user.system_number }} }'
                                 >
                                     Add
+                                </button>
+                            {% elif user.source == "contact" %}
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    hx-post="{% url 'organisations:club_admin_add_covert_contact_wrapper_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                    hx-vars='{ "club_id": {{ club_id }}, "system_number": {{ user.system_number }} }'
+                                >
+                                    Convert to member
                                 </button>
                             {% endif %}
                         </td>

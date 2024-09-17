@@ -37,10 +37,16 @@
     {% endif %}
 
     <td class="text-left">
+        {% if mmt.payment_method %}
+            {{ mmt.payment_method.payment_method }}
+        {% endif %}
+    </td>
+
+    <td class="text-left">
         {{ mmt.due_date|date:'d/m/Y'|default_if_none:'-' }}
     </td>
 
-    {% if member_admin %}
+    {% if member_admin and show_history %}
         <td>
             <button
                 class="btn btn-sm btn-warning"

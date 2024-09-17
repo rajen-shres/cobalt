@@ -21,10 +21,11 @@ from accounts.models import User, UnregisteredUser, UserAdditionalInfo
 from club_sessions.models import SessionEntry
 from cobalt.settings import (
     ALL_SYSTEM_ACCOUNTS,
+    BRIDGE_CREDITS,
+    GLOBAL_CURRENCY_SYMBOL,
+    COBALT_HOSTNAME,
     GLOBAL_ORG,
     GLOBAL_TITLE,
-    COBALT_HOSTNAME,
-    GLOBAL_CURRENCY_SYMBOL,
 )
 from masterpoints.views import (
     search_mpc_users_by_name,
@@ -53,6 +54,7 @@ from organisations.club_admin_core import (
     get_club_member_list,
     get_club_member_list_email_match,
     get_contact_system_numbers,
+    get_membership_details_for_club,
     get_member_count,
     get_member_details,
     get_members_for_renewal,
@@ -326,6 +328,7 @@ def club_admin_report_all_csv(request, club_id):
             "First Name",
             "Last Name",
             f"{GLOBAL_TITLE} User Type",
+            f"{BRIDGE_CREDITS} Balance",
             "Membership Type",
             "Membership Status",
             "Membership Start Date",
@@ -342,7 +345,7 @@ def club_admin_report_all_csv(request, club_id):
             "Address 2",
             "State",
             "Post Code",
-            "Mobile",
+            "Preferred Phone",
             "Other Phone",
             "Date of Birth",
             "Emergency Contact",
@@ -364,6 +367,11 @@ def club_admin_report_all_csv(request, club_id):
                 member.first_name,
                 member.last_name,
                 member.user_type,
+                (
+                    ""
+                    if member.user_type == "Unregistered User"
+                    else get_balance(member.user_or_unreg)
+                ),
                 membership_type_dict.get(member.system_number, ""),
                 member.get_membership_status_display(),
                 format_date_or_none(member.latest_membership.start_date),
@@ -380,7 +388,7 @@ def club_admin_report_all_csv(request, club_id):
                 member.address2,
                 member.state,
                 member.postcode,
-                member.mobile,
+                member.preferred_phone,
                 member.other_phone,
                 member.dob,
                 member.emergency_contact,
@@ -1571,7 +1579,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
                 system_number=system_number,
                 membership_type__organisation=club,
             )
-            .select_related("membership_type")
+            .select_related("membership_type", "payment_method")
             .order_by("-created_at")
         )
 
@@ -1647,37 +1655,44 @@ def club_admin_edit_member_htmx(request, club, message=None):
             smm_form = MembershipRawEditForm(
                 request.POST,
                 instance=simplified_membership,
+                full_club_admin=False,
                 club=club,
                 registered=member_details.user_type == f"{ GLOBAL_TITLE } User",
             )
-            if smm_form.is_valid():
-                form = MemberClubDetailsForm(request.POST, instance=member_details)
-                if form.is_valid():
+            form = MemberClubDetailsForm(request.POST, instance=member_details)
+            if smm_form.is_valid() and form.is_valid():
 
-                    # save the updates
-                    smm_form.save()
-                    form.save()
-                    member_details.membership_status = smm_form.cleaned_data[
-                        "membership_state"
-                    ]
-                    member_details.save()
+                # save the updates
+                smm_form.save()
+                form.save()
+                member_details.membership_status = smm_form.cleaned_data[
+                    "membership_state"
+                ]
+                member_details.save()
 
-                    # reload to ensure that the new state is reflected corrcetly
-                    request.POST = request.POST.copy()
-                    request.POST["save"] = "NO"
-                    request.POST["edit"] = "NO"
-                    return club_admin_edit_member_htmx(request, message="Updates saved")
-                else:
-                    message = "Error saving updates"
-                    editing = True
+                # reload to ensure that the new state is reflected corrcetly
+                request.POST = request.POST.copy()
+                request.POST["save"] = "NO"
+                request.POST["edit"] = "NO"
+
+                log_member_change(
+                    club, system_number, request.user, "Member details changed"
+                )
+
+                return club_admin_edit_member_htmx(request, message="Updates saved")
             else:
-                message = "Error saving updates"
+                message = "Please correct the errors"
                 editing = True
         else:
             smm_form = None
             form = MemberClubDetailsForm(request.POST, instance=member_details)
             if form.is_valid():
                 form.save()
+
+                log_member_change(
+                    club, system_number, request.user, "Member details changed"
+                )
+
                 message = "Updates saved"
             else:
                 message = "Error saving updates"
@@ -1705,6 +1720,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             }
 
             smm_form = MembershipRawEditForm(
+                full_club_admin=False,
                 instance=simplified_membership,
                 initial=smm_initial_data,
                 club=club,
@@ -1821,6 +1837,7 @@ def club_admin_edit_member_change_htmx(request, club):
     """
 
     system_number = request.POST.get("system_number")
+    today = timezone.now().date()
 
     member_details = get_member_details(club, system_number)
 
@@ -1834,31 +1851,9 @@ def club_admin_edit_member_change_htmx(request, club):
             message if message else "Action not permitted",
         )
 
-    # Build the list of available membership types, and associated default fees and dates.
-    # When the user selects a type in the form the corresponding fee and dates need to be set
-    # Note: end_date is not set for types which do not renew (eg Life membership)
-    # Note: values are converted to types that JavaScript can ingest
-    # Note: don't allow changes to the currnt type (edit or renew instead)
-
-    membership_types = (
-        MembershipType.objects.filter(organisation=club)
-        .exclude(id=member_details.latest_membership.membership_type.id)
-        .all()
+    membership_choices, fees_and_due_dates = get_membership_details_for_club(
+        club, exclude_id=member_details.latest_membership.membership_type.id
     )
-
-    membership_choices = [(mt.id, mt.name) for mt in membership_types]
-    today = timezone.now().date()
-    fees_and_due_dates = {
-        f"{mt.id}": {
-            "annual_fee": float(mt.annual_fee),
-            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%d/%m/%Y"),
-            "end_date": " "
-            if mt.does_not_renew
-            else club.current_end_date.strftime("%d/%m/%Y"),
-            "perpetual": "Y" if mt.does_not_renew else "N",
-        }
-        for mt in membership_types
-    }
 
     if len(membership_choices) == 0:
         # no choices so go back to the main view
@@ -2110,7 +2105,11 @@ def club_admin_edit_member_extend_htmx(request, club):
 
         initial_data = {
             "new_end_date": club.next_end_date.strftime("%Y-%m-%d"),
-            "fee": member_details.latest_membership.membership_type.annual_fee,
+            "fee": (
+                member_details.latest_membership.membership_type.annual_fee
+                if member_details.latest_membership.membership_type.annual_fee
+                else 0
+            ),
             "due_date": default_due_date.strftime("%Y-%m-%d"),
             "auto_pay_date": default_due_date.strftime("%Y-%m-%d"),
             "payment_method": -1,
@@ -2138,10 +2137,34 @@ def club_admin_edit_member_extend_htmx(request, club):
 
 
 @check_club_menu_access(check_members=True)
+def club_admin_convert_add_contact_wrapper_htmx(request, club):
+    """Wrapper for the convert contact form for use when converting
+    frmom the add search
+    """
+
+    system_number = request.POST.get("system_number")
+    member_admin = rbac_user_has_role(request.user, f"orgs.members.{club.id}.edit")
+    has_errors = _check_member_errors(club)
+
+    return render(
+        request,
+        "organisations/club_menu/members/club_admin_add_convert_contact_wrapper_htmx.html",
+        {
+            "club": club,
+            "system_number": system_number,
+            "member_admin": member_admin,
+            "has_errors": has_errors,
+            "full_membership_mgmt": club.full_club_admin,
+        },
+    )
+
+
+@check_club_menu_access(check_members=True)
 def club_admin_add_member_htmx(request, club):
     """Add a member to the club
 
     Handles registered users, unregistered users and MPC imports
+    and converting contacts (from add member search).
 
     Renders the wrapper HTML that triggers an HTMX load of the shared
     club_admin_edit_member_change_htmx.html
@@ -2192,32 +2215,16 @@ def club_admin_add_member_detail_htmx(request, club):
             user_type = "MPC"
             mpc_details = get_mpc_details(club, system_number)
 
-    # When the user selects a type in the form the corresponding fee and dates need to be set
-    # Note: end_date is not set for types which do not renew (eg Life membership)
-    # Note: values are converted to types that JavaScript can ingest
-
     message = None
+    today = timezone.now().date()
 
-    membership_types = MembershipType.objects.filter(organisation=club).all()
+    membership_choices, fees_and_due_dates = get_membership_details_for_club(club)
 
-    if len(membership_types) == 0:
+    if len(membership_choices) == 0:
         # no choices so go back to the add menu
         return add_htmx(
             request, message="You need to create membership types before adding members"
         )
-
-    today = timezone.now().date()
-    fees_and_due_dates = {
-        f"{mt.id}": {
-            "annual_fee": float(mt.annual_fee),
-            "due_date": (today + timedelta(mt.grace_period_days)).strftime("%d/%m/%Y"),
-            "end_date": " "
-            if mt.does_not_renew
-            else club.current_end_date.strftime("%d/%m/%Y"),
-            "perpetual": "Y" if mt.does_not_renew else "N",
-        }
-        for mt in membership_types
-    }
 
     welcome_pack = WelcomePack.objects.filter(organisation=club).exists()
 
@@ -2268,16 +2275,20 @@ def club_admin_add_member_detail_htmx(request, club):
                             resp = _send_welcome_pack(
                                 club, user.first_name, email, request.user, False
                             )
-                            message = f"{message}. {resp}"
+                            if resp:
+                                message = f"{message}. {resp}"
 
                     return _refresh_edit_member(request, club, system_number, message)
 
         else:
+            # JPG debug
+            print(form.errors)
             message = "Error with the form"
 
     else:
         initial_data = {
-            "membership_type": membership_types.first().id,
+            # "membership_type": membership_types.first().id,
+            "membership_type": membership_choices[0][0],
             "start_date": today.strftime("%Y-%m-%d"),
             "payment_method": -1,
         }
@@ -2452,6 +2463,13 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
                     member_details.membership_status = mmt.membership_state
                     member_details.save()
 
+                log_member_change(
+                    club,
+                    member_details.system_number,
+                    request.user,
+                    f"Membership manually edited: {mmt.description}",
+                )
+
                 return _refresh_edit_member(
                     request, club, system_number, "Changes saved", show_history=True
                 )
@@ -2495,7 +2513,16 @@ def club_admin_edit_member_delete_mmt_htmx(request, club):
 
     if request.POST.get("delete", "NO") == "YES":
 
+        mmt_description = mmt.description
+
         mmt.delete()
+
+        log_member_change(
+            club,
+            system_number,
+            request.user,
+            f"Membership manually deleted: {mmt_description}",
+        )
 
         request.POST = request.POST.copy()
         del request.POST["delete"]

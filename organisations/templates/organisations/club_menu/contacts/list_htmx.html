@@ -145,6 +145,9 @@
                             </a>
                         </th>
 
+                        <!-- Column with no header for blocking icons -->
+                        <th></th>
+
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -167,6 +170,20 @@
                             {% endif %}
 
                             {% include 'organisations/club_menu/contacts/list_column_content.html' with column_content=thing.user_type %}
+
+                            {% if thing.blocking_membership %}
+                                <td>
+                                    <span
+                                        class="material-icons text-danger"
+                                        data-toggle="tooltip"
+                                        title="This user is blocking membership of this club"
+                                    >
+                                        block
+                                    </span>
+                                </td>
+                            {% else %}
+                                <td></td>
+                            {% endif %}
 
                             <td class="text-center">
                                 {% if thing.user_type == GLOBAL_TITLE|stringformat:"s User" %}

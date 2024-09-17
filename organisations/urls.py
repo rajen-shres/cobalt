@@ -937,6 +937,11 @@ urlpatterns = [
         name="club_admin_edit_covert_contact_htmx",
     ),
     path(
+        "club-menu/tabs/contacts/convert-wrapper",
+        organisations.views.club_menu_tabs.members.club_admin_convert_add_contact_wrapper_htmx,
+        name="club_admin_add_covert_contact_wrapper_htmx",
+    ),
+    path(
         "club-menu/tabs/contacts/add/individual-system",
         organisations.views.club_menu_tabs.contacts.add_contact_manual_htmx,
         name="club_admin_add_contact_manual_htmx",

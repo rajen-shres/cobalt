@@ -228,31 +228,40 @@ class OrgDatesForm(forms.ModelForm):
             "full_club_admin",
         )
 
+    def clean_membership_renewal_date_month(self):
+        month = self.cleaned_data.get("membership_renewal_date_month")
+
+        if month is None:
+            raise forms.ValidationError("This field is required.")
+        if not 1 <= month <= 12:
+            raise forms.ValidationError("Month must be between 1 and 12.")
+
+        return month
+
+    def clean_membership_renewal_date_day(self):
+        day = self.cleaned_data.get("membership_renewal_date_day")
+
+        if day is None:
+            raise forms.ValidationError("This field is required.")
+        if not 1 <= day <= 31:
+            raise forms.ValidationError("Day must be between 1 and 31.")
+
+        return day
+
     def clean(self):
         """custom validation"""
         cleaned_data = super(OrgDatesForm, self).clean()
 
-        # Test for a valid month and day (Feb 29th will always fail)
-        try:
-            datetime.datetime(
-                year=1967,
-                month=cleaned_data["membership_renewal_date_month"],
-                day=cleaned_data["membership_renewal_date_day"],
-            )
-        except ValueError:
-            self.add_error("membership_renewal_date_month", "Invalid date")
-            return
+        month = cleaned_data.get("membership_renewal_date_month")
+        day = cleaned_data.get("membership_renewal_date_day")
 
-        # JPG CLEAN UP
-        # try:
-        #     datetime.datetime(
-        #         year=1967,
-        #         month=cleaned_data["membership_part_year_date_month"],
-        #         day=cleaned_data["membership_part_year_date_day"],
-        #     )
-        # except ValueError:
-        #     self.add_error("membership_part_year_date_month", "Invalid date")
-        #     return
+        # Only validate the date if both day and month have passed individual validation
+        if month and day:
+            try:
+                datetime.datetime(year=1967, month=month, day=day)
+            except ValueError:
+                self.add_error("membership_renewal_date_month", "Invalid date")
+                self.add_error("membership_renewal_date_day", "Invalid date")
 
         return self.cleaned_data
 
@@ -368,6 +377,10 @@ class MembershipRawEditForm(forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
+        if "full_club_admin" in kwargs:
+            self.full_club_admin = kwargs.pop("full_club_admin")
+        else:
+            self.full_club_admin = True
         self.club = kwargs.pop("club")
         registered = kwargs.pop("registered")
         super(MembershipRawEditForm, self).__init__(*args, **kwargs)
@@ -402,6 +415,16 @@ class MembershipRawEditForm(forms.ModelForm):
             self.fields["membership_state"].initial = kwargs["initial"].get(
                 "membership_state", self.fields["membership_state"].initial
             )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+
+        if self.full_club_admin:
+            if not start_date:
+                self.add_error("start_date", "Start date is required")
+
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super(MembershipRawEditForm, self).save(commit=False)
@@ -448,23 +471,23 @@ class MembershipChangeTypeForm(forms.Form):
     membership_type = forms.ChoiceField(label="Membership Type", required=True)
     start_date = forms.DateField(
         label="Start date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=True,
     )
     end_date = forms.DateField(
         label="End date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
     fee = forms.DecimalField(label="Fee", max_digits=10, decimal_places=2)
     due_date = forms.DateField(
         label="Payment due date",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
     # JPG clean up
     # is_paid = forms.BooleanField(label="Mark as paid", required=False)
-    payment_method = forms.ChoiceField(label="Payment method", required=True)
+    payment_method = forms.ChoiceField(label="Payment method", required=False)
 
     send_welcome_pack = forms.BooleanField(initial=True, required=False)
 
@@ -495,7 +518,10 @@ class MembershipChangeTypeForm(forms.Form):
     def clean_start_date(self):
         start_date = self.cleaned_data.get("start_date")
         today = timezone.now().date()
-        if start_date > today:
+        if start_date > today + datetime.timedelta(days=1):
+            # Allow a start date of tomorrow to allow ending currnt today
+            # JPG debug
+            print("*** FORM ERROR - Start date cannot be in the future")
             raise forms.ValidationError("Start date cannot be in the future")
         return start_date
 
@@ -504,6 +530,8 @@ class MembershipChangeTypeForm(forms.Form):
         start_date = self.cleaned_data.get("start_date")
         end_date = self.cleaned_data.get("end_date")
         if start_date and end_date and start_date > end_date:
+            # JPG debug
+            print("*** FORM ERROR - End date must be after the start date")
             raise forms.ValidationError("End date must be after the start date")
         return cleaned_data
 

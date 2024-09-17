@@ -1,0 +1,31 @@
+{% load humanize %}
+{% load cobalt_tags %}
+
+<div class="card" style="min-height: 800px; height: auto">
+    <div class="card-header card-header-info">
+        <h2>Members</h2>
+        {% include "organisations/club_menu/members/nav_htmx.html" with selected="add" %}
+    </div>
+
+    <div class="card-body" id="id_add_member_pane">
+
+        <div
+            hx-post="{% url 'organisations:club_admin_edit_covert_contact_select_htmx' %}"
+            hx-target="#id_add_member_pane"
+            hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ system_number }}, "caller": "members" }'
+            hx-trigger="load"
+        >
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('htmx:afterSettle', function(event) {
+
+        if (event.detail.target.id === 'id_add_member_pane') {
+
+            // hook for any initialisation required for the form entry in the action pane
+            initialiseHTMXForm();
+        };
+    });
+</script>

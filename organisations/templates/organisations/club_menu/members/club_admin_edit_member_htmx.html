@@ -107,18 +107,16 @@
                             <div class="col-10 text-center">
                                 <h4>{{ member_description }}</h4>
                             </div>
-                            {% if is_past_history %}
-                                <div class="col text-right">
-                                    <button
-                                        class="btn btn-sm btn-info"
-                                        hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
-                                        hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO', show_history: {% if show_history %}'NO'{% else %}'YES'{% endif %}"
-                                        hx-target="#id_panel_members"
-                                    >
-                                        {{ show_history|yesno:"Hide history,Show history" }}
-                                    </button>
-                                </div>
-                            {% endif %}
+                            <div class="col text-right">
+                                <button
+                                    class="btn btn-sm btn-info"
+                                    hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                    hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}, save: 'NO', edit: 'NO', show_history: {% if show_history %}'NO'{% else %}'YES'{% endif %}"
+                                    hx-target="#id_panel_members"
+                                >
+                                    {{ show_history|yesno:"Hide detail,Show detail" }}
+                                </button>
+                            </div>
                         </div>
 
                         <!-- MEMBERSHIP HISTORY TABLE -->
@@ -132,9 +130,10 @@
                                         <th class="text-left">From</th>
                                         <th class="text-left">To</th>
                                         <th class="text-center">Fee</th>
+                                        <th class="text-left">Paid by</th>
                                         <th class="text-left">Due</th>
-                                        {% if member_admin %}
-                                            <th class="text-center">Actions</th>
+                                        {% if member_admin and show_history %}
+                                            <th class="text-center">Manual Override</th>
                                         {% endif %}
                                     </tr>
                                 </thead>
@@ -156,6 +155,12 @@
 
                         <div class="row" id="id_action_pane">
                             <div class="col">
+
+                                <span
+                                    class="font-weight-bold mr-3"
+                                >
+                                    Actions:
+                                </span>
 
                                 {% if 'change_status' in valid_actions %}
 
@@ -243,7 +248,11 @@
 
         <div class="card mt-5">
             <div class="card-header card-header-warning">
-                Member Details
+                {% if edit_details %}
+                    Editing Member Details : {{ member_details.first_name }} {{ member_details.last_name }} - {{ GLOBAL_ORG }}:{{ member_details.system_number }}
+                {% else %}
+                    Member Details
+                {% endif %}
             </div>
             <div class="container">
                 <div class="card-body" id="id-member-details">
