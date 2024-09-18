@@ -22,7 +22,11 @@ from organisations.club_admin_core import (
 from organisations.models import (
     MemberClubDetails,
 )
+from notifications.models import (
+    BatchID,
+)
 from notifications.views.core import (
+    create_rbac_batch_id,
     send_cobalt_email_with_template,
 )
 from payments.models import (
@@ -54,6 +58,12 @@ class Command(BaseCommand):
         group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
         member_editors = rbac_get_users_in_group(group)
 
+        if not member_editors:
+            logger.warning(
+                f"Unable to send email to club {club}, no member editors found"
+            )
+            return
+
         email_body = render_to_string(
             "organisations/club_menu/members/auto_pay_club_email_content.html",
             {
@@ -61,6 +71,7 @@ class Command(BaseCommand):
                 "total_collected": total_collected,
                 "paid_memberships": paid_memberships,
                 "failed_memberships": failed_memberships,
+                "today": today,
                 "GLOBAL_TITLE": GLOBAL_TITLE,
                 "BRIDGE_CREDITS": BRIDGE_CREDITS,
                 "GLOBAL_ORG": GLOBAL_ORG,
@@ -73,22 +84,34 @@ class Command(BaseCommand):
             "box_colour": "#007bff",
         }
 
+        # create batch ID
+        batch_id = create_rbac_batch_id(
+            rbac_role=f"notifications.orgcomms.{club.id}.edit",
+            organisation=club,
+            batch_type=BatchID.BATCH_TYPE_COMMS,
+            batch_size=len(member_editors),
+            description=context["title"],
+            complete=True,
+        )
+
         for user in member_editors:
 
             context["name"] = user.first_name
 
             send_cobalt_email_with_template(
                 to_address=user.email,
+                batch_id=batch_id,
                 context=context,
             )
 
-    def notify_member(self, club, membership):
+    def notify_member(self, club, membership, batch_id):
 
         email_body = render_to_string(
             "organisations/club_menu/members/auto_pay_member_email_content.html",
             {
                 "club": club,
                 "membership": membership,
+                "today": today,
                 "GLOBAL_TITLE": GLOBAL_TITLE,
                 "BRIDGE_CREDITS": BRIDGE_CREDITS,
                 "GLOBAL_ORG": GLOBAL_ORG,
@@ -104,6 +127,7 @@ class Command(BaseCommand):
 
         send_cobalt_email_with_template(
             to_address=membership.user.email,
+            batch_id=batch_id,
             context=context,
         )
 
@@ -141,6 +165,15 @@ class Command(BaseCommand):
             failed_memberships = []
             total_collected = 0
 
+            # create batch ID for member notifications
+            member_batch_id = create_rbac_batch_id(
+                rbac_role=f"notifications.orgcomms.{club.id}.edit",
+                organisation=club,
+                batch_type=BatchID.BATCH_TYPE_COMMS,
+                description=f"Membership fee payment for {club.name}",
+                complete=False,
+            )
+
             for membership in memberships:
 
                 with transaction.atomic():
@@ -166,7 +199,7 @@ class Command(BaseCommand):
 
                         paid_memberships.append(membership)
                         total_collected += membership.fee
-                        self.notify_member(club, membership)
+                        self.notify_member(club, membership, member_batch_id)
 
                     else:
                         logger.warning(
@@ -174,6 +207,11 @@ class Command(BaseCommand):
                         )
                         membership.message = message
                         failed_memberships.append(membership)
+
+            # update the members batch
+            member_batch_id.batch_size = len(paid_memberships)
+            member_batch_id.state = BatchID.BATCH_STATE_COMPLETE
+            member_batch_id.save()
 
             self.notify_club(
                 club, total_collected, paid_memberships, failed_memberships

@@ -24,7 +24,7 @@
     <tr>
         <td>Fee:</td>
         <td>
-            {% if renewal_parameters.fee %}
+            {% if membership.fee %}
                 ${{ membership.fee|cobalt_number }}
             {% else %}
                 -
@@ -42,8 +42,8 @@
     <tr>
         <td>Due:</td>
         <td>
-            {% if renewal_parameters.due_date %}
-                {{ renewal_parameters.due_date }}
+            {% if membership.due_date %}
+                {{ membership.due_date }}
             {% else %}
                 -
             {% endif %}

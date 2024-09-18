@@ -367,61 +367,67 @@ def convert_htmx(request, club):
         )
         if form.is_valid():
 
-            membership_type = get_object_or_404(
-                MembershipType, pk=int(form.cleaned_data["membership_type"])
-            )
+            if (
+                form.cleaned_data["send_welcome_pack"]
+                and not contact_details.email
+                and not form.cleaned_data["new_email"]
+            ):
+                message = "An email address is required to send a welcome pack"
+            else:
 
-            new_system_number = form.cleaned_data["new_system_number"]
-            if not new_system_number:
-                # system number is not changing
-                new_system_number = contact_details.system_number
+                membership_type = get_object_or_404(
+                    MembershipType, pk=int(form.cleaned_data["membership_type"])
+                )
 
-            # post logic
-            success, message = convert_contact_to_member(
-                club,
-                contact_details.system_number,
-                new_system_number,
-                membership_type,
-                request.user,
-                fee=form.cleaned_data["fee"],
-                start_date=form.cleaned_data["start_date"],
-                end_date=form.cleaned_data["end_date"],
-                due_date=form.cleaned_data["due_date"],
-                payment_method_id=int(form.cleaned_data["payment_method"]),
-            )
+                new_system_number = form.cleaned_data["new_system_number"]
+                if not new_system_number:
+                    # system number is not changing
+                    new_system_number = contact_details.system_number
 
-            if success:
+                # post logic
+                success, message = convert_contact_to_member(
+                    club,
+                    contact_details.system_number,
+                    new_system_number,
+                    membership_type,
+                    request.user,
+                    fee=form.cleaned_data["fee"],
+                    start_date=form.cleaned_data["start_date"],
+                    end_date=form.cleaned_data["end_date"],
+                    due_date=form.cleaned_data["due_date"],
+                    payment_method_id=int(form.cleaned_data["payment_method"]),
+                )
 
-                if form.cleaned_data["send_welcome_pack"]:
-                    email = club_email_for_member(club, system_number)
-                    if email:
-                        resp = _send_welcome_pack(
-                            club, contact_details.first_name, email, request.user, False
+                if success:
+
+                    if form.cleaned_data["send_welcome_pack"]:
+                        email = club_email_for_member(club, system_number)
+                        if email:
+                            resp = _send_welcome_pack(
+                                club,
+                                contact_details.first_name,
+                                email,
+                                request.user,
+                                False,
+                            )
+                            if resp:
+                                if message:
+                                    message = f"{message}. {resp}"
+                                else:
+                                    message = f"Contact converted to member. {resp}"
+
+                    if caller == "contacts":
+                        return _refresh_contact_list(
+                            request,
+                            club,
+                            message if message else "Contact converted to member",
                         )
-                        if resp:
-                            if message:
-                                message = f"{message}. {resp}"
-                            else:
-                                message = f"Contact converted to member. {resp}"
-
-                # JPG debug
-                print(f"Convert contcat succeeded: caller = {caller}")
-
-                if caller == "contacts":
-
-                    return _refresh_contact_list(
-                        request,
-                        club,
-                        message if message else "Contact converted to member",
-                    )
-
-                else:
-
-                    return _refresh_member_list(
-                        request,
-                        club,
-                        message if message else "Contact converted to member",
-                    )
+                    else:
+                        return _refresh_member_list(
+                            request,
+                            club,
+                            message if message else "Contact converted to member",
+                        )
 
         else:
             # Invalid form
@@ -433,6 +439,7 @@ def convert_htmx(request, club):
             "start_date": today.strftime("%Y-%m-%d"),
             "new_system_number": new_system_number,
             "payment_method": -1,
+            "send_welcome_pack": welcome_pack,
         }
         form = MembershipChangeTypeForm(
             initial=initial_data,

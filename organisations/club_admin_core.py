@@ -185,11 +185,11 @@ def member_details_short_description(member_details):
     """A brief description of the membership status"""
 
     if member_details.membership_status in MEMBERSHIP_STATES_ACTIVE:
-        desc = f"Current {member_details.latest_membership.membership_type.name} member"
+        desc = f"Current membership: {member_details.latest_membership.membership_type.name}"
     else:
         desc = (
-            f"{member_details.get_membership_status_display()} "
-            f"{member_details.latest_membership.membership_type.name} member"
+            f"{member_details.get_membership_status_display()} membership: "
+            f"{member_details.latest_membership.membership_type.name}"
         )
 
     latest_paid_until = member_details.latest_paid_until_date
@@ -303,9 +303,9 @@ def get_membership_details_for_club(club, exclude_id=None):
     today = timezone.now().date()
     fees_and_due_dates = {
         f"{mt.id}": {
-            "annual_fee": float(mt.annual_fee)
+            "annual_fee": str(float(mt.annual_fee))
             if club.full_club_admin and mt.annual_fee
-            else 0,
+            else "0",
             "due_date": (today + timedelta(mt.grace_period_days)).strftime("%d/%m/%Y"),
             "end_date": ""
             if mt.does_not_renew
@@ -1353,7 +1353,7 @@ def get_outstanding_memberships_for_member(club, system_number):
             MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
             MemberMembershipType.MEMBERSHIP_STATE_DUE,
         ],
-    )
+    ).order_by("start_date")
 
 
 def can_mark_as_paid(member_details):
@@ -3634,8 +3634,8 @@ def get_outstanding_memberships(club, sort_option="name_asc"):
 
 
 def get_clubs_with_auto_pay_memberships(date=None):
-    """Return a list of clubs that have memberships with auto pay dates at the
-    specified date (today if none specified).
+    """Return a list of clubs that have memberships with auto pay dates at
+    or before the specified date (today if none specified).
 
     Note that a club may be on this list but have no auto payments to make
     once the user permissions have been considered.
@@ -3652,7 +3652,7 @@ def get_clubs_with_auto_pay_memberships(date=None):
     return Organisation.objects.filter(
         full_club_admin=True,
         membershiptype__membermembershiptype__is_paid=False,
-        membershiptype__membermembershiptype__auto_pay_date=target_date,
+        membershiptype__membermembershiptype__auto_pay_date__lte=target_date,
         membershiptype__membermembershiptype__membership_state__in=[
             MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
             MemberMembershipType.MEMBERSHIP_STATE_FUTURE,

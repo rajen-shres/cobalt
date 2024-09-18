@@ -19,8 +19,8 @@
     <table>
         <thead>
             <tr>
-                <th>Member</th>
-                <th>Membership</th>
+                <th style="text-align: left;">Member</th>
+                <th style="text-align: left;">Membership</th>
                 <th style="text-align: right;">Fee</th>
             </tr>
         </thead>
@@ -28,11 +28,11 @@
             {% for membership in paid_memberships %}
 
                 <tr>
-                    <td>
+                    <td style="text-align: left;">
                         {{ membership.user.first_name }} {{ membership.user.last_name }}
-                        ({{ GLOABL_ORG }} No {{ membership.user.system_number }})
+                        ({{ GLOBAL_ORG }} No {{ membership.user.system_number }})
                     </td>
-                    <td>
+                    <td style="text-align: left;">
                         {{ membership.membership_type.name }} {{ membership.period }}
                     </td>
                     <td style="text-align: right;">
@@ -50,6 +50,8 @@
 
 {% endif %}
 
+<br>
+
 {% if failed_memberships %}
 
     <p>
@@ -64,8 +66,8 @@
     <table>
         <thead>
             <tr>
-                <th>Member</th>
-                <th>Membership</th>
+                <th style="text-align: left;">Member</th>
+                <th style="text-align: left;">Membership</th>
                 <th style="text-align: right;">Fee</th>
                 <th>Issue</th>
             </tr>
@@ -74,11 +76,11 @@
             {% for membership in failed_memberships %}
 
                 <tr>
-                    <td>
+                    <td style="text-align: left;">
                         {{ membership.user.first_name }} {{ membership.user.last_name }}
                         ({{ GLOABL_ORG }} No {{ membership.user.system_number }})
                     </td>
-                    <td>
+                    <td style="text-align: left;">
                         {{ membership.membership_type.name }} {{ membership.period }}
                     </td>
                     <td style="text-align: right;">

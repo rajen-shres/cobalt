@@ -347,7 +347,12 @@ class MembershipType(models.Model):
     description = models.TextField("Description", blank=True, null=True)
 
     annual_fee = models.DecimalField(
-        "Annual Fee", max_digits=12, decimal_places=2, blank=True, null=True
+        "Annual Fee",
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
     )
 
     grace_period_days = models.IntegerField(
@@ -420,7 +425,12 @@ class MemberMembershipType(models.Model):
     """ Date by which payment is due, none if paid, otherwise typically paid_unitl_date plus a grace period """
 
     fee = models.DecimalField(
-        "Fee", max_digits=12, decimal_places=2, blank=True, null=True
+        "Fee",
+        max_digits=12,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
     )
     """ The fee payable """
 
@@ -752,6 +762,7 @@ class MemberClubDetails(models.Model):
             MemberMembershipType.objects.filter(
                 membership_type__organisation=self.club,
                 system_number=self.system_number,
+                is_paid=True,
             )
             .exclude(
                 paid_until_date=None,

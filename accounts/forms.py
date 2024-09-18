@@ -92,8 +92,10 @@ class UserUpdateForm(forms.ModelForm):
     def clean_dob(self):
 
         dob = self.cleaned_data["dob"]
-        if "dob" in self.changed_data and not dob:
-            return self._clean_dob_sub("Date of birth is invalid.")
+
+        # COB-908 - removing this validation to allow the DoB to be cleared
+        # if "dob" in self.changed_data and not dob:
+        #     return self._clean_dob_sub("Date of birth is invalid.")
         if dob is None:
             return None
         if dob > datetime.datetime.today().date():

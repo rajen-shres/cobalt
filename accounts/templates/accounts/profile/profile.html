@@ -110,22 +110,8 @@
                                     <div class="form-group">
                                         Date of Birth
                                         <div id="div_id_dob" class="form-group">
-                                            <div class="">
-                                                <input type="date" name="dob" min="1900-01-01"
-                                                    value=
-
-                                                    {# We get a str back if the form is invalid, can't work out why. Work around. #}
-
-                                                    {% if form.dob.value|get_class == "date" %}
-                                                        "{{ form.dob.value|date:'Y-m-d' }}"
-                                                    {% else %}
-                                                        "{{ form.dob.value }}"
-                                                    {% endif %}
-
-                                                    class="dateinput form-control profile_form_element" id="id_dob">
-                                            </div>
+                                            {% render_cobalt_datepicker form.dob add_classes="profile_form_element" %}
                                             <span class="cobalt-form-error" id="id_dob_errors">{{ form.dob.errors|striptags }}</span>
-
                                         </div>
                                     </div>
                                 </div>
@@ -307,6 +293,7 @@
 
 {% block footer %}
     <script src="{% static "assets/js/plugins/moment.min.js" %}"></script>
+    <script src="{% static "assets/js/plugins/bootstrap-datetimepicker.min.js" %}"></script>
     <script src="{% static "assets/packages/sweetalert2.11/sweetalert2.js" %}"></script>
 
     {% if tour %}
@@ -373,6 +360,23 @@
 
         $(document).ready(function() {
 
+            // initialise datepickers
+            if ($('.datepicker').length) {
+                $('.datepicker').datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    showTodayButton: true,
+                    showClear: true,
+                    showClose: true,
+                    icons: {
+                        previous: 'fa fa-chevron-left',
+                        next: 'fa fa-chevron-right',
+                        today: 'fa fa-calendar-day',
+                        close: 'fa fa-times',
+                        clear: 'fa fa-trash'
+                    },
+                });
+            }
+
             // initialise tooltips
             $('[data-toggle="tooltip"]').tooltip()
 
@@ -391,7 +395,10 @@
             });
 
             // watch for field updates and prevent users from editing both forms at the same time.
-            $(".profile_form_element, #id_about").on('change keydown paste input', function(){
+            $(".profile_form_element, #id_about").on('dp.change change keydown paste input', function(){
+
+                console.log("profile_form_element changed: form =" + $(this.form)[0].id)
+
                 if ($(this.form)[0].id === 'profile_form') {
                     $('#id_profile_button').prop('disabled', false);
                     $('#id_profile_cancel').show();
@@ -404,6 +411,10 @@
                     $('.profile_form_element').attr('readonly', true);
                 }
             });
+
+            // $('.datepicker').datepicker().on('dp.change', function(e) {
+            //     console.log("Date selected: " + e.date);
+            // });
         });
 
 

@@ -1906,6 +1906,7 @@ def club_admin_edit_member_change_htmx(request, club):
             "membership_type": membership_choices[0][0],
             "start_date": today.strftime("%Y-%m-%d"),
             "payment_method": -1,
+            "send_welcome_pack": False,
         }
         form = MembershipChangeTypeForm(
             initial=initial_data,
@@ -1971,7 +1972,7 @@ def club_admin_edit_member_payment_htmx(request, club):
     membership_to_pay = get_outstanding_memberships_for_member(
         club,
         system_number,
-    ).last()
+    ).first()
 
     if not membership_to_pay:
         # nothing to pay, should not have been called
@@ -2096,6 +2097,9 @@ def club_admin_edit_member_extend_htmx(request, club):
                     system_number,
                     message if message else "Membership extended",
                 )
+
+        else:
+            message = "Please fix the errors"
 
     else:
         message = None
@@ -2291,6 +2295,7 @@ def club_admin_add_member_detail_htmx(request, club):
             "membership_type": membership_choices[0][0],
             "start_date": today.strftime("%Y-%m-%d"),
             "payment_method": -1,
+            "send_welcome_pack": welcome_pack,
         }
         if mpc_details and mpc_details["EmailAddress"]:
             initial_data["new_email"] = mpc_details["EmailAddress"]

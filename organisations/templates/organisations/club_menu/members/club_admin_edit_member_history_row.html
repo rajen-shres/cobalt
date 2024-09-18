@@ -43,7 +43,9 @@
     </td>
 
     <td class="text-left">
-        {{ mmt.due_date|date:'d/m/Y'|default_if_none:'-' }}
+        {% if not mmt.is_paid %}
+            {{ mmt.due_date|date:'d/m/Y'|default_if_none:'-' }}
+        {% endif %}
     </td>
 
     {% if member_admin and show_history %}

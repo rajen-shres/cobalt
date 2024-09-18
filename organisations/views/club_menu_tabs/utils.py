@@ -168,11 +168,9 @@ def invite_user_to_join_htmx(request, club):
     un_reg_id = request.POST.get("un_reg_id")
     un_reg = get_object_or_404(UnregisteredUser, pk=un_reg_id)
 
-    club_email = club_email_for_member(club, un_reg.system_number)
+    email = club_email_for_member(club, un_reg.system_number)
 
-    if club_email:
-        email = club_email.email
-    else:
+    if not email:
         return list_htmx(
             request,
             message=f"No email address found for {un_reg.full_name}. Invite not sent.",

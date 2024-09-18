@@ -28,7 +28,7 @@ class Command(BaseCommand):
     help = "Periodic batch command to update time sensitive membership statuses"
 
     def get_club(self, club_id):
-        """Chached lookup of club"""
+        """Cached lookup of club"""
         if club_id not in self.club_cache:
             club = Organisation.objects.get(pk=club_id)
             self.club_cache[club_id] = club

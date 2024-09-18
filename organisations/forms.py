@@ -3,6 +3,7 @@ import datetime
 import bleach
 from crispy_forms.helper import FormHelper
 from django import forms
+from django.core.validators import MinValueValidator
 from django.forms import formset_factory
 from django_summernote.widgets import SummernoteInplaceWidget
 from django.utils import timezone
@@ -207,7 +208,6 @@ class MembershipTypeForm(forms.ModelForm):
             "annual_fee",
             "is_default",
             "grace_period_days",
-            "does_not_pay_session_fees",
             "does_not_renew",
         )
 
@@ -337,6 +337,12 @@ class MembershipExtendForm(forms.Form):
         )
         self.fields["club_template"].choices = club_email_template_choices(self.club)
 
+    def clean_fee(self):
+        fee = self.cleaned_data.get("fee")
+        if fee is not None and fee < 0:
+            self.add_error("fee", "Fee cannot be negative.")
+        return fee
+
 
 class MembershipPaymentForm(forms.Form):
     """Form for paying membership fees. Does not provide a no selection option for the payment method"""
@@ -426,6 +432,12 @@ class MembershipRawEditForm(forms.ModelForm):
 
         return cleaned_data
 
+    def clean_fee(self):
+        fee = self.cleaned_data.get("fee")
+        if fee is not None and fee < 0:
+            self.add_error("fee", "Fee cannot be negative.")
+        return fee
+
     def save(self, commit=True):
         instance = super(MembershipRawEditForm, self).save(commit=False)
         # Update the instance with the form's cleaned data
@@ -479,7 +491,11 @@ class MembershipChangeTypeForm(forms.Form):
         # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
-    fee = forms.DecimalField(label="Fee", max_digits=10, decimal_places=2)
+    fee = forms.DecimalField(
+        label="Fee",
+        max_digits=10,
+        decimal_places=2,
+    )
     due_date = forms.DateField(
         label="Payment due date",
         # widget=forms.DateInput(attrs={"type": "date"}),
@@ -520,18 +536,20 @@ class MembershipChangeTypeForm(forms.Form):
         today = timezone.now().date()
         if start_date > today + datetime.timedelta(days=1):
             # Allow a start date of tomorrow to allow ending currnt today
-            # JPG debug
-            print("*** FORM ERROR - Start date cannot be in the future")
-            raise forms.ValidationError("Start date cannot be in the future")
+            self.add_error("start_date", "Start date cannot be in the future")
         return start_date
+
+    def clean_fee(self):
+        fee = self.cleaned_data.get("fee")
+        if fee is not None and fee < 0:
+            self.add_error("fee", "Fee cannot be negative.")
+        return fee
 
     def clean(self):
         cleaned_data = super().clean()
         start_date = self.cleaned_data.get("start_date")
         end_date = self.cleaned_data.get("end_date")
         if start_date and end_date and start_date > end_date:
-            # JPG debug
-            print("*** FORM ERROR - End date must be after the start date")
             raise forms.ValidationError("End date must be after the start date")
         return cleaned_data
 
@@ -1064,6 +1082,12 @@ class BulkRenewalLineForm(forms.Form):
         # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
+
+    def clean_fee(self):
+        fee = self.cleaned_data.get("fee")
+        if fee is not None and fee < 0:
+            self.add_error("fee", "Fee cannot be negative.")
+        return fee
 
 
 BulkRenewalFormSet = formset_factory(BulkRenewalLineForm, extra=0)

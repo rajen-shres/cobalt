@@ -2,6 +2,8 @@
 {#  View for changing membership type for an existing member                    #}
 {#  OR converting a contact to a member (converting == True)                    #}
 {#  OR adding a member (adding = "YES")                                         #}
+{#                                                                              #}
+{#  If converting may be called from contacts of members (add member search)    #}
 {# ---------------------------------------------------------------------------- #}
 
 {% load static %}
@@ -126,7 +128,7 @@
                             <div class="col-3">
                                 <div id="div_id_fee" class="form-group">
                                     <span class="cobalt-form-error" id="id_fee_errors">
-                                        {{ form.new_end_date.errors|striptags }}
+                                        {{ form.fee.errors|striptags }}
                                     </span>
                                     {% render_field form.fee class+="form-control" %}
                                 </div>
@@ -136,7 +138,10 @@
                                 Payment method
                             </div>
                             <div class="col-3 optional_payment_method">
-                                <div id="div_id_payment_method" class="form-group">
+                                <div
+                                    id="div_id_payment_method"
+                                    class="form-group"
+                                >
                                     <span class="cobalt-form-error" id="id_is_paid_errors">
                                         {{ form.payment_method.errors|striptags }}
                                     </span>
@@ -214,6 +219,13 @@
                         {% endif %}
                     {% endif %}
 
+                    <div class="optional_payment_method">
+                        <p>
+                            Select a payment method to initiate a payment ({{ BRIDGE_CREDITS }})
+                            or to mark the membership fee as paid (off-system methods).
+                        </p>
+                    </div>
+
                     <!-- Hidden field for 'caller' -->
                     <input type="hidden" name="caller" value="{{ caller }}">
 
@@ -223,7 +235,9 @@
                                 type="submit"
                                 class="btn btn-sm btn-success cobalt-save"
                             >
-                                Save
+                                <span id="id-save-button-text">
+                                    Save
+                                </span>
                             </button>
                         </div>
                         <div class="col text-right">
@@ -269,9 +283,9 @@
         const feeField = document.getElementById('id_fee');
         const dueDateField = document.getElementById('id_due_date');
         const endDateField = document.getElementById('id_end_date');
-        // const isPaidField = document.getElementById('id_is_paid')
         const endDateDiv = document.getElementById('id_optional_end_date');
         const dueDateDiv = document.getElementById('id_optional_due_date');
+        const paymentMethodField = document.getElementById('id_payment_method');
 
         feesAndDates = {{ fees_and_dates|safe }};
 
@@ -301,20 +315,23 @@
             }
         });
 
-        // isPaidField.addEventListener('change', function() {
-        //     if (feeField.value == 0 || this.checked) {
-        //         dueDateDiv.style.display = 'none';
-        //     } else {
-        //         dueDateDiv.style.display = 'block';
-        //     }
-        // });
+        paymentMethodField.addEventListener('change', function() {
+            var method = this.options[this.selectedIndex].text
+            if (method == '-') {
+                $('#id-save-button-text').text('Save');
+            } else if ((method == '{{ BRIDGE_CREDITS }}')) {
+                $('#id-save-button-text').text('Save and Charge {{ BRIDGE_CREDITS }}');
+            } else {
+                $('#id-save-button-text').text('Save and Mark as Paid');
+            }
+        });
 
         console.log("--- sending initising change events ---")
 
         // Trigger change event on page load to set initial values
         membershipTypeField.dispatchEvent(new Event('change'));
         feeField.dispatchEvent(new Event('change'));
-        // isPaidField.dispatchEvent(new Event('change'));
+        paymentMethodField.dispatchEvent(new Event('change'));
     };
 
 </script>
