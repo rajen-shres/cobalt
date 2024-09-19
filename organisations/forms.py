@@ -296,6 +296,13 @@ class MemberClubDetailsForm(forms.ModelForm):
         )
 
 
+class ContactNameForm(forms.Form):
+    """Simple form to allow contcat names to be edited"""
+
+    first_name = forms.CharField(max_length=150, required=True)
+    last_name = forms.CharField(max_length=150, required=True)
+
+
 class MembershipExtendForm(forms.Form):
     """Form for extending an existing membership"""
 
@@ -1083,11 +1090,25 @@ class BulkRenewalLineForm(forms.Form):
         required=False,
     )
 
-    def clean_fee(self):
+    # jpg cleanup - moved to form level
+    # def clean_fee(self):
+    #     fee = self.cleaned_data.get("fee")
+    #     if fee is not None and fee < 0:
+    #         self.add_error("fee", "Fee cannot be negative.")
+    #     return fee
+
+    def clean(self):
+        """custom validation"""
+        cleaned_data = super(BulkRenewalLineForm, self).clean()
+
+        selected = cleaned_data.get("selected")
         fee = self.cleaned_data.get("fee")
-        if fee is not None and fee < 0:
+
+        # Only validate the fee if the line is selected
+        if selected and fee is not None and fee < 0:
             self.add_error("fee", "Fee cannot be negative.")
-        return fee
+
+        return self.cleaned_data
 
 
 BulkRenewalFormSet = formset_factory(BulkRenewalLineForm, extra=0)

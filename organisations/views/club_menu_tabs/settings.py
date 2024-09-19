@@ -352,9 +352,27 @@ def general_htmx(request, club):
     )
 
 
+def _refresh_membership_settings(request, club):
+    """Show the settings | static data | membership view"""
+
+    # JPG debug
+    print("*** _refresh_membership_settings")
+
+    return render(
+        request,
+        "organisations/club_menu/settings/refresh_settings_static_membership_htmx.html",
+        {
+            "club_id": club.id,
+        },
+    )
+
+
 @check_club_menu_access()
 def membership_htmx(request, club):
     """build the settings tab in club menu for editing membership types"""
+
+    # JPG debug
+    print("*** membership_htmx")
 
     membership_types = MembershipType.objects.filter(organisation=club).order_by("pk")
 
@@ -426,6 +444,8 @@ def club_menu_tab_settings_membership_edit_htmx(request, club):
         .exists()
     ):
         # This throws a non-fatal error but actually works!
+        # JPG: assume that this approach is because using crispy forms
+        # to render the form, otherwise would just conditionally hide the field
         del form.fields["is_default"]
 
     # Don't allow delete for last membership type
@@ -475,7 +495,9 @@ def club_menu_tab_settings_membership_add_htmx(request, club):
         # Update any sessions with the new payment type
         add_payment_method_session_type_combos(club)
 
-        return membership_htmx(request)
+        # JPG Cleanup
+        # return membership_htmx(request)
+        return _refresh_membership_settings(request, club)
     else:
         print(form.errors)
 

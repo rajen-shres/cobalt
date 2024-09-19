@@ -55,19 +55,16 @@
                         </div>
                     {% endif %}
 
-                    {% if converting and internal %}
-                        <!-- SYSTEM NUMBER REQUIRED -->
+                    {% if converting %}
 
                         <div class="row pb-2">
                             <div class="col-2 justify-content-center align-self-center pt-3">
                                 {{ GLOBAL_ORG }} Number
                             </div>
                             <div class="col-8">
-                                <div id="div_id_new_system_number_type" class="form-group">
-                                    <span class="cobalt-form-error" id="id_new_system_number_errors">
-                                        {{ form.new_system_number.errors|striptags }}
-                                    </span>
-                                    {% render_field form.new_system_number class+="form-control" %}
+                                <div class="form-group">
+                                    {{ form.new_system_number.value }}
+                                    {% render_field form.new_system_number class+="form-control d-none" %}
                                 </div>
                             </div>
                         </div>
@@ -272,12 +269,33 @@
     </div>
 </div>
 
+{% block footer %}
+    <script src="{% static 'assets/js/plugins/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/plugins/bootstrap-datetimepicker.min.js' %}"></script>
+{% endblock %}
+
 <script>
 
     // set up to change date and fees when the membership type selection changes
     function initialiseHTMXForm() {
 
         console.log("-- initialiseHTMXForm --")
+
+        if ($('.datepicker').length) {
+            $('.datepicker').datetimepicker({
+                format: 'DD/MM/YYYY',
+                showTodayButton: true,
+                showClear: true,
+                showClose: true,
+                icons: {
+                    previous: 'fa fa-chevron-left',
+                    next: 'fa fa-chevron-right',
+                    today: 'fa fa-calendar-day',
+                    close: 'fa fa-times',
+                    clear: 'fa fa-trash'
+                },
+            });
+        }
 
         const membershipTypeField = document.getElementById('id_membership_type');
         const feeField = document.getElementById('id_fee');

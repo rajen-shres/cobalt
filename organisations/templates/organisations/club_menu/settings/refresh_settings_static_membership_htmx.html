@@ -1,0 +1,14 @@
+{# An html snippet to refresh the setting | static data | membership view  #}
+{# from within the view (ie from an htmx end point) #}
+
+<div
+    id="id-trigger-refresh-membership"
+    hx-post="{% url 'organisations:club_menu_tab_settings_membership_htmx' %}"
+    hx-vals='{
+    "club_id": "{{ club_id }}"
+    }'
+    hx-target="#id_panel_settings"
+    hx-trigger="load"
+    style="display: none;"
+>
+</div>

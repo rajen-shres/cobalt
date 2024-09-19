@@ -36,6 +36,7 @@ from organisations.club_admin_core import (
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
     ContactAddForm,
+    ContactNameForm,
     MemberClubDetailsForm,
     MembershipChangeTypeForm,
 )
@@ -192,15 +193,38 @@ def edit_htmx(request, club, message=None):
 
     if saving:
         form = MemberClubDetailsForm(request.POST, instance=contact_details)
-        if form.is_valid():
+        if contact_details.internal:
+            name_form = ContactNameForm(request.POST)
+            name_form_ok = name_form.is_valid()
+        else:
+            name_form = None
+            name_form_ok = True
+
+        if form.is_valid() and name_form_ok:
             form.save()
+            if name_form:
+                unreg = UnregisteredUser.all_objects.get(
+                    system_number=contact_details.system_number
+                )
+                unreg.first_name = name_form.cleaned_data["first_name"]
+                unreg.last_name = name_form.cleaned_data["last_name"]
+                unreg.save()
             message = "Updates saved"
         else:
-            message = "Error saving updates"
+            message = "Please fix errors before proceeding"
             editing = True
 
     else:
         form = MemberClubDetailsForm(instance=contact_details)
+
+        if contact_details.internal:
+            initial_data = {
+                "first_name": contact_details.first_name,
+                "last_name": contact_details.last_name,
+            }
+            name_form = ContactNameForm(initial=initial_data)
+        else:
+            name_form = None
 
     # Note: member_admin is used in conditioning the contact nav area.
     # The user has this access if they have got this far.
@@ -212,6 +236,7 @@ def edit_htmx(request, club, message=None):
             "club": club,
             "contact_details": contact_details,
             "form": form,
+            "name_form": name_form,
             "message": message,
             "member_admin": True,
             "edit_details": editing,
@@ -431,7 +456,7 @@ def convert_htmx(request, club):
 
         else:
             # Invalid form
-            message = "Please fix issues with the form"
+            message = "Please fix errors before proceeding"
 
     else:
         initial_data = {

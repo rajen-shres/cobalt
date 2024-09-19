@@ -172,15 +172,16 @@
                             Is paid
                         </div>
                         <div class="col-3">
-                            <div id="div_id_is_paid" class="form-group">
-                                <span class="cobalt-form-error" id="id_is_paid_errors">
-                                    {{ form.is_paid.errors|striptags }}
-                                </span>
-                                {% render_field form.is_paid class+="form-control" %}
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" id="id_is_paid" name="is_paid" type="checkbox" {% if form.is_paid.value %}checked="Checked" {% endif %}>
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
-
 
                     <div class="row pb-2">
                         <div class="col">

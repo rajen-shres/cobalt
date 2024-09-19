@@ -564,7 +564,8 @@ def search_tab_name_htmx(request, club):
         return HttpResponse()
 
     if mode == "members":
-        system_number_list = get_club_member_list(club)
+        system_number_list = get_club_member_list(club, active_only=False)
+        active_member_list = get_club_member_list(club)
     else:
         system_number_list = get_club_contact_list(club)
 
@@ -587,6 +588,10 @@ def search_tab_name_htmx(request, club):
         un_regs = un_regs.filter(last_name__istartswith=last_name_search)
 
     user_list = list(chain(users, un_regs))
+
+    if mode == "members":
+        for user in user_list:
+            user.active = user.system_number in active_member_list
 
     return render(
         request,

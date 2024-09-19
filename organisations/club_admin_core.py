@@ -37,6 +37,8 @@ from cobalt.settings import (
 
 from utils.templatetags.cobalt_tags import cobalt_nice_date_short
 
+from masterpoints.views import user_summary
+
 from notifications.models import (
     BatchID,
     Recipient,
@@ -574,19 +576,25 @@ def club_has_unregistered_members(club):
     )
 
 
-def get_member_system_numbers(club, target_list=None):
-    """Return a list of system numbers for current members,
-    optionally constarined within a list of system numbers
+def get_member_system_numbers(club, target_list=None, get_all=False):
+    """Return a list of system numbers for members,
+    optionally constrained within a list of system numbers.
+    By default only current members are included
 
     Args:
         club (Organisation): the club
         target_list (list): system numbers to narrow the query
+        get_all (bool): include non current members? Defaults False
     """
 
     qs = MemberClubDetails.objects.filter(
         club=club,
-        membership_status__in=MEMBERSHIP_STATES_ACTIVE,
     )
+
+    if get_all:
+        qs = qs.exclude(membership_status=MemberClubDetails.MEMBERSHIP_STATUS_CONTACT)
+    else:
+        qs = qs.filter(membership_status__in=MEMBERSHIP_STATES_ACTIVE)
 
     if target_list:
         qs = qs.filter(system_number__in=target_list)
@@ -2352,12 +2360,13 @@ def renew_membership(
         )
 
     if new_membership.is_paid:
-        log_member_change(
-            renewal_parameters.club,
-            member_details.system_number,
-            requester,
-            f"Membership paid using {new_membership.payment_method.payment_method}",
-        )
+        if new_membership.fee and new_membership.payment_method:
+            log_member_change(
+                renewal_parameters.club,
+                member_details.system_number,
+                requester,
+                f"Membership paid using {new_membership.payment_method.payment_method}",
+            )
 
     return (True, "Membership extended" + (f". {message}" if message else ""))
 
@@ -2976,6 +2985,13 @@ def convert_contact_to_member(
             existing_user_or_unreg.delete()
         else:
             # actual user not on the system so convert the existing unreg user
+            # AND ensure that their name is consisten with the MPC
+
+            # Get data from the MPC
+            mpc_details = user_summary(system_number)
+            existing_user_or_unreg.last_name = mpc_details["Surname"]
+            existing_user_or_unreg.first_name = mpc_details["GivenNames"]
+
             existing_user_or_unreg.system_number = system_number
             existing_user_or_unreg.internal_system_number = False
             existing_user_or_unreg.save()

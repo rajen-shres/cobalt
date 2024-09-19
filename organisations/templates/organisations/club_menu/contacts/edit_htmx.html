@@ -55,10 +55,57 @@
             </div>
             <div class="container">
                 <div class="card-body">
+
+                    {% if name_form %}
+
+                        <form id="id-name-form">
+                            {% csrf_token %}
+
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center font-weight-bold">
+                                    Last name
+                                </div>
+                                <div class="col">
+                                    <div id="div_id_last_name" class="form-group">
+                                        <span class="cobalt-form-error" id="id_last_name_errors">
+                                            {{ name_form.last_name.errors|striptags }}
+                                        </span>
+                                        {% if edit_details %}
+                                            {% render_field name_form.last_name class+="form-control" %}
+                                        {% else %}
+                                            {{ name_form.last_name.value|default:'-' }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center font-weight-bold">
+                                    First name
+                                </div>
+                                <div class="col">
+                                    <div id="div_id_first_name" class="form-group">
+                                        <span class="cobalt-form-error" id="id_first_name_errors">
+                                            {{ name_form.first_name.errors|striptags }}
+                                        </span>
+                                        {% if edit_details %}
+                                            {% render_field name_form.first_name class+="form-control" %}
+                                        {% else %}
+                                            {{ name_form.first_name.value|default:'-' }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    {% endif %}
                     <form
                         hx-post="{% url 'organisations:club_admin_tab_edit_contact_htmx' %}"
                         hx-vars='{ "club_id": {{ club.id }}, "system_number": {{ contact_details.system_number }}, "save": "YES" }'
                         hx-target="#id_panel_contacts"
+                        {% if name_form %}
+                            hx-include="#id-name-form"
+                        {% endif %}
                     >
                         {% csrf_token %}
 

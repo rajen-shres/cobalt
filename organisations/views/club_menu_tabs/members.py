@@ -580,7 +580,7 @@ def _un_reg_edit_htmx_process_form(
     """Sub process to handle form for un_reg_edit_htmx"""
 
     # Assume the worst
-    message = "Errors found on Form"
+    message = "Please fix errors before proceeding"
 
     if user_form.is_valid():
         new_un_reg = user_form.save()
@@ -954,16 +954,22 @@ def add_member_search_htmx(request):
     if not first_name_search and not last_name_search:
         return HttpResponse()
 
+    # Note: 'user' in this context does not mean User in the Cobalt sense
+    # In this case we are talking about players (User, Unreg or MCP)
     user_list, is_more = search_for_user_in_cobalt_and_mpc(
         first_name_search, last_name_search
     )
 
-    # Now highlight users who are already club members
+    # Now highlight players who are already club members
     user_list_system_numbers = [user["system_number"] for user in user_list]
 
     club = get_object_or_404(Organisation, pk=club_id)
 
-    member_list = get_member_system_numbers(club, target_list=user_list_system_numbers)
+    member_list = get_member_system_numbers(
+        club,
+        target_list=user_list_system_numbers,
+        get_all=True,
+    )
     contact_list = get_contact_system_numbers(
         club, target_list=user_list_system_numbers
     )
@@ -1160,7 +1166,7 @@ def _edit_member_htmx_save(request, club, member):
     else:
         # Very unlikely
         print(form.errors)
-        message = f"Errors on form: {form.errors}"
+        message = f"Please fix errors before proceeding: {form.errors}"
 
     return message
 
@@ -1681,7 +1687,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
 
                 return club_admin_edit_member_htmx(request, message="Updates saved")
             else:
-                message = "Please correct the errors"
+                message = "Please fix errors before proceeding"
                 editing = True
         else:
             smm_form = None
@@ -1695,7 +1701,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
 
                 message = "Updates saved"
             else:
-                message = "Error saving updates"
+                message = "Please fix errors before proceeding"
                 editing = True
 
     else:
@@ -2099,7 +2105,7 @@ def club_admin_edit_member_extend_htmx(request, club):
                 )
 
         else:
-            message = "Please fix the errors"
+            message = "Please fix errors before proceeding"
 
     else:
         message = None
@@ -2285,9 +2291,7 @@ def club_admin_add_member_detail_htmx(request, club):
                     return _refresh_edit_member(request, club, system_number, message)
 
         else:
-            # JPG debug
-            print(form.errors)
-            message = "Error with the form"
+            message = "Please fix errors before proceeding"
 
     else:
         initial_data = {
@@ -2480,7 +2484,7 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
                 )
 
         else:
-            message = "Error on form"
+            message = "Please fix errors before proceeding"
 
     else:
 

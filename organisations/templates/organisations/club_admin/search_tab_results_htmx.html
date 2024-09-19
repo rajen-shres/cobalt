@@ -23,6 +23,9 @@
                     hx-push-url="{{ club.id }}"
                 >
                     {{ user }}
+                    {% if mode == 'members' and not user.active %}
+                        - NOT CURRENT
+                    {% endif %}
                 </a>
             </li>
         {% endfor %}

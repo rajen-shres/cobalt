@@ -43,10 +43,10 @@ This will be rendered in the action pane of the club admin edit member window
                             </div>
                         </div>
 
-                        <div class="col-2 justify-content-center align-self-center pt-3">
+                        <div class="col-2 justify-content-center align-self-center pt-3 optional_payment_method">
                             Due date
                         </div>
-                        <div class="col-3">
+                        <div class="col-3 optional_payment_method">
                             <div id="div_id_due_date" class="form-group">
                                 <span class="cobalt-form-error" id="id_new_date_errors">
                                     {{ form.due_date.errors|striptags }}
@@ -69,10 +69,10 @@ This will be rendered in the action pane of the club admin edit member window
                             </div>
                         </div>
 
-                        <div class="col-2 justify-content-center align-self-center pt-3">
+                        <div class="col-2 justify-content-center align-self-center pt-3 optional_payment_method">
                             Payment method
                         </div>
-                        <div class="col-3">
+                        <div class="col-3 optional_payment_method">
                             <div id="div_id_payment_method" class="form-group">
                                 <span class="cobalt-form-error" id="id_is_paid_errors">
                                     {{ form.payment_method.errors|striptags }}
@@ -83,10 +83,10 @@ This will be rendered in the action pane of the club admin edit member window
                     </div>
 
                     <div class="row pb-2">
-                        <div class="col-2 justify-content-center align-self-center pt-3">
+                        <div class="col-2 justify-content-center align-self-center pt-3 optional_payment_method">
                             Auto pay date
                         </div>
-                        <div class="col-3">
+                        <div class="col-3 optional_payment_method">
                             <div id="div_id_auto_pay_date" class="form-group">
                                 <span class="cobalt-form-error" id="id_auto_pay_date_errors">
                                     {{ form.auto_pay_date.errors|striptags }}
@@ -149,13 +149,22 @@ This will be rendered in the action pane of the club admin edit member window
                         </div>
                     </div>
 
+                    <div class="optional_payment_method">
+                        <p>
+                            Select a payment method to initiate a payment ({{ BRIDGE_CREDITS }})
+                            or to mark the membership fee as paid (off-system methods).
+                        </p>
+                    </div>
+
                     <div class="row pb-2">
                         <div class="col">
                             <button
                                 type="Save"
                                 class="btn btn-sm btn-success cobalt-save"
                             >
-                                Renew
+                                <span id="id-save-button-text">
+                                    Renew
+                                </span>
                             </button>
                         </div>
                         <div class="col text-right">
@@ -175,3 +184,40 @@ This will be rendered in the action pane of the club admin edit member window
         </div>
     </div>
 </div>
+
+
+<script>
+
+    function updateForFeeAndPM() {
+        // update the screen layout and button text
+        // based on the fee amount and payment method
+
+        var method = $('#id_payment_method').find('option:selected').text();
+        var fee = $('#id_fee').val()
+
+        if ((method == '-') || (fee == 0)) {
+            $('#id-save-button-text').text('Renew');
+        } else if ((method == '{{ BRIDGE_CREDITS }}')) {
+            $('#id-save-button-text').text('Renew and Charge {{ BRIDGE_CREDITS }}');
+        } else {
+            $('#id-save-button-text').text('Renew and Mark as Paid');
+        }
+
+        if (fee == 0) {
+            $('.optional_payment_method').hide();
+        } else {
+            $('.optional_payment_method').show();
+        }
+    };
+
+    function initialiseHTMXForm() {
+
+        console.log("-- initialiseHTMXForm in member extend --")
+
+        $('#id_payment_method').on('change', updateForFeeAndPM);
+        $('#id_fee').on('change', updateForFeeAndPM);
+
+        $('#id_fee').change()
+    };
+
+</script>

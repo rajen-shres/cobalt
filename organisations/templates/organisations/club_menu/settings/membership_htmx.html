@@ -8,9 +8,8 @@
 {% load crispy_forms_filters %}
 {% load cobalt_tags %}
 
-<form
-    id="id_settings_form"
->
+{# JPG: not clear why was a form, perhaps to do with use of crispy forms #}
+<form id="id_settings_form">
     <div class="card" style="min-height: 800px; height: auto">
         <div class="card-header card-header-info">
             <h2 id="t_tab_heading_settings">Club Settings</h2>
@@ -18,28 +17,33 @@
         </div>
 
         <div class="card-body">
-            <div class="container" ">
-
+            <div class="container">
                 <div class="row">
                     <div class="col-3 mx-0 px-0">
                         <h4 class="text-center">Membership Types</h4>
                         <p class="font-italic">Non-Members are included automatically, you don't need to add a membership type for them here.</p>
                         {% for membership_type in membership_types %}
                             <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
+
+                                {# Note: onclick function is defined in settings.html #}
+                                {# and just handles button highlighting #}
+
                                 <button class="membership-btn btn btn-outline-info w-100 mx-2"
                                     id="id_membership-btn-{{ membership_type.id }}"
-                                    hx-post="{% url "organisations:club_menu_tab_settings_membership_edit_htmx" %}"
+                                    hx-post="{% url 'organisations:club_menu_tab_settings_membership_edit_htmx' %}"
                                     hx-indicator=".htmx-indicator"
                                     hx-target="#id_membership_edit"
                                     hx-vars="membership_type_id:{{ membership_type.id }}"
                                     onclick="membershipTypeButtonSelect(this);"
-                                >{{ membership_type.name }} ({{ membership_type.member_count }})</button>
+                                >
+                                    {{ membership_type.name }} ({{ membership_type.member_count }})
+                                </button>
                             </div>
                         {% endfor %}
                         <div class="col-12 d-inline-flex w-100 mx-0 px-0 justify-content-between">
                             <button
                                 class="btn btn-sm btn-success w-100 mx-5"
-                                hx-post="{% url "organisations:club_menu_tab_settings_membership_add_htmx" %}"
+                                hx-post="{% url 'organisations:club_menu_tab_settings_membership_add_htmx' %}"
                                 hx-indicator=".htmx-indicator"
                                 hx-target="#id_membership_edit"
                             >Add</button>
@@ -51,6 +55,5 @@
                 </div>
             </div>
         </div>
-
-
-    </form>
+    </div>
+</form>
