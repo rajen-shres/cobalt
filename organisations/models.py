@@ -360,6 +360,7 @@ class MembershipType(models.Model):
         default=31,
         null=False,
         blank=False,
+        validators=[MinValueValidator(0)],
     )
 
     is_default = models.BooleanField("Default Membership Type", default=False)

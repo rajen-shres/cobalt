@@ -47,8 +47,7 @@ from notifications.models import (
 from payments.models import OrgPaymentMethod
 
 from rbac.core import (
-    rbac_get_group_by_name,
-    rbac_get_users_in_group,
+    rbac_get_users_with_role,
 )
 
 from .models import (
@@ -3218,9 +3217,12 @@ def _notify_club_of_block(club, user):
 
     from notifications.views.core import send_cobalt_email_with_template
 
-    rule = "members_edit"
-    group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
-    member_editors = rbac_get_users_in_group(group)
+    # JPG clean-up
+    # rule = "members_edit"
+    # group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
+    # member_editors = rbac_get_users_in_group(group)
+
+    member_editors = rbac_get_users_with_role(f"orgs.members.{club.id}.edit")
 
     email_body = f"""
         <h1>A user has blocked their membership of your club</h1>

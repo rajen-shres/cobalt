@@ -24,7 +24,17 @@
                     <tr>
 
                         <td class="text-left">
+                            {% if user.source == "member" %}
+                                <a href="javascript:void(0)"
+                                    hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                    hx-vars="club_id:{{ club_id }}, system_number: {{ user.system_number }}, save:'NO'"
+                                >
+                            {% endif %}
                             {{ user.first_name }} {{ user.last_name }} ({{ user.system_number }})
+                            {% if user.source == "member" %}
+                                </a>
+                            {% endif %}
                         </td>
                         <td class="text-left">
                             {{ user.home_club|default_if_none:"-" }}
@@ -84,7 +94,14 @@
                         </td>
                         <td>
                             {% if user.source == "member" %}
-                                <button class="btn btn-sm btn-primary" disabled>Add</button>
+                                <button
+                                    class="btn btn-sm btn-warning"
+                                    hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
+                                    hx-target="#id_panel_members"
+                                    hx-vars="club_id:{{ club_id }}, system_number: {{ user.system_number }}, save:'NO'"
+                                >
+                                    Edit
+                                </button>
                             {% elif user.source == "registered" or user.source == "unregistered" or user.source == "mpc" %}
                                 <button
                                     class="btn btn-sm btn-primary"

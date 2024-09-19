@@ -33,8 +33,7 @@ from payments.models import (
     OrgPaymentMethod,
 )
 from rbac.core import (
-    rbac_get_group_by_name,
-    rbac_get_users_in_group,
+    rbac_get_users_with_role,
 )
 
 
@@ -54,9 +53,7 @@ class Command(BaseCommand):
     ):
         """Send an email to the club notifying them of the results"""
 
-        rule = "members_edit"
-        group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
-        member_editors = rbac_get_users_in_group(group)
+        member_editors = rbac_get_users_with_role(f"orgs.members.{club.id}.edit")
 
         if not member_editors:
             logger.warning(

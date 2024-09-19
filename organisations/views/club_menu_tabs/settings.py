@@ -495,8 +495,6 @@ def club_menu_tab_settings_membership_add_htmx(request, club):
         # Update any sessions with the new payment type
         add_payment_method_session_type_combos(club)
 
-        # JPG Cleanup
-        # return membership_htmx(request)
         return _refresh_membership_settings(request, club)
     else:
         print(form.errors)
