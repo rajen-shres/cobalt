@@ -275,19 +275,6 @@
         });
     };
 
-    document.addEventListener('htmx:afterSettle', function(event) {
-
-        if (event.detail.target.id === 'id_contact_action_pane') {
-
-            // hook for any initialisation required for the form entry in the action pane
-            initialiseHTMXForm();
-        };
-
-        if (event.detail.target.id === 'id-activity-card') {
-            initialiseActivityView();
-        }
-    });
-
     function deleteContact() {
         Swal.fire({
             title: 'Are you sure?',
@@ -321,3 +308,66 @@
     };
 
 </script>
+
+
+{% block footer %}
+
+    <script src="{% static 'assets/js/plugins/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/plugins/bootstrap-datetimepicker.min.js' %}"></script>
+
+    <script>
+
+        $(document).ready(function() {
+
+            if ($('.datepicker').length) {
+                $('.datepicker').datetimepicker({
+                    format: 'DD/MM/YYYY',
+                    showTodayButton: true,
+                    showClear: true,
+                    showClose: true,
+                    icons: {
+                        previous: 'fa fa-chevron-left',
+                        next: 'fa fa-chevron-right',
+                        today: 'fa fa-calendar-day',
+                        close: 'fa fa-times',
+                        clear: 'fa fa-trash'
+                    },
+                });
+            }
+
+            document.addEventListener('htmx:afterSettle', function(event) {
+
+                console.log("htmx:afterSettle "+event.detail.target.id+" - "+event.detail.elt.id)
+
+                if ($('.datepicker').length) {
+                    $('.datepicker').datetimepicker({
+                        format: 'DD/MM/YYYY',
+                        showTodayButton: true,
+                        showClear: true,
+                        showClose: true,
+                        icons: {
+                            previous: 'fa fa-chevron-left',
+                            next: 'fa fa-chevron-right',
+                            today: 'fa fa-calendar-day',
+                            close: 'fa fa-times',
+                            clear: 'fa fa-trash'
+                        },
+                    });
+                }
+
+                if (event.detail.target.id === 'id_contact_action_pane') {
+
+                    // hook for any initialisation required for the form entry in the action pane
+                    initialiseHTMXForm();
+                };
+
+                if (event.detail.target.id === 'id-activity-card') {
+                    initialiseActivityView();
+                }
+            });
+
+        });
+
+    </script>
+
+{% endblock %}

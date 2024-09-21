@@ -1,3 +1,4 @@
+{% load static %}
 {% load humanize %}
 {% load cobalt_tags %}
 
@@ -18,6 +19,11 @@
         </div>
     </div>
 </div>
+
+{% block footer %}
+    <script src="{% static 'assets/js/plugins/moment.min.js' %}"></script>
+    <script src="{% static 'assets/js/plugins/bootstrap-datetimepicker.min.js' %}"></script>
+{% endblock %}
 
 <script>
     document.addEventListener('htmx:afterSettle', function(event) {

@@ -47,9 +47,11 @@ class Command(BaseCommand):
     def notify_club(
         self,
         club,
-        total_collected,
-        paid_memberships,
-        failed_memberships,
+        total_collected=None,
+        paid_memberships=None,
+        failed_memberships=None,
+        none_allowing=False,
+        no_bridge_credits=False,
     ):
         """Send an email to the club notifying them of the results"""
 
@@ -61,19 +63,51 @@ class Command(BaseCommand):
             )
             return
 
-        email_body = render_to_string(
-            "organisations/club_menu/members/auto_pay_club_email_content.html",
-            {
-                "club": club,
-                "total_collected": total_collected,
-                "paid_memberships": paid_memberships,
-                "failed_memberships": failed_memberships,
-                "today": today,
-                "GLOBAL_TITLE": GLOBAL_TITLE,
-                "BRIDGE_CREDITS": BRIDGE_CREDITS,
-                "GLOBAL_ORG": GLOBAL_ORG,
-            },
-        )
+        if no_bridge_credits:
+
+            email_body = render_to_string(
+                "organisations/club_menu/members/auto_pay_club_email_content_no_bc.html",
+                {
+                    "club": club,
+                    "today": today,
+                    "GLOBAL_TITLE": GLOBAL_TITLE,
+                    "BRIDGE_CREDITS": BRIDGE_CREDITS,
+                },
+            )
+
+        elif none_allowing:
+
+            email_body = render_to_string(
+                "organisations/club_menu/members/auto_pay_club_email_content_none_allowed.html",
+                {
+                    "club": club,
+                    "today": today,
+                    "GLOBAL_TITLE": GLOBAL_TITLE,
+                },
+            )
+
+        else:
+
+            email_body = render_to_string(
+                "organisations/club_menu/members/auto_pay_club_email_content.html",
+                {
+                    "club": club,
+                    "total_collected": total_collected,
+                    "paid_memberships": paid_memberships,
+                    "failed_memberships": failed_memberships,
+                    "today": today,
+                    "none_allowing": none_allowing,
+                    "no_bridge_credits": no_bridge_credits,
+                    "GLOBAL_TITLE": GLOBAL_TITLE,
+                    "BRIDGE_CREDITS": BRIDGE_CREDITS,
+                    "GLOBAL_ORG": GLOBAL_ORG,
+                },
+            )
+
+        # JPG Debug
+        # print("--------------- notify_club: --------------")
+        # print(email_body)
+        # print("-------------------------------------------")
 
         context = {
             "title": f"Membership auto pay transactions for {club.name}",
@@ -115,6 +149,11 @@ class Command(BaseCommand):
             },
         )
 
+        # JPG Debug
+        # print("--------------- notify_member: --------------")
+        # print(email_body)
+        # print("---------------------------------------------")
+
         context = {
             "title": f"Membership fee payment for {club.name}",
             "name": membership.user.first_name,
@@ -143,6 +182,8 @@ class Command(BaseCommand):
 
             memberships = get_auto_pay_memberships_for_club(club)
             if not memberships:
+                self.notify_club(club, none_allowing=True)
+                logger.info(f"No allowed auto pay payments for {club.name}")
                 continue
 
             # get the bridge credit paymnet method for the club (if any)
@@ -153,7 +194,8 @@ class Command(BaseCommand):
             ).last()
 
             if not club_bc_payment_method:
-                logger.info(f"No allowed auto pay payments for {club.name}")
+                self.notify_club(club, no_bridge_credits=True)
+                logger.info(f"{club.name} is not configured for {BRIDGE_CREDITS}")
                 continue
 
             # attempt the payments
@@ -198,6 +240,8 @@ class Command(BaseCommand):
                         total_collected += membership.fee
                         self.notify_member(club, membership, member_batch_id)
 
+                        logger.info(f"Auto pay successful for {membership.user}")
+
                     else:
                         logger.warning(
                             f"Auto pay failed for {membership.user.system_number} '{message}'"
@@ -211,7 +255,10 @@ class Command(BaseCommand):
             member_batch_id.save()
 
             self.notify_club(
-                club, total_collected, paid_memberships, failed_memberships
+                club,
+                total_collected=total_collected,
+                paid_memberships=paid_memberships,
+                failed_memberships=failed_memberships,
             )
 
             logger.info(

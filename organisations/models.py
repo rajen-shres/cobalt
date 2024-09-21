@@ -403,11 +403,11 @@ class MemberMembershipType(models.Model):
     home_club = models.BooleanField("Is Member's Home Club", default=False)
 
     # Note: start date is required in full club admin, but not otherwise
-    # so this needs to validated in the code, not the scema
+    # so this needs to validated in the code, not the schema
     start_date = models.DateField("Started At", blank=True, null=True, default=None)
 
     end_date = models.DateField("Ends At", blank=True, null=True, default=None)
-    """ Membership end date, None if membershipy type is perpetual """
+    """ Membership end date, None if membership type is perpetual """
 
     paid_until_date = models.DateField(
         "Paid Until", blank=True, null=True, default=None
@@ -499,22 +499,31 @@ class MemberMembershipType(models.Model):
     @property
     def period(self):
         """A string representation of the effective period"""
-        if self.end_date:
-            if self.start_date.year == self.end_date.year:
-                return f"{self.start_date:%-d-%b} - {self.end_date:%-d-%b-%y}"
+        if self.start_date:
+            if self.end_date:
+                if self.start_date.year == self.end_date.year:
+                    return f"{self.start_date:%-d-%b} - {self.end_date:%-d-%b-%y}"
+                else:
+                    return f"{self.start_date:%-d-%b-%y} - {self.end_date:%-d-%b-%y}"
             else:
-                return f"{self.start_date:%-d-%b-%y} - {self.end_date:%-d-%b-%y}"
+                return f"{self.start_date:%-d-%b-%y} onwards"
         else:
-            return f"{self.start_date:%-d-%b-%y} onwards"
+            if self.end_date:
+                return f"Until {self.end_date:%-d-%b-%y}"
+            else:
+                return ""
 
     @property
     def is_in_effect(self):
-        """Is this currently in the effective date range"""
+        """Is this currently in the effective date range
+        Note: logic to handle no start date for simple mode
+        """
         today = timezone.now().date()
+        effective_start = self.start_date if self.start_date else today
         if self.end_date:
-            return (self.start_date <= today) and (self.end_date >= today)
+            return (effective_start <= today) and (self.end_date >= today)
         else:
-            return self.start_date <= today
+            return effective_start <= today
 
     @property
     def description(self):
@@ -688,45 +697,46 @@ class MemberClubDetails(models.Model):
     class Meta:
         unique_together = ("club", "system_number")
 
-    @property
-    def current_type_dates(self):
-        """The start and end dates for the current membership type
-        aggregated over contiguous memberships surrounding the current,
-        including future dated renewals"""
+    # JPG clean-up - not required
+    # @property
+    # def current_type_dates(self):
+    #     """The start and end dates for the current membership type
+    #     aggregated over contiguous memberships surrounding the current,
+    #     including future dated renewals"""
 
-        history = MemberMembershipType.objects.filter(
-            system_number=self.system_number,
-            membership_type__organisation=self.club,
-            membership_type=self.latest_membership.membership_type,
-        ).order_by("start_date")
+    #     history = MemberMembershipType.objects.filter(
+    #         system_number=self.system_number,
+    #         membership_type__organisation=self.club,
+    #         membership_type=self.latest_membership.membership_type,
+    #     ).order_by("start_date")
 
-        #  scan the history looking for the contigous block containin the current
-        earliest_start = None
-        latest_end = None
-        current_found = False
-        for mmt in history:
+    #     #  scan the history looking for the contigous block containin the current
+    #     earliest_start = None
+    #     latest_end = None
+    #     current_found = False
+    #     for mmt in history:
 
-            if not earliest_start:
-                earliest_start = mmt.start_date
-                latest_end = mmt.end_date
-                current_found = mmt == self.latest_membership
-                continue
+    #         if not earliest_start:
+    #             earliest_start = mmt.start_date
+    #             latest_end = mmt.end_date
+    #             current_found = mmt == self.latest_membership
+    #             continue
 
-            if mmt.start_date != latest_end + timedelta(days=1):
-                # have found a break
-                if current_found:
-                    return (earliest_start, latest_end)
-                earliest_start = mmt.start_date
-                current_found = mmt == self.latest_membership
+    #         if mmt.start_date != latest_end + timedelta(days=1):
+    #             # have found a break
+    #             if current_found:
+    #                 return (earliest_start, latest_end)
+    #             earliest_start = mmt.start_date
+    #             current_found = mmt == self.latest_membership
 
-            latest_end = mmt.end_date
-            current_found = current_found or mmt == self.latest_membership
+    #         latest_end = mmt.end_date
+    #         current_found = current_found or mmt == self.latest_membership
 
-        if current_found:
-            return (earliest_start, latest_end)
-        else:
-            # should never happen, would indicate an issue with the latest membership pointer
-            return (None, None)
+    #     if current_found:
+    #         return (earliest_start, latest_end)
+    #     else:
+    #         # should never happen, would indicate an issue with the latest membership pointer
+    #         return (None, None)
 
     @property
     def is_active_status(self):

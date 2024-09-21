@@ -1,0 +1,15 @@
+{% load cobalt_tags %}
+{% load static %}
+
+<p>
+    Auto payment of club membership fees for {{ club.name }} were attempted for {{ today }}.
+</p>
+<p>
+    No fees were collected because all members with fees eligible for auto pay are not allowing
+    auto payment by your club. Members can allow or disallow auto payment of membership fees
+    for each club in their {{ GLOBAL_TITLE }} user profile.
+</p>
+<p>
+    You can see whether members with outstanding membership fees are allowing auto pay by your
+    club by using the Manage Outstanding Memberships function (under the Club Menu, Members - Renewals).
+</p>

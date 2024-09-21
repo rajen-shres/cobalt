@@ -204,80 +204,81 @@ def member_details_short_description(member_details):
     return desc
 
 
-def member_details_description(member_details):
-    """A comprehensive descriptive string of the type, status and relevant dates"""
+# JPG clean-up - not used
+# def member_details_description(member_details):
+#     """A comprehensive descriptive string of the type, status and relevant dates"""
 
-    contiguous_start, contiguous_end = member_details.current_type_dates
+#     contiguous_start, contiguous_end = member_details.current_type_dates
 
-    period = f"from {contiguous_start:%d %b %Y}"
-    if contiguous_end:
-        period += f" to {contiguous_end:%d %b %Y}"
+#     period = f"from {contiguous_start:%d %b %Y}"
+#     if contiguous_end:
+#         period += f" to {contiguous_end:%d %b %Y}"
 
-    joined_and_left = (
-        f"Joined {member_details.joined_date:%d %b %Y}"
-        if member_details.joined_date
-        else None
-    )
-    if member_details.left_date:
-        if joined_and_left:
-            joined_and_left += f", left {member_details.left_date:%d %b %Y}. "
-        else:
-            joined_and_left += f"Left {member_details.left_date:%d %b %Y}. "
-    elif joined_and_left:
-        joined_and_left += ". "
+#     joined_and_left = (
+#         f"Joined {member_details.joined_date:%d %b %Y}"
+#         if member_details.joined_date
+#         else None
+#     )
+#     if member_details.left_date:
+#         if joined_and_left:
+#             joined_and_left += f", left {member_details.left_date:%d %b %Y}. "
+#         else:
+#             joined_and_left += f"Left {member_details.left_date:%d %b %Y}. "
+#     elif joined_and_left:
+#         joined_and_left += ". "
 
-    #  get the furthest future future membership (if any)
-    future_membership = (
-        MemberMembershipType.objects.filter(
-            membership_type__organisation=member_details.club,
-            system_number=member_details.system_number,
-            membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
-        )
-        .order_by("end_date")
-        .last()
-    )
+#     #  get the furthest future future membership (if any)
+#     future_membership = (
+#         MemberMembershipType.objects.filter(
+#             membership_type__organisation=member_details.club,
+#             system_number=member_details.system_number,
+#             membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+#         )
+#         .order_by("end_date")
+#         .last()
+#     )
 
-    paid_until = None
-    if future_membership and future_membership.is_paid and future_membership.end_date:
-        paid_until = (
-            f"paid until {member_details.future_membership.paid_until_date:%d %b %Y}"
-        )
+#     paid_until = None
+#     if future_membership and future_membership.is_paid and future_membership.end_date:
+#         paid_until = (
+#             f"paid until {member_details.future_membership.paid_until_date:%d %b %Y}"
+#         )
 
-    elif (
-        member_details.latest_membership.is_paid
-        and member_details.latest_membership.end_date
-    ):
-        paid_until = (
-            f"paid until {member_details.latest_membership.paid_until_date:%d %b %Y}"
-        )
+#     elif (
+#         member_details.latest_membership.is_paid
+#         and member_details.latest_membership.end_date
+#     ):
+#         paid_until = (
+#             f"paid until {member_details.latest_membership.paid_until_date:%d %b %Y}"
+#         )
 
-    if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
-        desc = (
-            f"{member_details.latest_membership.membership_type.name} member, {period}"
-        )
-        if paid_until:
-            desc += f", {paid_until}"
+#     if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
+#         desc = (
+#             f"{member_details.latest_membership.membership_type.name} member, {period}"
+#         )
+#         if paid_until:
+#             desc += f", {paid_until}"
 
-        if not member_details.latest_membership.is_paid:
-            desc += f", {member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
-        desc += f". {joined_and_left}"
-    elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
-        desc = f"{member_details.latest_membership.membership_type.name} member, {period}, "
-        if paid_until:
-            desc += f"{paid_until}, "
-        desc += (
-            f"{member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
-            f". {joined_and_left}"
-        )
-    else:
-        desc = (
-            f"{member_details.get_membership_status_display()}. {joined_and_left}"
-            f"{member_details.latest_membership.membership_type.name} membership {period}"
-        )
-        if paid_until:
-            desc += f", {paid_until}"
+#         if not member_details.latest_membership.is_paid:
+#             desc += f", {member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
+#         desc += f". {joined_and_left}"
+#     elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
+#         desc = f"{member_details.latest_membership.membership_type.name} member, {period}, "
+#         if paid_until:
+#             desc += f"{paid_until}, "
+#         desc += (
+#             f"{member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
+#             f". {joined_and_left}"
+#         )
+#     else:
+#         desc = (
+#             f"{member_details.get_membership_status_display()}. {joined_and_left}"
+#             f"{member_details.latest_membership.membership_type.name} membership {period}"
+#         )
+#         if paid_until:
+#             desc += f", {paid_until}"
 
-    return desc
+#     return desc
 
 
 def get_membership_details_for_club(club, exclude_id=None):
@@ -1628,12 +1629,15 @@ def add_member(
     today = timezone.now().date()
 
     # build the new membership record
+
     new_membership = MemberMembershipType(
         system_number=system_number,
         last_modified_by=requester,
         membership_type=membership_type,
         fee=fee if fee is not None else 0,
-        start_date=start_date if start_date else today,
+        start_date=start_date
+        if start_date
+        else (today if club.full_club_admin else None),
     )
     new_membership.due_date = (
         due_date
@@ -1644,7 +1648,11 @@ def add_member(
     if membership_type.does_not_renew:
         new_membership.end_date = None
     else:
-        new_membership.end_date = end_date if end_date else club.current_end_date
+        new_membership.end_date = (
+            end_date
+            if end_date
+            else (club.current_end_date if club.full_club_admin else None)
+        )
 
     # last minute validatation
 
@@ -1654,15 +1662,19 @@ def add_member(
 
     # proceed with payment
 
-    payment_method = _get_payment_method(club, payment_method_id)
-    payment_success, payment_message = _process_membership_payment(
-        club,
-        is_registered_user,
-        new_membership,
-        payment_method,
-        "New membership",
-        process_payment=process_payment,
-    )
+    if club.full_club_admin:
+        payment_method = _get_payment_method(club, payment_method_id)
+        _, payment_message = _process_membership_payment(
+            club,
+            is_registered_user,
+            new_membership,
+            payment_method,
+            "New membership",
+            process_payment=process_payment,
+        )
+    else:
+        payment_message = None
+        payment_method = None
 
     new_membership.save()
 
@@ -3697,7 +3709,7 @@ def get_auto_pay_memberships_for_club(club, date=None):
 
     membership_qs = MemberMembershipType.objects.filter(
         is_paid=False,
-        auto_pay_date=target_date,
+        auto_pay_date__lte=target_date,
         membership_type__organisation=club,
         membership_state__in=[
             MemberMembershipType.MEMBERSHIP_STATE_CURRENT,

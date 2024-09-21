@@ -209,3 +209,33 @@
         </div>
     </div>
 </div>
+
+<script>
+
+    function initialiseHTMXForm() {
+
+        console.log("-- initialiseHTMXForm in mmt edit--")
+
+        if ($('.datepicker').length) {
+            $('.datepicker').datetimepicker({
+                format: 'DD/MM/YYYY',
+                showTodayButton: true,
+                showClear: true,
+                showClose: true,
+                icons: {
+                    previous: 'fa fa-chevron-left',
+                    next: 'fa fa-chevron-right',
+                    today: 'fa fa-calendar-day',
+                    close: 'fa fa-times',
+                    clear: 'fa fa-trash'
+                },
+            });
+        }
+
+        $('#id_membership_type').off()
+        $('#id_fee').off()
+        $('#id_payment_method').off()
+
+    };
+
+</script>

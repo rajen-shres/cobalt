@@ -1,0 +1,17 @@
+{% load cobalt_tags %}
+{% load static %}
+
+<p>
+    Auto payment of club membership fees for {{ club.name }} were attempted for {{ today }}.
+</p>
+
+<p>
+    No fees were collected because your club is not currently offering {{ BRIDGE_CREDITS }} as
+    a payment method. This can be enabled through the {{ GLOBAL_TITLE }} Club Menu menu, under Settings - Static Data - Payments.
+</p>
+
+<p>
+    {{ GLOBAL_TITLE }} will retry these transactions each night. If your club is not intending to offer
+    {{ BRIDGE_CREDITS }} as a payment option, please remove the auto pay dates from your members' renewals.
+    Impacted members can be found using the Manage Outstanding Memberships function (under the Club Menu, Members - Renewals). Press Edit Member for a member with an auto pay date, then Show Details and edit the relevant membership record.
+</p>

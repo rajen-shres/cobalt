@@ -66,7 +66,6 @@ from organisations.club_admin_core import (
     get_valid_activities,
     log_member_change,
     make_membership_payment,
-    member_details_description,
     member_details_short_description,
     member_has_future,
     perform_simple_action,
@@ -77,6 +76,7 @@ from organisations.club_admin_core import (
 )
 from organisations.decorators import check_club_menu_access
 from organisations.forms import (
+    ContactNameForm,
     MemberClubEmailForm,
     UserMembershipForm,
     UnregisteredUserAddForm,
@@ -1654,8 +1654,14 @@ def club_admin_edit_member_htmx(request, club, message=None):
 
     if saving:
 
-        # Note: if using simplified membership management both the member details
-        # and membership details form will be returned
+        # Retrieve and validate the forms - NOTE: there will always be the
+        # main form, and may also get one or two additional forms
+
+        form = MemberClubDetailsForm(request.POST, instance=member_details)
+        forms_ok = form.is_valid()
+        forms_changed = form.has_changed()
+        # JPG debug
+        print(f"=== form.has_changed() = {form.has_changed()}")
 
         if not club.full_club_admin:
             smm_form = MembershipRawEditForm(
@@ -1665,49 +1671,80 @@ def club_admin_edit_member_htmx(request, club, message=None):
                 club=club,
                 registered=member_details.user_type == f"{ GLOBAL_TITLE } User",
             )
-            form = MemberClubDetailsForm(request.POST, instance=member_details)
-            if smm_form.is_valid() and form.is_valid():
+            forms_ok = forms_ok and smm_form.is_valid()
+            forms_changed = forms_changed or smm_form.has_changed()
+            # JPG debug
+            print(f"=== smm_form.has_changed() = {smm_form.has_changed()}")
 
-                # save the updates
-                smm_form.save()
-                form.save()
-                member_details.membership_status = smm_form.cleaned_data[
-                    "membership_state"
-                ]
-                member_details.save()
-
-                # reload to ensure that the new state is reflected corrcetly
-                request.POST = request.POST.copy()
-                request.POST["save"] = "NO"
-                request.POST["edit"] = "NO"
-
-                log_member_change(
-                    club, system_number, request.user, "Member details changed"
-                )
-
-                return club_admin_edit_member_htmx(request, message="Updates saved")
-            else:
-                message = "Please fix errors before proceeding"
-                editing = True
         else:
             smm_form = None
-            form = MemberClubDetailsForm(request.POST, instance=member_details)
-            if form.is_valid():
-                form.save()
+
+        if member_details.user_type == "Unregistered User":
+            name_form = ContactNameForm(request.POST)
+            forms_ok = forms_ok and name_form.is_valid()
+            forms_changed = forms_changed or name_form.has_changed()
+            # JPG debug
+            print(f"=== name_form.has_changed() = {name_form.has_changed()}")
+        else:
+            name_form = None
+
+        if forms_ok:
+            # post the changes (if any)
+
+            # JPG debug
+            print(f"=== forms_changed = {forms_changed}")
+
+            if forms_changed:
+                if smm_form and (smm_form.has_changed() or form.has_changed()):
+                    smm_form.save()
+                    form.save()
+                    member_details.membership_status = smm_form.cleaned_data[
+                        "membership_state"
+                    ]
+                    member_details.save()
+                elif form.has_changed():
+                    form.save()
+
+                if name_form and name_form.has_changed():
+                    unreg = UnregisteredUser.all_objects.get(
+                        system_number=member_details.system_number
+                    )
+                    unreg.first_name = name_form.cleaned_data["first_name"]
+                    unreg.last_name = name_form.cleaned_data["last_name"]
+                    unreg.save()
 
                 log_member_change(
                     club, system_number, request.user, "Member details changed"
                 )
 
-                message = "Updates saved"
-            else:
-                message = "Please fix errors before proceeding"
-                editing = True
+            # reload to ensure that the new state is reflected corrcetly
+            request.POST = request.POST.copy()
+            request.POST["save"] = "NO"
+            request.POST["edit"] = "NO"
+
+            return club_admin_edit_member_htmx(
+                request, message="Updates saved" if forms_changed else None
+            )
+
+        else:
+            # there is an error on a form
+            message = "Please fix errors before proceeding"
+            editing = True
 
     else:
         # initialisation
 
         form = MemberClubDetailsForm(instance=member_details)
+
+        if member_details.user_type == "Unregistered User":
+            initial_data = {
+                "first_name": member_details.first_name,
+                "last_name": member_details.last_name,
+            }
+            name_form = ContactNameForm(initial=initial_data)
+        else:
+            name_form = None
+
         if club.full_club_admin:
             smm_form = None
         else:
@@ -1753,6 +1790,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "log_history": log_history,
             "form": form,
             "smm_form": smm_form,
+            "name_form": name_form,
             "valid_actions": valid_actions,
             "message": message,
             "member_admin": True,
@@ -1910,6 +1948,11 @@ def club_admin_edit_member_change_htmx(request, club):
     else:
         initial_data = {
             "membership_type": membership_choices[0][0],
+            "fee": float(
+                fees_and_due_dates[str(membership_choices[0][0])]["annual_fee"]
+            ),
+            "due_date": fees_and_due_dates[str(membership_choices[0][0])]["due_date"],
+            "end_date": fees_and_due_dates[str(membership_choices[0][0])]["end_date"],
             "start_date": today.strftime("%Y-%m-%d"),
             "payment_method": -1,
             "send_welcome_pack": False,
@@ -2294,9 +2337,16 @@ def club_admin_add_member_detail_htmx(request, club):
             message = "Please fix errors before proceeding"
 
     else:
+        # Note: fields dependent on membership_type must be initialised as
+        # JavaScript event handlers will handle initial show/hide configuration
+        # but will not change values (otherwise will clobber values when displaying errors)
         initial_data = {
-            # "membership_type": membership_types.first().id,
             "membership_type": membership_choices[0][0],
+            "fee": float(
+                fees_and_due_dates[str(membership_choices[0][0])]["annual_fee"]
+            ),
+            "due_date": fees_and_due_dates[str(membership_choices[0][0])]["due_date"],
+            "end_date": fees_and_due_dates[str(membership_choices[0][0])]["end_date"],
             "start_date": today.strftime("%Y-%m-%d"),
             "payment_method": -1,
             "send_welcome_pack": welcome_pack,
@@ -2399,13 +2449,14 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
                 error = True
                 message = "End date cannot be before start date"
 
-            if (
-                not error
-                and form.cleaned_data["auto_pay_date"]
-                and form.cleaned_data["auto_pay_date"] < timezone.now().date()
-            ):
-                error = True
-                message = "Auto pay date must be in the future"
+            # JPG debug
+            # if (
+            #     not error
+            #     and form.cleaned_data["auto_pay_date"]
+            #     and form.cleaned_data["auto_pay_date"] < timezone.now().date()
+            # ):
+            #     error = True
+            #     message = "Auto pay date must be in the future"
 
             if (
                 not error

@@ -193,7 +193,7 @@ def edit_htmx(request, club, message=None):
 
     if saving:
         form = MemberClubDetailsForm(request.POST, instance=contact_details)
-        if contact_details.internal:
+        if contact_details.user_type == "Unregistered User":
             name_form = ContactNameForm(request.POST)
             name_form_ok = name_form.is_valid()
         else:
@@ -209,7 +209,14 @@ def edit_htmx(request, club, message=None):
                 unreg.first_name = name_form.cleaned_data["first_name"]
                 unreg.last_name = name_form.cleaned_data["last_name"]
                 unreg.save()
-            message = "Updates saved"
+
+            return _refresh_edit_contact(
+                request,
+                club,
+                contact_details.system_number,
+                message="Updates saved",
+            )
+
         else:
             message = "Please fix errors before proceeding"
             editing = True
@@ -217,7 +224,7 @@ def edit_htmx(request, club, message=None):
     else:
         form = MemberClubDetailsForm(instance=contact_details)
 
-        if contact_details.internal:
+        if contact_details.user_type == "Unregistered User":
             initial_data = {
                 "first_name": contact_details.first_name,
                 "last_name": contact_details.last_name,
@@ -461,6 +468,11 @@ def convert_htmx(request, club):
     else:
         initial_data = {
             "membership_type": membership_choices[0][0],
+            "fee": float(
+                fees_and_due_dates[str(membership_choices[0][0])]["annual_fee"]
+            ),
+            "due_date": fees_and_due_dates[str(membership_choices[0][0])]["due_date"],
+            "end_date": fees_and_due_dates[str(membership_choices[0][0])]["end_date"],
             "start_date": today.strftime("%Y-%m-%d"),
             "new_system_number": new_system_number,
             "payment_method": -1,

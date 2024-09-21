@@ -259,9 +259,59 @@
 
                     {% if not club.full_club_admin %}
 
-                        <!-- SIMPLIFIED MEMBERSHIP MANAGEMENT -->
-
                         <p class="font-italic text-center">Your club is currently using simplified membership management. Full membership management can be enabled under Settings | General</p>
+
+                    {% endif %}
+
+                    {% if name_form %}
+
+                        <!-- NAME FORM FOR UNREG USERS -->
+
+                        <form id="id-name-form">
+                            {% csrf_token %}
+
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center font-weight-bold">
+                                    Last name
+                                </div>
+                                <div class="col">
+                                    <div id="div_id_last_name" class="form-group">
+                                        <span class="cobalt-form-error" id="id_last_name_errors">
+                                            {{ name_form.last_name.errors|striptags }}
+                                        </span>
+                                        {% if edit_details %}
+                                            {% render_field name_form.last_name class+="form-control" %}
+                                        {% else %}
+                                            {{ name_form.last_name.value|default:'-' }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row pb-2">
+                                <div class="col-2 justify-content-center align-self-center font-weight-bold">
+                                    First name
+                                </div>
+                                <div class="col">
+                                    <div id="div_id_first_name" class="form-group">
+                                        <span class="cobalt-form-error" id="id_first_name_errors">
+                                            {{ name_form.first_name.errors|striptags }}
+                                        </span>
+                                        {% if edit_details %}
+                                            {% render_field name_form.first_name class+="form-control" %}
+                                        {% else %}
+                                            {{ name_form.first_name.value|default:'-' }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                    {% endif %}
+
+                    {% if not club.full_club_admin %}
+
+                        <!-- SIMPLIFIED MEMBERSHIP MANAGEMENT -->
 
                         {% include "organisations/club_menu/members/club_admin_edit_member_simplified_htmx.html" %}
 
@@ -271,8 +321,12 @@
                         hx-target="#id_panel_members"
                         hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
                         hx-vars="club_id:{{ club.id }}, system_number: {{ member_details.system_number }}, save:'YES'"
-                        {% if not club.full_club_admin %}
+                        {% if smm_form and name_form %}
+                            hx-include="#id-ssm-form, #id-name-form"
+                        {% elif smm_form %}
                             hx-include="#id-ssm-form"
+                        {% elif name_form %}
+                            hx-include="#id-name-form"
                         {% endif %}
                     >
                         {% csrf_token %}

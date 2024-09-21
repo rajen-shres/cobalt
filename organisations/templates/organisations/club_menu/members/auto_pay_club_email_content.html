@@ -55,10 +55,10 @@
 {% if failed_memberships %}
 
     <p>
-        {% if paid_memberships|length == 1 %}
+        {% if failed_memberships|length == 1 %}
             1 membership fee auto payment was
         {% else %}
-            {{ paid_memberships|length }} membership fee auto payments were
+            {{ failed_memberships|length }} membership fee auto payments were
         {% endif %}
         unsuccessful.
     </p>
@@ -100,3 +100,9 @@
     <p>No membership fee auto payments were unsuccessful.</p>
 
 {% endif %}
+
+<p>
+    If you were expecting members to be charged but they are not listed here they may have
+    blocked auto pay for your club. You can see this using the Manage Outstanding Memberships
+    function (under the Club Menu, Members - Renewals).
+</p>

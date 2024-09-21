@@ -491,7 +491,7 @@ class MembershipChangeTypeForm(forms.Form):
     start_date = forms.DateField(
         label="Start date",
         # widget=forms.DateInput(attrs={"type": "date"}),
-        required=True,
+        required=False,
     )
     end_date = forms.DateField(
         label="End date",
@@ -540,10 +540,16 @@ class MembershipChangeTypeForm(forms.Form):
 
     def clean_start_date(self):
         start_date = self.cleaned_data.get("start_date")
-        today = timezone.now().date()
-        if start_date > today + datetime.timedelta(days=1):
-            # Allow a start date of tomorrow to allow ending currnt today
-            self.add_error("start_date", "Start date cannot be in the future")
+        if not self.club.full_club_admin:
+            # No validation in simple membership management
+            return start_date
+        if start_date is None:
+            self.add_error("start_date", "Start date required")
+        else:
+            today = timezone.now().date()
+            if start_date > today + datetime.timedelta(days=1):
+                # Allow a start date of tomorrow to allow ending current today
+                self.add_error("start_date", "Start date cannot be in the future")
         return start_date
 
     def clean_fee(self):
@@ -557,7 +563,7 @@ class MembershipChangeTypeForm(forms.Form):
         start_date = self.cleaned_data.get("start_date")
         end_date = self.cleaned_data.get("end_date")
         if start_date and end_date and start_date > end_date:
-            raise forms.ValidationError("End date must be after the start date")
+            self.add_error("end_date", "End date must be after the start date")
         return cleaned_data
 
 
@@ -685,6 +691,7 @@ class CSVUploadForm(forms.Form):
 class CSVContactUploadForm(forms.Form):
     """Form for uploading a CSV to load contacts"""
 
+    overwrite = forms.BooleanField(initial=False, required=False)
     file_type = forms.ChoiceField(
         choices=[
             ("CSV", "Generic CSV"),

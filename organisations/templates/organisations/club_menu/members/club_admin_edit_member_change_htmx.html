@@ -270,17 +270,62 @@
     </div>
 </div>
 
-{% block footer %}
-    <script src="{% static 'assets/js/plugins/moment.min.js' %}"></script>
-    <script src="{% static 'assets/js/plugins/bootstrap-datetimepicker.min.js' %}"></script>
-{% endblock %}
-
 <script>
 
-    // set up to change date and fees when the membership type selection changes
-    function initialiseHTMXForm() {
+    function changeMembershipType(event = null) {
+        // event listener for membership type changes
+        // sets the fee and due date if responding to an event
+        // and shows/hides the end date
+        // NOTE: 'this' will not be definied if called explicitly
+        const selectedType = $('#id_membership_type').val();
+        if (selectedType in feesAndDates) {
+            if (event) {
+                console.log("*** setting values ***");
+                $('#id_fee').val(feesAndDates[selectedType].annual_fee);
+                $('#id_fee').change();
+                $('#id_due_date').val(feesAndDates[selectedType].due_date);
+                $('#id_end_date').val(feesAndDates[selectedType].end_date);
+            }
+            if (feesAndDates[selectedType].perpetual == 'Y') {
+                $('#id_optional_end_date').hide();
+            } else {
+                $('#id_optional_end_date').show();
+            }
+        }
+    };
 
-        console.log("-- initialiseHTMXForm --")
+    function changeFeeField() {
+        // event listener for fee changes
+        // shows/hides the due date and any element of class optional_payment_method
+        // NOTE: 'this' will not be definied if called explicitly
+        const feeValue = $('#id_fee').val()
+        if (feeValue == 0 || feeValue === '0' || feeValue === null || feeValue === "") {
+            $('#id_optional_due_date').hide();
+            $('.optional_payment_method').hide();
+        } else {
+            $('#id_optional_due_date').show();
+            $('.optional_payment_method').show();
+        }
+    };
+
+    function changePaymentMethod() {
+        // event listener for payment method changes
+        // modifies the save button text depending on the payment method
+        // NOTE: 'this' will not be definied if called explicitly
+        var method = $('#id_payment_method').find('option:selected').text();
+        if (method == '-') {
+            $('#id-save-button-text').text('Save');
+        } else if ((method == '{{ BRIDGE_CREDITS }}')) {
+            $('#id-save-button-text').text('Save and Charge {{ BRIDGE_CREDITS }}');
+        } else {
+            $('#id-save-button-text').text('Save and Mark as Paid');
+        }
+    };
+
+    function initialiseHTMXForm() {
+        // set up to change date and fees when the membership type selection changes
+
+        console.log("-- initialiseHTMXForm in member change--")
 
         if ($('.datepicker').length) {
             $('.datepicker').datetimepicker({
@@ -298,59 +343,20 @@
             });
         }
 
-        const membershipTypeField = document.getElementById('id_membership_type');
-        const feeField = document.getElementById('id_fee');
-        const dueDateField = document.getElementById('id_due_date');
-        const endDateField = document.getElementById('id_end_date');
-        const endDateDiv = document.getElementById('id_optional_end_date');
-        const dueDateDiv = document.getElementById('id_optional_due_date');
-        const paymentMethodField = document.getElementById('id_payment_method');
-
         feesAndDates = {{ fees_and_dates|safe }};
 
-        membershipTypeField.addEventListener('change', function() {
+        $('#id_membership_type').off();
+        $('#id_fee').off();
+        $('#id_payment_method').off();
 
-            const selectedType = membershipTypeField.value;
-            if (selectedType in feesAndDates) {
-                feeField.value = feesAndDates[selectedType].annual_fee;
-                feeField.dispatchEvent(new Event('change'));
-                dueDateField.value = feesAndDates[selectedType].due_date;
-                endDateField.value = feesAndDates[selectedType].end_date;
-                if (feesAndDates[selectedType].perpetual == 'Y') {
-                    endDateDiv.style.display = 'none';
-                } else {
-                    endDateDiv.style.display = 'block';
-                }
-            }
-        });
+        $('#id_membership_type').on('change', changeMembershipType);
+        $('#id_fee').on('change', changeFeeField);
+        $('#id_payment_method').on('change', changePaymentMethod);
 
-        feeField.addEventListener('change', function() {
-            if (this.value == 0) {
-                dueDateDiv.style.display = 'none';
-                $('.optional_payment_method').hide();
-            } else {
-                dueDateDiv.style.display = 'block';
-                $('.optional_payment_method').show();
-            }
-        });
-
-        paymentMethodField.addEventListener('change', function() {
-            var method = this.options[this.selectedIndex].text
-            if (method == '-') {
-                $('#id-save-button-text').text('Save');
-            } else if ((method == '{{ BRIDGE_CREDITS }}')) {
-                $('#id-save-button-text').text('Save and Charge {{ BRIDGE_CREDITS }}');
-            } else {
-                $('#id-save-button-text').text('Save and Mark as Paid');
-            }
-        });
-
-        console.log("--- sending initising change events ---")
-
-        // Trigger change event on page load to set initial values
-        membershipTypeField.dispatchEvent(new Event('change'));
-        feeField.dispatchEvent(new Event('change'));
-        paymentMethodField.dispatchEvent(new Event('change'));
+        // call handlers explicitly to condition the display, but not change values
+        changeMembershipType();
+        changeFeeField();
+        changePaymentMethod();
     };
 
 </script>

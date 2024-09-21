@@ -1156,7 +1156,7 @@ def process_contact_import(
             if updated:
                 log_member_change(
                     club,
-                    unreg_user.system_number,
+                    contact["system_number"],
                     user,
                     "Contact updated (csv upload)",
                 )
