@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db.models import Sum, Q
 from django.forms import model_to_dict
 
@@ -182,7 +184,12 @@ def _organisation_transactions_by_date_range_augment_data(
 
 
 def organisation_transactions_by_date_range(
-    club, start_date, end_date, description_search=None, augment_data=True
+    club,
+    start_date,
+    end_date,
+    description_search=None,
+    augment_data=True,
+    transaction_type=None,
 ):
     """get the data for both the CSV and Excel downloads
 
@@ -199,16 +206,33 @@ def organisation_transactions_by_date_range(
     # Convert dates to date times
     start_datetime, end_datetime = start_end_date_to_datetime(start_date, end_date)
 
-    # run query
-    organisation_transactions = (
-        OrganisationTransaction.objects.filter(
-            organisation=club,
-            created_date__gte=start_datetime,
-            created_date__lte=end_datetime,
-        )
-        .order_by("-created_date")
-        .select_related("member")
+    # JPG cleanup
+    # # run query
+    # organisation_transactions = (
+    #     OrganisationTransaction.objects.filter(
+    #         organisation=club,
+    #         created_date__gte=start_datetime,
+    #         created_date__lte=end_datetime,
+    #     )
+    #     .order_by("-created_date")
+    #     .select_related("member")
+    # )
+
+    # build the base query
+    organisation_transactions = OrganisationTransaction.objects.filter(
+        organisation=club,
+        created_date__gte=start_datetime,
+        created_date__lte=end_datetime,
     )
+
+    if transaction_type and transaction_type != "all":
+        organisation_transactions = organisation_transactions.filter(
+            type=transaction_type,
+        )
+
+    organisation_transactions = organisation_transactions.order_by(
+        "-created_date"
+    ).select_related("member")
 
     # filter if required - note we also search for first name and last name as well as description
     if description_search:
@@ -237,6 +261,20 @@ def organisation_transactions_by_date_range(
         )
 
     return organisation_transactions
+
+
+def club_membership_summary_by_date_range(club, start_date, end_date):
+    """Returns the total of club membership transactions within a date range.
+    Will return None if no membership transactions, 0 if balanced out
+    """
+
+    start_datetime, end_datetime = start_end_date_to_datetime(start_date, end_date)
+
+    return OrganisationTransaction.objects.filter(
+        created_date__gte=start_datetime,
+        created_date__lte=end_datetime,
+        type="Club Membership",
+    ).aggregate(total=Sum("amount"))["total"]
 
 
 def event_payments_summary_by_date_range(club, start_date, end_date):
@@ -383,7 +421,7 @@ def congress_payments_summary_by_date_range(club, start_date, end_date):
 def organisation_transactions_excluding_summary_by_date_range(
     club, start_date, end_date
 ):
-    """get transactions for a date range excluding those that can be summarised - ie events and sessions
+    """get transactions for a date range excluding those that can be summarised - ie events, sessions and membership
 
     returns a dictionary keyed on id
 
@@ -397,6 +435,7 @@ def organisation_transactions_excluding_summary_by_date_range(
         .filter(event_id__isnull=True)
         .filter(club_session_id__isnull=True)
         .filter(created_date__gte=start_datetime, created_date__lte=end_datetime)
+        .exclude(type="Club Membership")
         .select_related("member")
         .order_by("pk")
     )
@@ -408,7 +447,7 @@ def organisation_transactions_excluding_summary_by_date_range(
 def combined_view_events_sessions_other(club, start_date, end_date):
     """return a combined view of transactions for a date range with a summary entry for events and sessions"""
 
-    # Get 3 different types of data
+    # Get 3 different types of data, membership handled separately
     events = event_payments_summary_by_date_range(club, start_date, end_date)
     sessions, payments_dict = sessions_and_payments_by_date_range(
         club, start_date, end_date
@@ -474,8 +513,32 @@ def combined_view_events_sessions_other(club, start_date, end_date):
         data["formatted_date"] = format_date_helper(transactions[index].created_date)
         transaction_list.append((transactions[index].created_date, data))
 
+    # JPG debug
+    print(f"start_date = '{start_date}' or type {type(start_date)}")
+
+    # get the club summary
+    club_membership_total = club_membership_summary_by_date_range(
+        club, start_date, end_date
+    )
+    if club_membership_total:
+        membership_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        club_membership = [
+            (
+                date_to_datetime_midnight(membership_date),
+                {
+                    "unformatted_date": membership_date,
+                    "counterparty": "Club Members",
+                    "type": "Club Membership",
+                    "description": "Total Club Membership Fees",
+                    "amount": club_membership_total,
+                },
+            )
+        ]
+    else:
+        club_membership = []
+
     # combine lists
-    combined_list = events_list + sessions_list + transaction_list
+    combined_list = events_list + sessions_list + transaction_list + club_membership
 
     # sort on date
     combined_list.sort(key=lambda x: x[0])

@@ -21,6 +21,7 @@
         <option {% if view_type == "session" %}selected{% endif %} value="session">Summary by Session</option>
         <option {% if view_type == "event" %}selected{% endif %} value="event">Summary by Event</option>
         <option {% if view_type == "other" %}selected{% endif %} value="other">Exclude Sessions and Events</option>
+        <option {% if view_type == "membership" %}selected{% endif %} value="membership">Club Membership</option>
     </select>
 </div>
 
@@ -42,6 +43,9 @@
     {% endif %}
     {% if view_type == "event" %}
         {% include "organisations/club_menu/finance/transactions_table_events_htmx.html" %}
+    {% endif %}
+    {% if view_type == "membership" %}
+        {% include "organisations/club_menu/finance/transactions_table_membership_htmx.html" %}
     {% endif %}
 
     {% include 'utils/pagination_footer_htmx.html' %}

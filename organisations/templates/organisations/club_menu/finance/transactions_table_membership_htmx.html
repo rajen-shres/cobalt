@@ -1,18 +1,16 @@
 {#------------------------------------------------------------------------#}
 {#                                                                        #}
-{# table view for all data                                                #}
+{# table view for membership transactions only                                                #}
 {#                                                                        #}
 {# sub of transactions_htmx.html                                          #}
 {#                                                                        #}
-{#  also called by transaction_event_detail_htmx.html which doesn't want  #}
-{#  the balance.                                                          #}
 {#------------------------------------------------------------------------#}
 {% load humanize %}
 {% load cobalt_tags %}
 {% load static %}
 
-{% if balance_at_end_date %}
-    <h3>Balance as at {{ end_datetime|cobalt_nice_date_short }}: {{ balance_at_end_date|cobalt_currency_colour }}</h3>
+{% if total_for_type %}
+    <h3>Total: {{ total_for_type|cobalt_currency_colour }}</h3>
 {% endif %}
 
 <table class="table table-hover table-condensed">
@@ -23,9 +21,6 @@
             <th class="text-left text-primary">Description</th>
             <th class="text-left text-primary">Who</th>
             <th class="text-right text-primary cobalt-no-wrap">Amount</th>
-            {% if not hide_balance %}
-                <th class="text-right text-primary cobalt-no-wrap">Balance</th>
-            {% endif %}
         </tr>
     </thead>
     <tbody>
@@ -44,9 +39,6 @@
                 <td class="text-left">{{ thing.description }}</td>
                 <td class="text-left">{{ thing.member|default_if_none:"" }}{{ thing.other_organisation|default_if_none:"" }}</td>
                 <td class="text-right font-weight-bold">{{ thing.amount|cobalt_currency_colour }}</td>
-                {% if not hide_balance %}
-                    <td class="text-right">{{ thing.balance|cobalt_currency_colour }}</td>
-                {% endif %}
             </tr>
 
             <!-- HIDDEN ROW FOR DETAILS WHEN CLICKED ON -->

@@ -15,7 +15,11 @@ from organisations.models import ClubLog, MemberMembershipType, Organisation
 from organisations.views.club_menu import tab_finance_htmx
 from organisations.views.club_menu_tabs.members import club_admin_edit_member_htmx
 from organisations.club_admin_core import is_player_a_member
-from payments.models import UserPendingPayment, OrganisationTransaction
+from payments.models import (
+    UserPendingPayment,
+    OrganisationTransaction,
+    TRANSACTION_TYPE,
+)
 from payments.views.core import (
     update_account,
     update_organisation,
@@ -99,6 +103,13 @@ def transactions_htmx(request, club):
             .filter(club_session_id__isnull=True)
             .order_by("-pk")
         )
+        things = cobalt_paginator(request, transactions)
+
+    elif view_type == "membership":
+        transactions = OrganisationTransaction.objects.filter(
+            organisation=club,
+            type="Club Membership",
+        ).order_by("-pk")
         things = cobalt_paginator(request, transactions)
 
     else:  # all
@@ -647,6 +658,10 @@ def transaction_filter_htmx(request, club):
     end_date = request.POST.get("end_date")
     description_search = request.POST.get("description_search")
     view_type_selector = request.POST.get("view_type_selector")
+    transaction_type = request.POST.get("transaction_type_selector")
+
+    # jpg debug
+    print(f"**** transaction_filter_htmx {transaction_type}")
 
     if not view_type_selector:
         # first call - show blank form
@@ -680,7 +695,12 @@ def transaction_filter_htmx(request, club):
         return render(
             request,
             "organisations/club_menu/finance/transaction_filter_htmx.html",
-            {"club": club, "reference_dates": reference_dates},
+            {
+                "club": club,
+                "reference_dates": reference_dates,
+                "transaction_type": "all",
+                "transaction_types": TRANSACTION_TYPE,
+            },
         )
 
     if not start_date or not end_date:
@@ -688,7 +708,12 @@ def transaction_filter_htmx(request, club):
 
     if "download-csv" in request.POST:
         return organisation_transactions_csv_download(
-            request, club, start_date, end_date, description_search
+            request,
+            club,
+            start_date,
+            end_date,
+            description_search,
+            transaction_type,
         )
 
     if "download-xls" in request.POST:
@@ -698,14 +723,26 @@ def transaction_filter_htmx(request, club):
 
     if "show_filtered_data" in request.POST:
         return organisation_transactions_filtered_data(
-            request, club, start_date, end_date, description_search, view_type_selector
+            request,
+            club,
+            start_date,
+            end_date,
+            description_search,
+            view_type_selector,
+            transaction_type,
         )
 
     return HttpResponse("an error occurred")
 
 
 def organisation_transactions_filtered_data(
-    request, club, start_date, end_date, description_search, view_type_selector
+    request,
+    club,
+    start_date,
+    end_date,
+    description_search,
+    view_type_selector,
+    transaction_type,
 ):
     """show filtered data (date and search) on screen, not as CSV/XLS download"""
 
@@ -720,7 +757,9 @@ def organisation_transactions_filtered_data(
             "hx_vars"
         ] = f"{hx_data['hx_vars']}, description_search: '{description_search}'"
 
-    if view_type_selector == "all":
+    if view_type_selector == "all" or (
+        view_type_selector == "txntype" and transaction_type == "all"
+    ):
         return organisation_transactions_filtered_data_all(
             request, club, start_date, end_date, description_search, hx_data
         )
@@ -745,8 +784,60 @@ def organisation_transactions_filtered_data(
             request, club, start_date, end_date, hx_data
         )
 
+    elif view_type_selector == "txntype":
+        return organisation_transactions_filtered_data_txntype(
+            request,
+            club,
+            start_date,
+            end_date,
+            description_search,
+            hx_data,
+            transaction_type,
+        )
+
     else:
         return HttpResponse("No view provided")
+
+
+def organisation_transactions_filtered_data_txntype(
+    request,
+    club,
+    start_date,
+    end_date,
+    description_search,
+    hx_data,
+    transaction_type,
+):
+    """handle the filter by transaction type option"""
+
+    organisation_transactions = organisation_transactions_by_date_range(
+        club,
+        start_date,
+        end_date,
+        description_search,
+        augment_data=False,
+        transaction_type=transaction_type,
+    )
+
+    total_for_type = 0
+    for org_transaction in organisation_transactions:
+        total_for_type += org_transaction.amount
+
+    things = cobalt_paginator(request, organisation_transactions, 50)
+
+    return render(
+        request,
+        "organisations/club_menu/finance/organisation_transactions_filtered_data_txntype_htmx.html",
+        {
+            "club": club,
+            "things": things,
+            "organisation_transactions": organisation_transactions,
+            "total_for_type": total_for_type,
+            "hx_target": hx_data["hx_target"],
+            "hx_post": hx_data["hx_post"],
+            "hx_vars": hx_data["hx_vars"],
+        },
+    )
 
 
 def organisation_transactions_filtered_data_all(

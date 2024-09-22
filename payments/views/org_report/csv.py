@@ -11,7 +11,7 @@ TZ = pytz.timezone(TIME_ZONE)
 
 
 def organisation_transactions_csv_download(
-    request, club, start_date, end_date, description_search=None
+    request, club, start_date, end_date, description_search=None, transaction_type=None
 ):
     """Organisation CSV download. Internal function, security is handled by the calling function.
 
@@ -21,7 +21,11 @@ def organisation_transactions_csv_download(
 
     # get details
     organisation_transactions = organisation_transactions_by_date_range(
-        club, start_date, end_date, description_search
+        club,
+        start_date,
+        end_date,
+        description_search,
+        transaction_type=transaction_type,
     )
 
     # Download datetime

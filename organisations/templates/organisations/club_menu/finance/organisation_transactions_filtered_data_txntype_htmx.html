@@ -1,0 +1,15 @@
+{#------------------------------------------------------------------------#}
+{#                                                                        #}
+{# show org transaction filtered by transaction type                      #}
+{#                                                                        #}
+{#------------------------------------------------------------------------#}
+{% if organisation_transactions %}
+
+    {% include "organisations/club_menu/finance/transactions_table_membership_htmx.html" %}
+    {% include "utils/pagination_footer_htmx.html" %}
+
+{% else %}
+
+    <h4>No data found</h4>
+
+{% endif %}

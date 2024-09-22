@@ -315,6 +315,7 @@ def organisation_transactions_xls_download(
 ):
     """Download XLS File of org transactions"""
 
+    # JPG Query - this seems to be a useless call
     combined_view_events_sessions_other(club, start_date, end_date)
 
     # Create HttpResponse to put the Excel file into
