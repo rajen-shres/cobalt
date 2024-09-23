@@ -297,6 +297,7 @@ def _map_csv_to_columns(mapping, csv, strict=False):
                                 f"Invalid {GLOBAL_ORG} Number in column {spec['csv_col']} '{source}'",
                                 None,
                             )
+                        continue
 
                     # TODO: Checking with MPC is too slow. We just validate the checksum
                     if not abf_checksum_is_valid(system_number):
@@ -306,7 +307,8 @@ def _map_csv_to_columns(mapping, csv, strict=False):
                                 f"Invalid {GLOBAL_ORG} Number in column {spec['csv_col']} '{source}'",
                                 None,
                             )
-
+                        else:
+                            continue
                     item[attr_name] = system_number
 
                 elif spec["type"] == "str":

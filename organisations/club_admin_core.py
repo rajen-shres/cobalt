@@ -1289,8 +1289,9 @@ def get_count_for_membership_type(membership_type, active_only=True):
 def can_mark_as_lapsed(member_details):
     """Can the member validly be marked as lapsed?"""
 
-    if member_has_future(member_details.club, member_details.system_number):
-        return (False, "Member has a future dated membership")
+    # COB-930
+    # if member_has_future(member_details.club, member_details.system_number):
+    #     return (False, "Member has a future dated membership")
 
     if member_details.is_active_status:
         return (True, None)
@@ -1301,8 +1302,9 @@ def can_mark_as_lapsed(member_details):
 def can_mark_as_resigned(member_details):
     """Can the member validly be marked as resigned?"""
 
-    if member_has_future(member_details.club, member_details.system_number):
-        return (False, "Member has a future dated membership")
+    # COB-930
+    # if member_has_future(member_details.club, member_details.system_number):
+    #     return (False, "Member has a future dated membership")
 
     if (
         member_details.is_active_status
@@ -1317,8 +1319,9 @@ def can_mark_as_resigned(member_details):
 def can_mark_as_terminated(member_details):
     """Can the member validly be marked as terminated?"""
 
-    if member_has_future(member_details.club, member_details.system_number):
-        return (False, "Member has a future dated membership")
+    # COB-930
+    # if member_has_future(member_details.club, member_details.system_number):
+    #     return (False, "Member has a future dated membership")
 
     if (
         member_details.is_active_status
@@ -1335,8 +1338,9 @@ def can_mark_as_terminated(member_details):
 def can_mark_as_deceased(member_details):
     """Can the member validly be marked as deceased?"""
 
-    if member_has_future(member_details.club, member_details.system_number):
-        return (False, "Member has a future dated membership")
+    # COB-930
+    # if member_has_future(member_details.club, member_details.system_number):
+    #     return (False, "Member has a future dated membership")
 
     if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DECEASED:
         return (False, "Member is already marked as deceased")
@@ -1891,6 +1895,31 @@ def _process_membership_payment(
 # -------------------------------------------------------------------------------------
 
 
+def _delete_future(club, member_details, requester):
+    """check for and delete a future membership"""
+
+    future_check = (
+        MemberMembershipType.objects.filter(
+            membership_type__organisation=club,
+            system_number=member_details.system_number,
+            membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
+        )
+        .select_related(
+            "membership_type",
+        )
+        .last()
+    )
+
+    if future_check:
+        future_check.delete()
+        log_member_change(
+            club,
+            member_details.system_number,
+            requester,
+            f"Future dated membership deleted: {future_check.membership_type.name}",
+        )
+
+
 def _mark_member_as_deceased(club, member_details, requester=None):
     """Mark a club member as deceased. Note that this only applies
     at the club level. Marking a user or unregistered user as deceased
@@ -1932,6 +1961,8 @@ def _mark_member_as_deceased(club, member_details, requester=None):
     member_details.previous_membership_status = member_details.membership_status
     member_details.membership_status = MemberClubDetails.MEMBERSHIP_STATUS_DECEASED
     member_details.save()
+
+    _delete_future(club, member_details, requester)
 
     old_status_desc = member_details.get_previous_membership_status_display()
     message = f"Status changed from {old_status_desc} to Deceased"
@@ -2076,6 +2107,8 @@ def _update_member_status(club, member_details, new_status, action, requester=No
 
     member_details.save()
     member_details.latest_membership.save()
+
+    _delete_future(club, member_details, requester)
 
     message = f"Status changed from {member_details.get_previous_membership_status_display()} to {member_details.get_membership_status_display()}"
 
@@ -3692,15 +3725,18 @@ def get_clubs_with_auto_pay_memberships(date=None):
 
 
 def get_auto_pay_memberships_for_club(club, date=None):
-    """Return a list of memberships that are allowed for auto pay as at the
-    specified date (today if none specified) for the club.
+    """Return a list of memberships that are candidates for auto pay as at the
+    specified date for the club. These are augmented with:
+        - membership_details: the corresponding MemberClubDetails
+        - user_or_unreg: the associated User or UnregisteredUser
+        - action_type: 'allowed', 'disallowed' or 'unreg'
 
     Args:
-        club (Organisation): a club whih may or may not have auto pay memberships
+        club (Organisation): a club which may or may not have auto pay memberships
         date (Date): the auto pay date to find, or today if None
 
     Returns:
-        list: MemberMembershipTypes augmented with user and member_details
+        list: MemberMembershipTypes augmented with user_or_unreg and action_type
     """
 
     target_date = date if date else timezone.now().date()
@@ -3722,44 +3758,59 @@ def get_auto_pay_memberships_for_club(club, date=None):
 
     system_numbers = membership_qs.values_list("system_number", flat=True)
 
+    # JPG debug
+    print(f"{len(system_numbers)} candidates found")
+
     if len(system_numbers) == 0:
         return None
 
-    allowing = MemberClubOptions.objects.filter(
+    disallowing = MemberClubOptions.objects.filter(
         club=club,
         user__system_number__in=system_numbers,
-        allow_auto_pay=True,
+        allow_auto_pay=False,
     ).values_list("user__system_number", flat=True)
 
-    # filter the memberships by permissions
-    memberships = [
-        membership
-        for membership in membership_qs
-        if membership.system_number in allowing
-    ]
+    # JPG debug
+    print(f"{len(disallowing)} disallowing found")
 
-    if len(memberships) == 0:
-        return None
-
-    # augment with user and membership details
-
-    system_numbers = [membership.system_number for membership in memberships]
+    # augment with user, unregistered user and membership details
 
     users = User.objects.filter(system_number__in=system_numbers)
+    user_dict = {user.system_number: user for user in users}
+
+    unreg_users = UnregisteredUser.objects.filter(system_number__in=system_numbers)
+    unreg_user_dict = {
+        unreg_user.system_number: unreg_user for unreg_user in unreg_users
+    }
+
     member_details_qs = MemberClubDetails.objects.filter(
         club=club, system_number__in=system_numbers
     )
-
-    user_dict = {user.system_number: user for user in users}
     member_detail_dict = {
         member_details.system_number: member_details
         for member_details in member_details_qs
     }
 
-    for membership in memberships:
-        membership.user = user_dict.get(membership.system_number, None)
+    memberships = []
+
+    for membership in membership_qs:
+
         membership.member_details = member_detail_dict.get(
             membership.system_number, None
         )
+
+        if membership.system_number in user_dict:
+            membership.user_or_unreg = user_dict.get(membership.system_number, None)
+            if membership.system_number in disallowing:
+                membership.action_type = "disallowed"
+            else:
+                membership.action_type = "allowed"
+        else:
+            membership.user_or_unreg = unreg_user_dict.get(
+                membership.system_number, None
+            )
+            membership.action_type = "unreg"
+
+        memberships.append(membership)
 
     return memberships

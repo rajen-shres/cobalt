@@ -147,10 +147,6 @@
                             </table>
                         </div>
 
-                        {% if current_index > 0 %}
-                            <p class="small">Note: This member has a future dated membership which limits what can be done to the current membership. The future dated membership can be deleted if no longer required.</p>
-                        {% endif %}
-
                         <!-- ACTION BUTTONS -->
 
                         <div class="row" id="id_action_pane">
@@ -231,9 +227,11 @@
                                     <button
                                         type="submit"
                                         class="btn btn-sm btn-primary"
+                                        data-toggle="tooltip"
+                                        title="Remove this person as a member and save their details as a contact"
                                         onclick="confirmDeleteMember(this, '#id_panel_members')"
                                     >
-                                        Delete Member
+                                        Remove Membership
                                     </button>
                                 {% endif %}
                             </div>

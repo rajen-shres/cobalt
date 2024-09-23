@@ -29,8 +29,8 @@
 
                 <tr>
                     <td style="text-align: left;">
-                        {{ membership.user.first_name }} {{ membership.user.last_name }}
-                        ({{ GLOBAL_ORG }} No {{ membership.user.system_number }})
+                        {{ membership.user_or_unreg_or_unreg.first_name }} {{ membership.user_or_unreg.last_name }}
+                        ({{ GLOBAL_ORG }} No {{ membership.user_or_unreg.system_number }})
                     </td>
                     <td style="text-align: left;">
                         {{ membership.membership_type.name }} {{ membership.period }}
@@ -60,7 +60,7 @@
         {% else %}
             {{ failed_memberships|length }} membership fee auto payments were
         {% endif %}
-        unsuccessful.
+        unsuccessful. Auto payment of these fees will be attempted again tomorrow.
     </p>
 
     <table>
@@ -77,8 +77,8 @@
 
                 <tr>
                     <td style="text-align: left;">
-                        {{ membership.user.first_name }} {{ membership.user.last_name }}
-                        ({{ GLOABL_ORG }} No {{ membership.user.system_number }})
+                        {{ membership.user_or_unreg.first_name }} {{ membership.user_or_unreg.last_name }}
+                        ({{ GLOABL_ORG }} No {{ membership.user_or_unreg.system_number }})
                     </td>
                     <td style="text-align: left;">
                         {{ membership.membership_type.name }} {{ membership.period }}
@@ -95,14 +95,77 @@
         </tbody>
     </table>
 
-{% else %}
+{% endif %}
 
-    <p>No membership fee auto payments were unsuccessful.</p>
+{% if blocked_memberships %}
+
+    <p>
+        The following members have disallowed auto payment of their fees. Auto payment will not be attempted again for these membership fees.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left;">Member</th>
+                <th style="text-align: left;">Membership</th>
+                <th style="text-align: right;">Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membership in blocked_memberships %}
+
+                <tr>
+                    <td style="text-align: left;">
+                        {{ membership.user_or_unreg.first_name }} {{ membership.user_or_unreg.last_name }}
+                        ({{ GLOBAL_ORG }} No {{ membership.user_or_unreg.system_number }})
+                    </td>
+                    <td style="text-align: left;">
+                        {{ membership.membership_type.name }} {{ membership.period }}
+                    </td>
+                    <td style="text-align: right;">
+                        {{ membership.fee|cobalt_number }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
 
 {% endif %}
 
-<p>
-    If you were expecting members to be charged but they are not listed here they may have
-    blocked auto pay for your club. You can see this using the Manage Outstanding Memberships
-    function (under the Club Menu, Members - Renewals).
-</p>
+{% if unreg_memberships %}
+
+    <p>
+        The following members are not registered with My ABF so are not eligible for auto
+        pay at this time. Auto payment will not be attempted again for these membership fees.
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left;">Member</th>
+                <th style="text-align: left;">Membership</th>
+                <th style="text-align: right;">Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membership in unreg_memberships %}
+
+                <tr>
+                    <td style="text-align: left;">
+                        {{ membership.user_or_unreg.first_name }} {{ membership.user_or_unreg.last_name }}
+                        ({{ GLOBAL_ORG }} No {{ membership.user_or_unreg.system_number }})
+                    </td>
+                    <td style="text-align: left;">
+                        {{ membership.membership_type.name }} {{ membership.period }}
+                    </td>
+                    <td style="text-align: right;">
+                        {{ membership.fee|cobalt_number }}
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endif %}

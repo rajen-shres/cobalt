@@ -50,7 +50,8 @@ class Command(BaseCommand):
         total_collected=None,
         paid_memberships=None,
         failed_memberships=None,
-        none_allowing=False,
+        blocked_memberships=None,
+        unreg_memberships=None,
         no_bridge_credits=False,
     ):
         """Send an email to the club notifying them of the results"""
@@ -75,17 +76,6 @@ class Command(BaseCommand):
                 },
             )
 
-        elif none_allowing:
-
-            email_body = render_to_string(
-                "organisations/club_menu/members/auto_pay_club_email_content_none_allowed.html",
-                {
-                    "club": club,
-                    "today": today,
-                    "GLOBAL_TITLE": GLOBAL_TITLE,
-                },
-            )
-
         else:
 
             email_body = render_to_string(
@@ -95,8 +85,9 @@ class Command(BaseCommand):
                     "total_collected": total_collected,
                     "paid_memberships": paid_memberships,
                     "failed_memberships": failed_memberships,
+                    "blocked_memberships": blocked_memberships,
+                    "unreg_memberships": unreg_memberships,
                     "today": today,
-                    "none_allowing": none_allowing,
                     "no_bridge_credits": no_bridge_credits,
                     "GLOBAL_TITLE": GLOBAL_TITLE,
                     "BRIDGE_CREDITS": BRIDGE_CREDITS,
@@ -156,13 +147,13 @@ class Command(BaseCommand):
 
         context = {
             "title": f"Membership fee payment for {club.name}",
-            "name": membership.user.first_name,
+            "name": membership.user_or_unreg.first_name,
             "email_body": email_body,
             "box_colour": "#007bff",
         }
 
         send_cobalt_email_with_template(
-            to_address=membership.user.email,
+            to_address=membership.user_or_unreg.email,
             batch_id=batch_id,
             context=context,
         )
@@ -181,9 +172,9 @@ class Command(BaseCommand):
             logger.info(f"Batch auto pay starting {club.name}")
 
             memberships = get_auto_pay_memberships_for_club(club)
+
             if not memberships:
-                self.notify_club(club, none_allowing=True)
-                logger.info(f"No allowed auto pay payments for {club.name}")
+                logger.warning(f"No auto pay candiates for {club.name}")
                 continue
 
             # get the bridge credit paymnet method for the club (if any)
@@ -202,6 +193,8 @@ class Command(BaseCommand):
 
             paid_memberships = []
             failed_memberships = []
+            blocked_memberships = []
+            unreg_memberships = []
             total_collected = 0
 
             # create batch ID for member notifications
@@ -217,37 +210,56 @@ class Command(BaseCommand):
 
                 with transaction.atomic():
 
-                    success, message = _process_membership_payment(
-                        club,
-                        True,
-                        membership,
-                        club_bc_payment_method,
-                        f"{club.name} club membership (auto pay)",
-                    )
+                    if membership.action_type == "allowed":
+                        # attempt the payment
 
-                    if success:
+                        success, message = _process_membership_payment(
+                            club,
+                            True,
+                            membership,
+                            club_bc_payment_method,
+                            f"{club.name} club membership (auto pay)",
+                        )
+
+                        if success:
+                            membership.save()
+
+                            if (
+                                membership.member_details.latest_membership
+                                == membership
+                            ):
+                                # need to update the status on the member details
+
+                                membership.member_details.membership_status = (
+                                    MemberClubDetails.MEMBERSHIP_STATUS_CURRENT
+                                )
+                                membership.member_details.save()
+
+                            paid_memberships.append(membership)
+                            total_collected += membership.fee
+                            self.notify_member(club, membership, member_batch_id)
+
+                            logger.info(
+                                f"Auto pay successful for {membership.user_or_unreg}"
+                            )
+
+                        else:
+                            logger.warning(
+                                f"Auto pay failed for {membership.user_or_unreg.system_number} '{message}'"
+                            )
+                            membership.message = message
+                            failed_memberships.append(membership)
+
+                    elif membership.action_type in ["blocked", "disallowed"]:
+                        # remove the auto pay date from the membership
+
+                        membership.auto_pay_date = None
                         membership.save()
 
-                        if membership.member_details.latest_membership == membership:
-                            # need to update the status on the member details
-
-                            membership.member_details.membership_status = (
-                                MemberClubDetails.MEMBERSHIP_STATUS_CURRENT
-                            )
-                            membership.member_details.save()
-
-                        paid_memberships.append(membership)
-                        total_collected += membership.fee
-                        self.notify_member(club, membership, member_batch_id)
-
-                        logger.info(f"Auto pay successful for {membership.user}")
-
-                    else:
-                        logger.warning(
-                            f"Auto pay failed for {membership.user.system_number} '{message}'"
-                        )
-                        membership.message = message
-                        failed_memberships.append(membership)
+                        if membership.action_type == "blocked":
+                            blocked_memberships.append(membership)
+                        else:
+                            unreg_memberships.append(membership)
 
             # update the members batch
             member_batch_id.batch_size = len(paid_memberships)
@@ -259,6 +271,8 @@ class Command(BaseCommand):
                 total_collected=total_collected,
                 paid_memberships=paid_memberships,
                 failed_memberships=failed_memberships,
+                blocked_memberships=blocked_memberships,
+                unreg_memberships=unreg_memberships,
             )
 
             logger.info(
