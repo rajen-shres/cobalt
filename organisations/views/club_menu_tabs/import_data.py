@@ -309,6 +309,7 @@ def _map_csv_to_columns(mapping, csv, strict=False):
                             )
                         else:
                             continue
+
                     item[attr_name] = system_number
 
                 elif spec["type"] == "str":

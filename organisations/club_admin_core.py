@@ -429,7 +429,10 @@ def get_membership_type(club, system_number):
             club=club,
             system_number=system_number,
         )
-        .select_related("latest_membership")
+        .select_related(
+            "latest_membership",
+            "latest_membership__membership_type",
+        )
         .last()
     )
 
@@ -439,7 +442,7 @@ def get_membership_type(club, system_number):
     if member_details.membership_status not in MEMBERSHIP_STATES_ACTIVE:
         return None
 
-    return member_details.latest_membership
+    return member_details.latest_membership.membership_type
 
 
 def is_player_a_member(club, system_number):

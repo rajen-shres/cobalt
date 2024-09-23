@@ -246,7 +246,10 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
     session = session_entry.session
 
     # Get membership for this player. None for Guests
-    membership = get_membership_type(session_entry.system_number, club)
+    membership = get_membership_type(club, session_entry.system_number)
+
+    # JPG debug
+    print(f"*** membership = '{membership}' of type {type(membership)}")
 
     # Check if we have a payment method
     if not session_entry.payment_method:
@@ -1572,7 +1575,9 @@ def recalculate_session_status(session: Session):
 
     # Are there still outstanding payments?
     if (
-        not SessionEntry.objects.filter(session=session, is_paid=False).exists()
+        not SessionEntry.objects.filter(session=session, is_paid=False)
+        .exclude(system_number=SITOUT)
+        .exists()
         and not SessionMiscPayment.objects.filter(
             session_entry__session=session, payment_made=False
         ).exists()
