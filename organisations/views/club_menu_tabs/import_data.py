@@ -48,94 +48,250 @@ from utils.views.general import masterpoint_query
 
 # Mapping for generic CSV member imports
 GENERIC_MEMBER_MAPPING = {
-    "system_number": {"csv_col": 0, "type": "sysnum", "required": True},
-    "first_name": {"csv_col": 1, "required": True},
-    "last_name": {"csv_col": 2, "required": True},
-    "email": {"csv_col": 3, "type": "email"},
-    "membership_type": {"csv_col": 4, "type": "str", "len": 20, "opt_column": True},
-    "address1": {"csv_col": 5, "len": 100, "opt_column": True},
-    "address2": {"csv_col": 6, "len": 100, "opt_column": True},
-    "state": {"csv_col": 7, "type": "str", "len": 3, "opt_column": True},
-    "postcode": {"csv_col": 8, "type": "str", "len": 10, "opt_column": True},
-    "preferred_phone": {"csv_col": 9, "type": "str", "len": 15, "opt_column": True},
-    "other_phone": {"csv_col": 10, "type": "str", "len": 15, "opt_column": True},
-    "dob": {"csv_col": 11, "type": "date", "opt_column": True, "no_future": None},
-    "club_membership_number": {"csv_col": 12, "opt_column": True},
-    "joined_date": {"csv_col": 13, "type": "date", "opt_column": True},
-    "left_date": {"csv_col": 14, "type": "date", "opt_column": True},
-    "emergency_contact": {"csv_col": 15, "opt_column": True},
-    "notes": {"csv_col": 16, "opt_column": True},
+    "system_number": {
+        "title": f"{GLOBAL_ORG} Number",
+        "csv_col": 0,
+        "type": "sysnum",
+        "required": True,
+    },
+    "first_name": {"title": "First Name", "csv_col": 1, "required": True},
+    "last_name": {"title": "Last Name", "csv_col": 2, "required": True},
+    "email": {"title": "Email", "csv_col": 3, "type": "email"},
+    "membership_type": {
+        "title": "Membership Type",
+        "csv_col": 4,
+        "type": "str",
+        "len": 20,
+        "opt_column": True,
+    },
+    "address1": {"title": "Address 1", "csv_col": 5, "len": 100, "opt_column": True},
+    "address2": {"title": "Address 2", "csv_col": 6, "len": 100, "opt_column": True},
+    "state": {
+        "title": "State",
+        "csv_col": 7,
+        "type": "str",
+        "len": 3,
+        "opt_column": True,
+    },
+    "postcode": {
+        "title": "Post Code",
+        "csv_col": 8,
+        "type": "str",
+        "len": 10,
+        "opt_column": True,
+    },
+    "preferred_phone": {
+        "title": "Preferred Phone",
+        "csv_col": 9,
+        "type": "str",
+        "len": 15,
+        "opt_column": True,
+    },
+    "other_phone": {
+        "title": "Other Phone",
+        "csv_col": 10,
+        "type": "str",
+        "len": 15,
+        "opt_column": True,
+    },
+    "dob": {
+        "title": "Date of Birth",
+        "csv_col": 11,
+        "type": "date",
+        "opt_column": True,
+        "no_future": None,
+    },
+    "club_membership_number": {
+        "title": "Club Membership Number",
+        "csv_col": 12,
+        "opt_column": True,
+    },
+    "joined_date": {
+        "title": "Joined Date",
+        "csv_col": 13,
+        "type": "date",
+        "opt_column": True,
+    },
+    "left_date": {
+        "title": "Left Date",
+        "csv_col": 14,
+        "type": "date",
+        "opt_column": True,
+    },
+    "emergency_contact": {
+        "title": "Emergency Contact",
+        "csv_col": 15,
+        "opt_column": True,
+    },
+    "notes": {"title": "Notes", "csv_col": 16, "opt_column": True},
+    "start_date": {
+        "title": "Membership Start Date",
+        "csv_col": 17,
+        "type": "date",
+        "opt_column": True,
+    },
+    "end_date": {
+        "title": "Membership End Date",
+        "csv_col": 18,
+        "type": "date",
+        "opt_column": True,
+    },
 }
 
 # Mapping for generic CSV member imports
 GENERIC_CONTACT_MAPPING = {
-    "first_name": {"csv_col": 0, "required": True},
-    "last_name": {"csv_col": 1, "required": True},
-    "email": {"csv_col": 2, "type": "email", "opt_column": True},
-    "system_number": {"csv_col": 3, "type": "sysnum", "opt_column": True},
-    "address1": {"csv_col": 4, "len": 100, "opt_column": True},
-    "address2": {"csv_col": 5, "len": 100, "opt_column": True},
-    "state": {"csv_col": 6, "type": "str", "len": 3, "opt_column": True},
-    "postcode": {"csv_col": 7, "type": "str", "len": 10, "opt_column": True},
-    "preferred_phone": {"csv_col": 8, "type": "str", "len": 15, "opt_column": True},
-    "other_phone": {"csv_col": 9, "type": "str", "len": 15, "opt_column": True},
-    "dob": {"csv_col": 10, "type": "date", "opt_column": True, "no_future": None},
-    "emergency_contact": {"csv_col": 11, "opt_column": True},
-    "notes": {"csv_col": 12, "opt_column": True},
+    "first_name": {"title": "First Name", "csv_col": 0, "required": True},
+    "last_name": {"title": "Last Name", "csv_col": 1, "required": True},
+    "email": {"title": "Email", "csv_col": 2, "type": "email", "opt_column": True},
+    "system_number": {
+        "title": f"{GLOBAL_ORG} Number",
+        "csv_col": 3,
+        "type": "sysnum",
+        "opt_column": True,
+    },
+    "address1": {"title": "Address 1", "csv_col": 4, "len": 100, "opt_column": True},
+    "address2": {"title": "Address 2", "csv_col": 5, "len": 100, "opt_column": True},
+    "state": {
+        "title": "State",
+        "csv_col": 6,
+        "type": "str",
+        "len": 3,
+        "opt_column": True,
+    },
+    "postcode": {
+        "title": "Post Code",
+        "csv_col": 7,
+        "type": "str",
+        "len": 10,
+        "opt_column": True,
+    },
+    "preferred_phone": {
+        "title": "Preferred Phone",
+        "csv_col": 8,
+        "type": "str",
+        "len": 15,
+        "opt_column": True,
+    },
+    "other_phone": {
+        "title": "Other Phone",
+        "csv_col": 9,
+        "type": "str",
+        "len": 15,
+        "opt_column": True,
+    },
+    "dob": {
+        "title": "Date of Birth",
+        "csv_col": 10,
+        "type": "date",
+        "opt_column": True,
+        "no_future": None,
+    },
+    "emergency_contact": {
+        "title": "Emergency Contact",
+        "csv_col": 11,
+        "opt_column": True,
+    },
+    "notes": {"title": "Notes", "csv_col": 12, "opt_column": True},
 }
 
 # Mapping for PIANOLA CSV member imports
 PIANOLA_MAPPING = {
-    "system_number": {"csv_col": 1, "type": "sysnum", "required": True},
-    "first_name": {"csv_col": 5, "required": True},
-    "last_name": {"csv_col": 6, "required": True},
-    "email": {"csv_col": 7, "type": "email"},
-    "address1": {"csv_col": 10, "type": "concat", "other": 11, "len": 100},
-    "address2": {"csv_col": 12, "type": "concat", "other": 13, "len": 100},
-    "state": {"csv_col": 14, "type": "str", "len": 3},
-    "postcode": {"csv_col": 15, "type": "str", "len": 10},
-    "dob": {"csv_col": 20, "type": "date", "no_future": None},
-    "membership_type": {"csv_col": 21, "type": "str", "len": 20},
-    "club_membership_number": {"csv_col": 0},
-    "joined_date": {"csv_col": 22, "type": "date"},
-    "left_date": {
-        "csv_col": 26,
-        "type": "date",
+    "system_number": {
+        "title": "National number",
+        "csv_col": 1,
+        "type": "sysnum",
+        "required": True,
     },
-    "emergency_contact": {"csv_col": 30},
-    "notes": {"csv_col": 29},
+    "first_name": {"title": "First name", "csv_col": 5, "required": True},
+    "last_name": {"title": "Last name", "csv_col": 6, "required": True},
+    "email": {"title": "Email", "csv_col": 7, "type": "email"},
+    "address1": {
+        "title": "Address line 1",
+        "csv_col": 10,
+        "type": "concat",
+        "other": 11,
+        "other_title": "Address line 2",
+        "len": 100,
+    },
+    "address2": {
+        "title": "Address line 3",
+        "csv_col": 12,
+        "type": "concat",
+        "other": 13,
+        "other_title": "Address city",
+        "len": 100,
+    },
+    "state": {"title": "State", "csv_col": 14, "type": "str", "len": 3},
+    "postcode": {"title": "Postal code", "csv_col": 15, "type": "str", "len": 10},
+    "dob": {"title": "DOB", "csv_col": 20, "type": "date", "no_future": None},
+    "membership_type": {
+        "title": "Member category",
+        "csv_col": 21,
+        "type": "str",
+        "len": 20,
+    },
+    "club_membership_number": {"title": "Local number", "csv_col": 0},
+    "joined_date": {"title": "Joined date", "csv_col": 22, "type": "date"},
+    "left_date": {"title": "Left club date", "csv_col": 26, "type": "date"},
+    "paid_until_date": {"title": "Paid till", "csv_col": 28, "type": "date"},
+    "emergency_contact": {"title": "ICE", "csv_col": 30},
+    "notes": {"title": "Private Notes", "csv_col": 29},
 }
 
 # Mapping for PIANOLA CSV contacts imports, same as for members, but system number optional
 PIANOLA_CONTACT_MAPPING = {
-    "system_number": {"csv_col": 1, "type": "sysnum"},
-    "first_name": {"csv_col": 5, "required": True},
-    "last_name": {"csv_col": 6, "required": True},
-    "email": {"csv_col": 7, "type": "email"},
-    "address1": {"csv_col": 10, "type": "concat", "other": 11, "len": 100},
-    "address2": {"csv_col": 12, "type": "concat", "other": 13, "len": 100},
-    "state": {"csv_col": 14, "type": "str", "len": 3},
-    "postcode": {"csv_col": 15, "type": "str", "len": 10},
-    "dob": {"csv_col": 20, "type": "date", "no_future": None},
-    "emergency_contact": {"csv_col": 30},
-    "notes": {"csv_col": 29},
+    "system_number": {"title": "National number", "csv_col": 1, "type": "sysnum"},
+    "first_name": {"title": "First name", "csv_col": 5, "required": True},
+    "last_name": {"title": "name", "csv_col": 6, "required": True},
+    "email": {"title": "Email", "csv_col": 7, "type": "email"},
+    "address1": {
+        "title": "Address line 1",
+        "csv_col": 10,
+        "type": "concat",
+        "other": 11,
+        "other_title": "Address line 2",
+        "len": 100,
+    },
+    "address2": {
+        "title": "Address line 3",
+        "csv_col": 12,
+        "type": "concat",
+        "other": 13,
+        "other_title": "Address city",
+        "len": 100,
+    },
+    "state": {"title": "State", "csv_col": 14, "type": "str", "len": 3},
+    "postcode": {"title": "Postal code", "csv_col": 15, "type": "str", "len": 10},
+    "dob": {"title": "DOB", "csv_col": 20, "type": "date", "no_future": None},
+    "emergency_contact": {"title": "ICE", "csv_col": 30},
+    "notes": {"title": "Private Notes", "csv_col": 29},
 }
 
 # Mapping for Compscore CSV member imports
 COMPSCORE_MEMBER_MAPPING = {
-    "system_number": {"csv_col": 8, "type": "sysnum", "required": True},
-    "first_name": {"csv_col": 1, "required": True, "case": "cap"},
-    "last_name": {"csv_col": 0, "required": True, "case": "cap"},
-    "email": {"csv_col": 7, "type": "email"},
-    "address1": {"csv_col": 2, "type": "str", "len": 100},
-    "address2": {"csv_col": 3, "type": "str", "len": 100},
-    "postcode": {"csv_col": 4, "type": "str", "len": 10},
-    "preferred_phone": {"csv_col": 5, "type": "str", "len": 15},
-    "other_phone": {"csv_col": 6, "type": "str", "len": 15},
-    "emergency_contact": {"csv_col": 10},
-    "notes": {"csv_col": 11},
-    "dob": {"csv_col": 12, "type": "date", "no_future": None},
-    "club_membership_number": {"csv_col": 14},
+    "system_number": {
+        "title": "ABF No",
+        "csv_col": 8,
+        "type": "sysnum",
+        "required": True,
+    },
+    "first_name": {
+        "title": "Given Names",
+        "csv_col": 1,
+        "required": True,
+        "case": "cap",
+    },
+    "last_name": {"title": "Surname", "csv_col": 0, "required": True, "case": "cap"},
+    "email": {"title": "EmailAddress", "csv_col": 7, "type": "email"},
+    "address1": {"title": "Address 1", "csv_col": 2, "type": "str", "len": 100},
+    "address2": {"title": "Address2", "csv_col": 3, "type": "str", "len": 100},
+    "postcode": {"title": "Postcode", "csv_col": 4, "type": "str", "len": 10},
+    "preferred_phone": {"title": "Phone", "csv_col": 5, "type": "str", "len": 15},
+    "other_phone": {"title": "Phone Other", "csv_col": 6, "type": "str", "len": 15},
+    "emergency_contact": {"title": "Emergency Contact", "csv_col": 10},
+    "notes": {"title": "Comments", "csv_col": 11},
+    "dob": {"title": "Date of Birth", "csv_col": 12, "type": "date", "no_future": None},
+    "club_membership_number": {"title": "Club Number", "csv_col": 14},
 }
 
 DATE_FORMATS = [
@@ -434,7 +590,8 @@ def _map_csv_to_columns(mapping, csv, strict=False):
 
 
 def _augment_member_details(club, system_number, new_details, overwrite=False):
-    """Augment an existing MemberClubDetails record with values from a dictionary.
+    """Augment an existing MemberClubDetails record and the associated
+    latest membership with values from a dictionary.
 
     By default existing values are not overwriten
     The MemberClubDetails must exist, and is saved on exit
@@ -443,8 +600,10 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
         bool: have any updates been made
     """
 
-    member_details = MemberClubDetails.objects.get(
-        club=club, system_number=system_number
+    member_details = (
+        MemberClubDetails.objects.filter(club=club, system_number=system_number)
+        .select_related("latest_membership")
+        .last()
     )
 
     updated = False
@@ -463,7 +622,29 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
     if updated:
         member_details.save()
 
-    return updated
+    # now update the membership details
+
+    membership_updated = False
+    if member_details.latest_membership:
+        for attr_name in new_details:
+            # do not update with falsey values
+            if new_details[attr_name]:
+                try:
+                    old_value = getattr(member_details.latest_membership, attr_name)
+                    if not old_value or overwrite:
+                        if old_value != new_details[attr_name]:
+                            setattr(
+                                member_details.latest_membership,
+                                attr_name,
+                                new_details[attr_name],
+                            )
+                            membership_updated = True
+                except (AttributeError, TypeError):
+                    pass
+        if membership_updated:
+            member_details.latest_membership.save()
+
+    return updated or membership_updated
 
 
 def _csv_pianola_phone_numbers(club_member, item):
@@ -552,9 +733,23 @@ def _csv_pianola(club_member, contacts=False):
             success, error, item = _map_csv_to_columns(PIANOLA_MAPPING, club_member)
 
     if success:
+        validate_start_and_end(club_member)
         return _csv_pianola_phone_numbers(club_member, item)
+
     else:
         return (success, error, item)
+
+
+def validate_start_and_end(attr_dict):
+    """Do some basic validtion on the start and end dates that may be in the dict"""
+
+    if "start_date" not in attr_dict and "end_date" not in attr_dict:
+        return
+
+    if "start_date" in attr_dict and "end_date" in attr_dict:
+        if attr_dict["start_date"] > attr_dict["end_date"]:
+            del attr_dict["start_date"]
+            del attr_dict["end_date"]
 
 
 def _csv_generic(club_member, contacts=False):
@@ -600,6 +795,53 @@ def _csv_compscore(club_member):
     return (success, error, item)
 
 
+def validate_header(header_row, mapping):
+    """Validate the header row against the mapping,
+    Return success and a error message (or None)
+    """
+
+    def validate_column(header_row, col_index, optional_col, title):
+        """Validate a column"""
+        if not title:
+            return (True, None)
+        if col_index < len(header_row):
+            if (
+                not optional_col
+                and header_row[col_index].strip().strip("\ufeff").upper()
+                != title.strip().upper()
+            ):
+                return (
+                    False,
+                    f"Expecting '{title}' at column {col_index}, not '{header_row[col_index]}'",
+                )
+        else:
+            if not optional_col:
+                return (False, f"'{title}' is required in {col_index}")
+        return (True, None)
+
+    for attr_name in mapping:
+        column_ok, message = validate_column(
+            header_row,
+            mapping[attr_name]["csv_col"],
+            mapping[attr_name].get("opt_column", False),
+            mapping[attr_name].get("title", None),
+        )
+        if not column_ok:
+            return (column_ok, message)
+
+        if mapping[attr_name].get("type", None) == "concat":
+            column_ok, message = validate_column(
+                header_row,
+                mapping[attr_name]["other"],
+                mapping[attr_name].get("opt_column", False),
+                mapping[attr_name].get("other_title", None),
+            )
+            if not column_ok:
+                return (column_ok, message)
+
+    return (True, None)
+
+
 @check_club_menu_access()
 def upload_csv_htmx(request, club):
     """Import members from a CSV file"""
@@ -627,8 +869,19 @@ def upload_csv_htmx(request, club):
     # get CSV reader (convert bytes to strings)
     csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
 
-    # skip header
-    next(csv_data, None)
+    # validate header
+    header_row = next(csv_data, None)
+    if file_type == "Pianola":
+        header_ok, message = validate_header(header_row, PIANOLA_MAPPING)
+    elif file_type == "CSV":
+        header_ok, message = validate_header(header_row, GENERIC_MEMBER_MAPPING)
+    elif file_type == "CS2":
+        header_ok, message = validate_header(header_row, COMPSCORE_MEMBER_MAPPING)
+    else:
+        raise ImproperlyConfigured
+
+    if not header_ok:
+        return members_list_htmx(request, "Import failed: " + message)
 
     # Process data
     member_data = []
@@ -850,6 +1103,8 @@ def add_member_to_membership(
                 club_member["system_number"],
                 default_membership,
                 user,
+                start_date=club_member.get("start_date", None),
+                end_date=club_member.get("end_date", None),
             )
 
         else:
@@ -859,19 +1114,25 @@ def add_member_to_membership(
                 club_member["system_number"],
                 default_membership,
                 user,
+                start_date=club_member.get("start_date", None),
+                end_date=club_member.get("end_date", None),
             )
 
     else:
         # create the member details and membership records
 
         # calculate a reasonable start date, based on joined date (if provided)
-        start_date = None
-        if "joined_date" in club_member:
-            club_year_start = club.last_renewal_date
-            if club_member["joined_date"] >= club_year_start:
-                start_date = club_member["joined_date"]
+        start_date = club_member.get("start_date", None)
+        if not start_date:
+            if "joined_date" in club_member:
+                club_year_start = club.last_renewal_date
+                if club_member["joined_date"] >= club_year_start:
+                    start_date = club_member["joined_date"]
+                else:
+                    start_date = club_year_start
             else:
-                start_date = club_year_start
+                if club.full_club_admin:
+                    start_date = timezone.now().date()
 
         success, message = add_member(
             club,
@@ -880,6 +1141,7 @@ def add_member_to_membership(
             default_membership,
             user,
             start_date=start_date,
+            end_date=club_member.get("end_date", None),
         )
 
     # update membership details with MCP email address and other values unless there is already one
@@ -995,8 +1257,19 @@ def contact_upload_csv_htmx(request, club):
     # get CSV reader (convert bytes to strings)
     csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
 
-    # skip header
-    next(csv_data, None)
+    # validate header
+    header_row = next(csv_data, None)
+    if file_type == "Pianola":
+        header_ok, message = validate_header(header_row, PIANOLA_CONTACT_MAPPING)
+    elif file_type == "CSV":
+        header_ok, message = validate_header(header_row, GENERIC_CONTACT_MAPPING)
+    elif file_type == "CS2":
+        header_ok, message = validate_header(header_row, COMPSCORE_MEMBER_MAPPING)
+    else:
+        raise ImproperlyConfigured
+
+    if not header_ok:
+        return contacts_list_htmx(request, "Import failed: " + message)
 
     # Process data
     contact_data = []

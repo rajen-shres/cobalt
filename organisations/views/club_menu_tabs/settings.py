@@ -61,6 +61,7 @@ from organisations.views.club_menu_tabs.utils import (
 )
 from organisations.club_admin_core import (
     get_count_for_membership_type,
+    switch_to_full_club_admin,
 )
 from organisations.views.general import compare_form_with_mpc
 from payments.models import OrgPaymentMethod
@@ -330,6 +331,21 @@ def general_htmx(request, club):
             org.last_updated_by = request.user
             org.last_updated = timezone.localtime()
             org.save()
+
+            if "full_club_admin" in form.changed_data:
+                if form.cleaned_data.get("full_club_admin"):
+                    ClubLog(
+                        organisation=club,
+                        actor=request.user,
+                        action="Switched to full club membership management",
+                    ).save()
+                    switch_to_full_club_admin(club, request.user)
+                else:
+                    ClubLog(
+                        organisation=club,
+                        actor=request.user,
+                        action="Switched to simplified club membership management",
+                    ).save()
 
             ClubLog(
                 organisation=club, actor=request.user, action="Updated general settings"

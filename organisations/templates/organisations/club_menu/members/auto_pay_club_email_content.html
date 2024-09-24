@@ -43,6 +43,7 @@
             {% endfor %}
         </tbody>
     </table>
+    <br>
 
 {% else %}
 
@@ -50,10 +51,8 @@
 
 {% endif %}
 
-<br>
 
 {% if failed_memberships %}
-
     <p>
         {% if failed_memberships|length == 1 %}
             1 membership fee auto payment was
@@ -94,11 +93,10 @@
             {% endfor %}
         </tbody>
     </table>
-
+    <br>
 {% endif %}
 
 {% if blocked_memberships %}
-
     <p>
         The following members have disallowed auto payment of their fees. Auto payment will not be attempted again for these membership fees.
     </p>
@@ -130,11 +128,10 @@
             {% endfor %}
         </tbody>
     </table>
-
+    <br>
 {% endif %}
 
 {% if unreg_memberships %}
-
     <p>
         The following members are not registered with My ABF so are not eligible for auto
         pay at this time. Auto payment will not be attempted again for these membership fees.

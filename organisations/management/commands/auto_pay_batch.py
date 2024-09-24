@@ -96,9 +96,9 @@ class Command(BaseCommand):
             )
 
         # JPG Debug
-        # print("--------------- notify_club: --------------")
-        # print(email_body)
-        # print("-------------------------------------------")
+        print("--------------- notify_club: --------------")
+        print(email_body)
+        print("-------------------------------------------")
 
         context = {
             "title": f"Membership auto pay transactions for {club.name}",
@@ -250,13 +250,13 @@ class Command(BaseCommand):
                             membership.message = message
                             failed_memberships.append(membership)
 
-                    elif membership.action_type in ["blocked", "disallowed"]:
+                    elif membership.action_type in ["disallowed", "unreg"]:
                         # remove the auto pay date from the membership
 
                         membership.auto_pay_date = None
                         membership.save()
 
-                        if membership.action_type == "blocked":
+                        if membership.action_type == "disallowed":
                             blocked_memberships.append(membership)
                         else:
                             unreg_memberships.append(membership)

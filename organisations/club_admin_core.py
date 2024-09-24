@@ -1649,8 +1649,12 @@ def add_member(
     new_membership.due_date = (
         due_date
         if due_date
-        else new_membership.start_date
-        + timedelta(days=membership_type.grace_period_days)
+        else (
+            new_membership.start_date
+            + timedelta(days=membership_type.grace_period_days)
+            if new_membership.start_date
+            else None
+        )
     )
     if membership_type.does_not_renew:
         new_membership.end_date = None
@@ -1733,7 +1737,7 @@ def _process_membership_payment(
     will be updated:
     - payment_method: None if none specified or nothing to pay
     - is_paid: False if Bridge Credits payment failed or not processed, True even if fee is zero
-    - paid_until_date: will be None if not paid, or set to the start_date if paid (or zero fee)
+    - paid_until_date: will be None if not paid, or set to the end_date if paid (or zero fee)
     - membership_state: based on payment status, effectiove dates and due date
 
     Args:
@@ -2906,6 +2910,148 @@ def convert_existing_memberships_for_club(club):
             )
 
     return (ok_count, error_count)
+
+
+def switch_to_full_club_admin(club, requester):
+    """Update any memberships necessary to switch to full club admin
+    In particular addresses the issue of blank start and end dates.
+    """
+
+    memberships = MemberMembershipType.objects.filter(
+        membership_type__organisation=club,
+    ).select_related("membership_type")
+
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    club_year_end = club.current_end_date
+    club_year_start = club.last_renewal_date
+
+    for membership in memberships:
+
+        updated = False
+        if not membership.end_date and not membership.membership_type.does_not_renew:
+            # need to set an end date
+
+            if membership.membership_state in MEMBERSHIP_STATES_ACTIVE:
+                membership.end_date = club_year_end
+            else:
+                membership.end_date = yesterday
+
+            log_member_change(
+                club,
+                membership.system_number,
+                requester,
+                "Membership end date populated for full membership management",
+            )
+
+            updated = True
+
+        if not membership.start_date:
+
+            if membership.end_date:
+
+                # default approach is starting a year earlier than end unless this
+                # is before the current year start
+                candidate_start_date = (
+                    date(
+                        membership.end_date.year - 1,
+                        membership.end_date.month,
+                        membership.end_date.day,
+                    )
+                    + timedelta(days=1)
+                )
+
+                if candidate_start_date < club_year_start:
+                    if club_year_start <= membership.end_date:
+                        membership.start_date = club_year_start
+                    else:
+                        # membership ended before the current year
+                        # just use a start date a year earlier
+                        membership.start_date = candidate_start_date
+                else:
+                    membership.start_date = candidate_start_date
+
+            else:
+                #  a non-renewing membership type
+
+                if membership.membership_state in MEMBERSHIP_STATES_ACTIVE:
+                    membership.start_date = club_year_start
+                else:
+                    membership.end_date = yesterday
+
+                log_member_change(
+                    club,
+                    membership.system_number,
+                    requester,
+                    "Membership start date populated for full membership management",
+                )
+
+            updated = True
+
+        # check that is_paid is consistent with paid_until_date
+        if membership.paid_until_date and not membership.is_paid:
+            updated = True
+            membership.is_paid = True
+
+        # make sure that status isn't due for a paid membership
+        if (
+            membership.is_paid
+            and membership.membership_state == MemberMembershipType.MEMBERSHIP_STATE_DUE
+        ):
+            updated = True
+            membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+
+        if membership.membership_state == MemberMembershipType.MEMBERSHIP_STATE_FUTURE:
+            # can't have a future membership as the current membership
+
+            updated = True
+            if membership.start_date > today:
+                membership.start_date = today
+            membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
+
+            # If the date range is actually in the past it will be corrected by the next check
+
+        if (
+            membership.membership_state == MemberMembershipType.MEMBERSHIP_STATE_ENDED
+            or (
+                membership.membership_state in MEMBERSHIP_STATES_ACTIVE
+                and membership.end_date
+                and membership.end_date < today
+            )
+        ):
+            # can't have an ended state at the member level, or an active membership
+            # in the past, so just make it lapsed
+
+            updated = True
+            membership.membership_state = MemberMembershipType.MEMBERSHIP_STATE_LAPSED
+
+        if updated:
+            membership.save()
+
+        # check that the status and the state match (either because it has been
+        # changed here, or something else went wrong)
+
+        member_details = MemberClubDetails.objects.get(
+            club=club,
+            system_number=membership.system_number,
+        )
+
+        if member_details.membership_status != membership.membership_state:
+            #  update the status on the details level
+
+            member_details.membership_status = membership.membership_state
+            member_details.save()
+
+            log_member_change(
+                club,
+                membership.system_number,
+                requester,
+                (
+                    "Membership status changed to "
+                    + member_details.get_membership_status_display()
+                    + " for full membership management"
+                ),
+            )
 
 
 # -------------------------------------------------------------------------------------
