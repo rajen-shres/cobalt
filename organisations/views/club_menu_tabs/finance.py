@@ -190,7 +190,14 @@ def _summary_by_events(request, club):
 
 
 def pay_member_from_organisation(
-    request, club, amount, description, member, event_id=-1, session_id=-1
+    request,
+    club,
+    amount,
+    description,
+    member,
+    event_id=-1,
+    session_id=-1,
+    is_membership_fee=False,
 ):
     """Pay a member from an organisation's account. Calling module is responsible for security.
 
@@ -220,7 +227,7 @@ def pay_member_from_organisation(
         amount=amount,
         description=description,
         organisation=club,
-        payment_type="Org Transfer",
+        payment_type="Org Transfer" if not is_membership_fee else "Club Membership",
     )
 
     # debit club
@@ -228,7 +235,7 @@ def pay_member_from_organisation(
         organisation=club,
         amount=-amount,
         description=description,
-        payment_type="Org Transfer",
+        payment_type="Org Transfer" if not is_membership_fee else "Club Membership",
         member=member,
         event=event,
         session=session,
@@ -336,9 +343,20 @@ def pay_member_htmx(request, club):
     description = request.POST.get("description")
     event_id = int(request.POST.get("event_id", -1))
     session_id = int(request.POST.get("session_id", -1))
+    is_membership_fee = request.POST.get("membership_fee", False)
+
+    # JPG debug
+    print(f"*** is_membership_fee = {is_membership_fee} ***")
 
     _, message = pay_member_from_organisation(
-        request, club, amount, description, member, event_id, session_id
+        request,
+        club,
+        amount,
+        description,
+        member,
+        event_id,
+        session_id,
+        is_membership_fee,
     )
 
     return tab_finance_htmx(request, message=message)
@@ -359,6 +377,7 @@ def charge_member_htmx(request, club):
     member = get_object_or_404(User, pk=request.POST.get("member_id"))
     description = request.POST.get("description")
     amount = float(request.POST.get("amount"))
+    is_membership_fee = request.POST.get("membership_fee", False)
 
     # Validate
     if amount <= 0:
@@ -388,7 +407,7 @@ def charge_member_htmx(request, club):
         amount=amount,
         description=description,
         organisation=club,
-        payment_type="Org Transfer",
+        payment_type="Org Transfer" if not is_membership_fee else "Club Membership",
     ):
 
         # log it

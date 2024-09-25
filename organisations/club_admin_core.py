@@ -38,6 +38,7 @@ from cobalt.settings import (
 from utils.templatetags.cobalt_tags import cobalt_nice_date_short
 
 from masterpoints.views import user_summary
+from masterpoints.factories import masterpoint_query_row
 
 from notifications.models import (
     BatchID,
@@ -3123,6 +3124,11 @@ def convert_contact_to_member(
 
     if not is_player_allowing_club_membership(club, system_number):
         return (False, "This user is blocking memberships from this club")
+
+    # validate system number
+    system_number_check = masterpoint_query_row(f"id/{system_number}")
+    if not system_number_check:
+        return (False, f"Invalid {GLOBAL_ORG} number")
 
     today = timezone.now().date()
 

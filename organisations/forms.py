@@ -350,6 +350,17 @@ class MembershipExtendForm(forms.Form):
             self.add_error("fee", "Fee cannot be negative.")
         return fee
 
+    def clean(self):
+        """custom validation"""
+        cleaned_data = super(MembershipExtendForm, self).clean()
+
+        due_date = cleaned_data.get("due_date")
+        new_end_date = cleaned_data.get("new_end_date")
+        if due_date and new_end_date and due_date > new_end_date:
+            self.add_error("due_date", "Due date must be before end date.")
+
+        return self.cleaned_data
+
 
 class MembershipPaymentForm(forms.Form):
     """Form for paying membership fees. Does not provide a no selection option for the payment method"""
@@ -562,8 +573,11 @@ class MembershipChangeTypeForm(forms.Form):
         cleaned_data = super().clean()
         start_date = self.cleaned_data.get("start_date")
         end_date = self.cleaned_data.get("end_date")
+        due_date = self.cleaned_data.get("due_date")
         if start_date and end_date and start_date > end_date:
             self.add_error("end_date", "End date must be after the start date")
+        if due_date and end_date and due_date > end_date:
+            self.add_error("due_date", "Due date must be before end date.")
         return cleaned_data
 
 
@@ -1109,11 +1123,18 @@ class BulkRenewalLineForm(forms.Form):
         cleaned_data = super(BulkRenewalLineForm, self).clean()
 
         selected = cleaned_data.get("selected")
-        fee = self.cleaned_data.get("fee")
 
-        # Only validate the fee if the line is selected
-        if selected and fee is not None and fee < 0:
-            self.add_error("fee", "Fee cannot be negative.")
+        if selected:
+            # only performa validation if selected
+
+            fee = self.cleaned_data.get("fee")
+            if fee is not None and fee < 0:
+                self.add_error("fee", "Fee cannot be negative.")
+
+            due_date = cleaned_data.get("due_date")
+            end_date = cleaned_data.get("end_date")
+            if due_date and end_date and due_date > end_date:
+                self.add_error("due_date", "Due date must be before end date.")
 
         return self.cleaned_data
 

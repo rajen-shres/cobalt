@@ -60,7 +60,6 @@
                 </div>
 
                 {% if events %}
-
                     <div class="row mb-5">
                         <div class="col">
                             <div class="form-group">
@@ -72,6 +71,31 @@
                                     {% endfor %}
                                 </select>
 
+                            </div>
+                        </div>
+                    </div>
+
+                {% endif %}
+
+                {% if club.full_club_admin %}
+
+                    <div class="row mb-5">
+                        <div class="col">
+                            <div class="form-check">
+                                <label
+                                    class="form-check-label"
+                                >
+                                    <input
+                                        class="form-check-input"
+                                        id="id_membership_fee"
+                                        name="membership_fee"
+                                        type="checkbox"
+                                    >
+                                    Membership fees transaction?
+                                    <span class="form-check-sign">
+                                        <span class="check"></span>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
