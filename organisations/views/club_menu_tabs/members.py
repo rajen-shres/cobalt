@@ -321,26 +321,16 @@ def club_admin_report_all_csv(request, club_id):
 
     writer = csv.writer(response)
     writer.writerow([club.name, f"Downloaded by {request.user.full_name}", now])
+
+    # Note column order is the same as the generic csv import (up to end date)
+
     writer.writerow(
         [
             f"{GLOBAL_ORG} Number",
-            "Club Membership Number",
             "First Name",
             "Last Name",
-            f"{GLOBAL_TITLE} User Type",
-            f"{BRIDGE_CREDITS} Balance",
-            "Membership Type",
-            "Membership Status",
-            "Membership Start Date",
-            "Membership End Date",
-            "Paid Until Date",
-            "Due Date",
-            "Auto Pay Date",
-            "Paid Date",
-            "Fee",
             "Email",
-            "Joined Date",
-            "Left Date",
+            "Membership Type",
             "Address 1",
             "Address 2",
             "State",
@@ -348,9 +338,22 @@ def club_admin_report_all_csv(request, club_id):
             "Preferred Phone",
             "Other Phone",
             "Date of Birth",
+            "Club Membership Number",
+            "Joined Date",
+            "Left Date",
             "Emergency Contact",
-            "Tags",
             "Notes",
+            "Membership Start Date",
+            "Membership End Date",
+            "Membership Status",
+            "Paid Until Date",
+            "Due Date",
+            "Auto Pay Date",
+            "Paid Date",
+            "Fee",
+            f"{GLOBAL_TITLE} User Type",
+            f"{BRIDGE_CREDITS} Balance",
+            "Tags",
         ]
     )
 
@@ -363,27 +366,10 @@ def club_admin_report_all_csv(request, club_id):
         writer.writerow(
             [
                 member.system_number,
-                member.club_membership_number,
                 member.first_name,
                 member.last_name,
-                member.user_type,
-                (
-                    ""
-                    if member.user_type == "Unregistered User"
-                    else get_balance(member.user_or_unreg)
-                ),
-                membership_type_dict.get(member.system_number, ""),
-                member.get_membership_status_display(),
-                format_date_or_none(member.latest_membership.start_date),
-                format_date_or_none(member.latest_membership.end_date),
-                format_date_or_none(member.latest_membership.paid_until_date),
-                format_date_or_none(member.latest_membership.due_date),
-                format_date_or_none(member.latest_membership.auto_pay_date),
-                format_date_or_none(member.latest_membership.paid_date),
-                member.latest_membership.fee,
                 member.email,
-                format_date_or_none(member.joined_date),
-                format_date_or_none(member.left_date),
+                membership_type_dict.get(member.system_number, ""),
                 member.address1,
                 member.address2,
                 member.state,
@@ -391,9 +377,26 @@ def club_admin_report_all_csv(request, club_id):
                 member.preferred_phone,
                 member.other_phone,
                 member.dob,
+                member.club_membership_number,
+                format_date_or_none(member.joined_date),
+                format_date_or_none(member.left_date),
                 member.emergency_contact,
-                member_tags,
                 member.notes,
+                format_date_or_none(member.latest_membership.start_date),
+                format_date_or_none(member.latest_membership.end_date),
+                member.get_membership_status_display(),
+                format_date_or_none(member.latest_membership.paid_until_date),
+                format_date_or_none(member.latest_membership.due_date),
+                format_date_or_none(member.latest_membership.auto_pay_date),
+                format_date_or_none(member.latest_membership.paid_date),
+                member.latest_membership.fee,
+                member.user_type,
+                (
+                    ""
+                    if member.user_type == "Unregistered User"
+                    else get_balance(member.user_or_unreg)
+                ),
+                member_tags,
             ]
         )
 

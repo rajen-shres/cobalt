@@ -271,6 +271,7 @@ def club_membership_summary_by_date_range(club, start_date, end_date):
     start_datetime, end_datetime = start_end_date_to_datetime(start_date, end_date)
 
     return OrganisationTransaction.objects.filter(
+        organisation=club,
         created_date__gte=start_datetime,
         created_date__lte=end_datetime,
         type="Club Membership",

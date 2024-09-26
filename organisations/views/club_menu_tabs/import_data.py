@@ -148,6 +148,7 @@ GENERIC_CONTACT_MAPPING = {
         "csv_col": 3,
         "type": "sysnum",
         "opt_column": True,
+        "allow_internal": True,
     },
     "address1": {"title": "Address 1", "csv_col": 4, "len": 100, "opt_column": True},
     "address2": {"title": "Address 2", "csv_col": 5, "len": 100, "opt_column": True},
@@ -232,10 +233,10 @@ PIANOLA_MAPPING = {
     },
     "club_membership_number": {"title": "Local number", "csv_col": 0},
     "joined_date": {"title": "Joined date", "csv_col": 22, "type": "date"},
-    "left_date": {"title": "Left club date", "csv_col": 26, "type": "date"},
-    "paid_until_date": {"title": "Paid till", "csv_col": 28, "type": "date"},
-    "emergency_contact": {"title": "ICE", "csv_col": 30},
-    "notes": {"title": "Private Notes", "csv_col": 29},
+    "left_date": {"title": "Left club date", "csv_col": 27, "type": "date"},
+    "paid_until_date": {"title": "Paid till", "csv_col": 29, "type": "date"},
+    "emergency_contact": {"title": "ICE", "csv_col": 31},
+    "notes": {"title": "Private Notes", "csv_col": 30},
 }
 
 # Mapping for PIANOLA CSV contacts imports, same as for members, but system number optional
@@ -263,8 +264,8 @@ PIANOLA_CONTACT_MAPPING = {
     "state": {"title": "State", "csv_col": 14, "type": "str", "len": 3},
     "postcode": {"title": "Postal code", "csv_col": 15, "type": "str", "len": 10},
     "dob": {"title": "DOB", "csv_col": 20, "type": "date", "no_future": None},
-    "emergency_contact": {"title": "ICE", "csv_col": 30},
-    "notes": {"title": "Private Notes", "csv_col": 29},
+    "emergency_contact": {"title": "ICE", "csv_col": 31},
+    "notes": {"title": "Private Notes", "csv_col": 30},
 }
 
 # Mapping for Compscore CSV member imports
@@ -383,6 +384,7 @@ def _map_csv_to_columns(mapping, csv, strict=False):
             upper : upper
         date_formats : list of date format strings for interpreting date fields
         no_future : if this key exists (any value), it error if it is a date field in the future
+        allow_internal : bool, if true allow internal system numbers , defaults false
 
     Args:
         mapping (dict): a mapping specification dictionary
@@ -455,16 +457,41 @@ def _map_csv_to_columns(mapping, csv, strict=False):
                             )
                         continue
 
-                    # TODO: Checking with MPC is too slow. We just validate the checksum
-                    if not abf_checksum_is_valid(system_number):
-                        if spec.get("required", False) or strict:
+                    if NextInternalSystemNumber.is_internal(system_number):
+                        # internal system number, but check is in use (in any club)
+
+                        allow_internal = spec.get("allow_internal", False)
+                        if not allow_internal:
                             return (
                                 False,
-                                f"Invalid {GLOBAL_ORG} Number in column {spec['csv_col']} '{source}'",
+                                f"Internal system numbers not allowed: {system_number}",
                                 None,
                             )
-                        else:
+
+                        internal_in_use = UnregisteredUser.all_objects.filter(
+                            system_number=system_number
+                        ).exists()
+
+                        if not internal_in_use:
+                            if spec.get("required", False) or strict:
+                                return (
+                                    False,
+                                    f"Invalid internal system number in column {spec['csv_col']} {system_number}",
+                                    None,
+                                )
                             continue
+
+                    else:
+                        # TODO: Checking with MPC is too slow. We just validate the checksum
+                        if not abf_checksum_is_valid(system_number):
+                            if spec.get("required", False) or strict:
+                                return (
+                                    False,
+                                    f"Invalid {GLOBAL_ORG} Number in column {spec['csv_col']} '{source}'",
+                                    None,
+                                )
+                            else:
+                                continue
 
                     item[attr_name] = system_number
 
@@ -627,6 +654,9 @@ def _augment_member_details(club, system_number, new_details, overwrite=False):
     membership_updated = False
     if member_details.latest_membership:
         for attr_name in new_details:
+            # skip membership type changes as already handled
+            if attr_name == "membership_type":
+                continue
             # do not update with falsey values
             if new_details[attr_name]:
                 try:
@@ -874,6 +904,9 @@ def upload_csv_htmx(request, club):
     if file_type == "Pianola":
         header_ok, message = validate_header(header_row, PIANOLA_MAPPING)
     elif file_type == "CSV":
+        # allow for a download header row to allow round-tripping exported csv
+        if header_row and header_row[0] == club.name:
+            header_row = next(csv_data, None)
         header_ok, message = validate_header(header_row, GENERIC_MEMBER_MAPPING)
     elif file_type == "CS2":
         header_ok, message = validate_header(header_row, COMPSCORE_MEMBER_MAPPING)
@@ -1107,6 +1140,9 @@ def add_member_to_membership(
                 end_date=club_member.get("end_date", None),
             )
 
+            if not success:
+                return (0, f"{club_member['system_number']}: {message}")
+
         else:
             # has a non-current membership with this club, so change to default
             success, message = change_membership(
@@ -1117,6 +1153,9 @@ def add_member_to_membership(
                 start_date=club_member.get("start_date", None),
                 end_date=club_member.get("end_date", None),
             )
+
+            if not success:
+                return (0, f"{club_member['system_number']}: {message}")
 
     else:
         # create the member details and membership records
@@ -1262,6 +1301,9 @@ def contact_upload_csv_htmx(request, club):
     if file_type == "Pianola":
         header_ok, message = validate_header(header_row, PIANOLA_CONTACT_MAPPING)
     elif file_type == "CSV":
+        # allow for a download header row to allow round-tripping exported csv
+        if header_row and header_row[0] == club.name:
+            header_row = next(csv_data, None)
         header_ok, message = validate_header(header_row, GENERIC_CONTACT_MAPPING)
     elif file_type == "CS2":
         header_ok, message = validate_header(header_row, COMPSCORE_MEMBER_MAPPING)
@@ -1381,11 +1423,20 @@ def process_contact_import(
                 ).first()
 
                 if not user_match:
-                    un_reg = UnregisteredUser.objects.filter(
+                    un_reg = UnregisteredUser.all_objects.filter(
                         system_number=contact["system_number"]
                     ).first()
 
                     if not un_reg:
+
+                        if NextInternalSystemNumber.is_internal(
+                            contact["system_number"]
+                        ):
+                            errors.append(
+                                f"{contact['system_number']} is an internal number used by another club"
+                            )
+                            continue
+
                         #  create an unregistered user
 
                         UnregisteredUser(

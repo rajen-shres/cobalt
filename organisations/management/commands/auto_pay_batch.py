@@ -34,6 +34,7 @@ from payments.models import (
 )
 from rbac.core import (
     rbac_get_users_with_role,
+    rbac_user_has_role_exact,
 )
 
 
@@ -56,7 +57,13 @@ class Command(BaseCommand):
     ):
         """Send an email to the club notifying them of the results"""
 
-        member_editors = rbac_get_users_with_role(f"orgs.members.{club.id}.edit")
+        # get users with the role at the club level only (not global)
+        role = f"orgs.members.{club.id}.edit"
+        member_editors = [
+            editor
+            for editor in rbac_get_users_with_role(role)
+            if rbac_user_has_role_exact(editor, role)
+        ]
 
         if not member_editors:
             logger.warning(
@@ -96,9 +103,9 @@ class Command(BaseCommand):
             )
 
         # JPG Debug
-        print("--------------- notify_club: --------------")
-        print(email_body)
-        print("-------------------------------------------")
+        # print("--------------- notify_club: --------------")
+        # print(email_body)
+        # print("-------------------------------------------")
 
         context = {
             "title": f"Membership auto pay transactions for {club.name}",

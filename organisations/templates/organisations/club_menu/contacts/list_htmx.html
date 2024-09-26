@@ -102,7 +102,7 @@
                                 {% if sort_option == "system_number_desc" %}
                                     hx-vars="club_id:{{ club.id }}, sort_by:'system_number_asc'"
                                 {% else %}
-                                    hx-vars="club_id:{{ club.id }}, sort_by:'system_number_desc''"
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'system_number_desc'"
                                 {% endif %}
 
                                 hx-target="#id_panel_contacts"
@@ -123,15 +123,15 @@
                             <!-- USER TYPE -->
 
                             <a href="javascript:void(0)"
-                                hx-post="{% url "organisations:club_menu_tab_members_htmx" %}"
+                                hx-post="{% url "organisations:club_menu_tab_contacts_htmx" %}"
 
                                 {% if sort_option == "type_desc" %}
-                                    hx-vars="club_id:{{ club.id }}, sort_by:'type_asc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'type_asc'"
                                 {% else %}
-                                    hx-vars="club_id:{{ club.id }}, sort_by:'type_desc', former_members:'{% if former_members %}on{% else %}off{% endif %}'"
+                                    hx-vars="club_id:{{ club.id }}, sort_by:'type_desc'"
                                 {% endif %}
 
-                                hx-target="#id_panel_members"
+                                hx-target="#id_panel_contacts"
                             >
                                 <span class="cobalt-no-wrap">
                                     User Type

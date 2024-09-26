@@ -193,7 +193,7 @@ def edit_htmx(request, club, message=None):
 
     if saving:
         form = MemberClubDetailsForm(request.POST, instance=contact_details)
-        if contact_details.user_type == "Unregistered User":
+        if contact_details.user_type != f"{GLOBAL_TITLE} User":
             name_form = ContactNameForm(request.POST)
             name_form_ok = name_form.is_valid()
         else:
@@ -224,7 +224,7 @@ def edit_htmx(request, club, message=None):
     else:
         form = MemberClubDetailsForm(instance=contact_details)
 
-        if contact_details.user_type == "Unregistered User":
+        if contact_details.user_type != f"{GLOBAL_TITLE} User":
             initial_data = {
                 "first_name": contact_details.first_name,
                 "last_name": contact_details.last_name,
@@ -772,21 +772,21 @@ def club_admin_report_all_csv(request, club_id):
     writer.writerow([club.name, f"Downloaded by {request.user.full_name}", now])
     writer.writerow(
         [
-            f"{GLOBAL_ORG} Number",
             "First Name",
             "Last Name",
-            f"{GLOBAL_TITLE} User Type",
             "Email",
+            f"{GLOBAL_ORG} Number",
             "Address 1",
             "Address 2",
             "State",
             "Post Code",
-            "Mobile",
+            "Preferred Phone",
             "Other Phone",
             "Date of Birth",
             "Emergency Contact",
-            "Tags",
             "Notes",
+            f"{GLOBAL_TITLE} User Type",
+            "Tags",
         ]
     )
 
@@ -798,21 +798,21 @@ def club_admin_report_all_csv(request, club_id):
 
         writer.writerow(
             [
-                contact.system_number,
                 contact.first_name,
                 contact.last_name,
-                contact.user_type,
                 contact.email,
+                contact.system_number,
                 contact.address1,
                 contact.address2,
                 contact.state,
                 contact.postcode,
-                contact.mobile,
+                contact.preferred_phone,
                 contact.other_phone,
                 contact.dob,
                 contact.emergency_contact,
-                contact_tags,
                 contact.notes,
+                contact.user_type,
+                contact_tags,
             ]
         )
 

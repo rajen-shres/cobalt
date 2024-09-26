@@ -126,7 +126,7 @@
             <p>You can upload any data in our generic CSV format. The file needs to have comma-separated
                 values (CSV) with the following required columns:
             </p>
-            <code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address, Membership Type</code>
+            <code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email, Membership Type</code>
             <br>
             <br>
             <p>The email address is optional.</p>
@@ -164,7 +164,7 @@
         if (this.value === "CSV") {
             $('#id_csv_types_description').html("<h3>Generic CSV</h3><p>You can upload any data in our generic CSV format. " +
                 "The file needs to have comma-separated values (CSV) with the following required columns:</p>" +
-                "<code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email Address, Membership Type</code><br><br>" +
+                "<code>{{ GLOBAL_ORG }} Number, First Name, Last Name, Email, Membership Type</code><br><br>" +
                 "<p>The email address is optional.</p> " +
                 "<p>The Membership type is also optional. If specified, it will override the Membership Type " +
                 "chosen on the form. Membership Type must match exactly with the name of a valid Membership Type " +

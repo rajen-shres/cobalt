@@ -410,14 +410,15 @@ def is_player_allowing_club_membership(club, system_number):
         user=user,
     ).last()
 
-    if not club_options:
-        club_options = MemberClubOptions(
-            club=club,
-            user=user,
-        )
-        club_options.save()
+    # JPG cleanup - moved to notify user
+    # if not club_options:
+    #     club_options = MemberClubOptions(
+    #         club=club,
+    #         user=user,
+    #     )
+    #     club_options.save()
 
-    return club_options.allow_membership
+    return club_options.allow_membership if club_options else True
 
 
 def get_membership_type(club, system_number):
@@ -3465,6 +3466,9 @@ def _notify_user_of_membership(member_details, user=None):
     registered users and use their profile email (not whatever club email has
     been provided)
 
+    Do not send an email if there is already a club options record for this
+    person and club (meaning they have already been notified)
+
     Args:
         member_details (MemberClubDetails): details of the membership
         user (User): user if available
@@ -3472,12 +3476,32 @@ def _notify_user_of_membership(member_details, user=None):
 
     from notifications.views.core import send_cobalt_email_with_template
 
+    # jpg debug
+    print("****** _notify_user_of_membership ******")
+
     # check for registered user
     if not user:
         try:
             user = User.objects.get(system_number=member_details.system_number)
         except User.DoesNotExist:
             return
+
+    # check for an existing options record for this club and user
+    options_exist = MemberClubOptions.objects.filter(
+        club=member_details.club,
+        user=user,
+    ).exists()
+
+    if options_exist:
+        # don't notify them again
+        # jpg debug
+        print("    ****** NOT _notify_user_of_membership ******")
+        return
+
+    MemberClubOptions(
+        club=member_details.club,
+        user=user,
+    ).save()
 
     email_body = f"""
         <h1>Membership of {member_details.club.name}</h1>
