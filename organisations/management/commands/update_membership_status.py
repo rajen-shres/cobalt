@@ -90,7 +90,8 @@ class Command(BaseCommand):
                 logger.error(f"Invalid date arguement '{date_str}'. Use YYYY-MM-DD.")
                 sys.exit()
         else:
-            today = timezone.now().date()
+            # today = timezone.now().date()
+            today = timezone.localtime().date()
         yesterday = today - timedelta(days=1)
 
         logger.info(f"Membership status update starting for {today}")
