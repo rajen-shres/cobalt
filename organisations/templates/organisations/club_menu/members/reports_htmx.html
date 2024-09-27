@@ -11,11 +11,20 @@
             <tbody>
                 <tr>
                     <td>
-                        <a href="{% url "organisations:club_menu_tab_members_report_all_csv" club_id=club.id %}" class="btn bg-primary btn-block"
+                        <a href="{% url "organisations:club_menu_tab_members_report_active_csv" club_id=club.id %}" class="btn bg-primary btn-block"
                         >Current Members CSV</a>
                     </td>
                     <td class="text-left pl-5">
-                        Export CSV of all current members
+                        Export CSV of active members
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="{% url "organisations:club_menu_tab_members_report_all_csv" club_id=club.id %}" class="btn bg-primary btn-block"
+                        >All Members CSV</a>
+                    </td>
+                    <td class="text-left pl-5">
+                        Export CSV of all members
                     </td>
                 </tr>
             </tbody>

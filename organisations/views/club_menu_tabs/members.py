@@ -273,7 +273,7 @@ def reports_htmx(request, club):
 
 
 @login_required()
-def club_admin_report_all_csv(request, club_id):
+def club_admin_report_all_csv(request, club_id, active_only=False):
     """CSV of all members. We can't use the decorator as I can't get HTMX to treat this as a CSV"""
 
     # Get all ABF Numbers for members
@@ -293,7 +293,7 @@ def club_admin_report_all_csv(request, club_id):
             return rbac_forbidden(request, club_role)
 
     # get members
-    club_members = get_club_members(club, active_only=False)
+    club_members = get_club_members(club, active_only=active_only)
 
     # create dict of system number to membership type name
     membership_type_dict = {}
@@ -401,6 +401,12 @@ def club_admin_report_all_csv(request, club_id):
         )
 
     return response
+
+
+def club_admin_report_active_csv(request, club_id):
+    """CSV of active members. We can't use the decorator as I can't get HTMX to treat this as a CSV"""
+
+    return club_admin_report_all_csv(request, club_id, active_only=True)
 
 
 # JPG deprecated - replaced

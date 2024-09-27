@@ -177,7 +177,7 @@ def cobalt_currency(dollars):
         return f'{GLOBAL_CURRENCY_SYMBOL}{intcomma(int(dollars))}{("%0.2f" % dollars)[-3:]}'.replace(
             "$-", "-$"
         )
-    except ValueError:
+    except (ValueError, TypeError):
         # bad value provided, just return it
         return dollars
 

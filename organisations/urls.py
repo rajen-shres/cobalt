@@ -806,6 +806,11 @@ urlpatterns = [
         organisations.views.club_admin.search_tab_email_htmx,
         name="search_tab_email_htmx",
     ),
+    path(
+        "club-menu/tabs/members-reports-active-csv/<int:club_id>/",
+        organisations.views.club_menu_tabs.members.club_admin_report_active_csv,
+        name="club_menu_tab_members_report_active_csv",
+    ),
     # -----------------------------------------------------------------------------------
     #   Club admin - Edit member
     # -----------------------------------------------------------------------------------
