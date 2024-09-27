@@ -91,6 +91,7 @@ from organisations.club_admin_core import (
     has_club_email_bounced,
     MEMBERSHIP_STATES_ACTIVE,
     MEMBERSHIP_STATES_DO_NOT_USE,
+    MEMBERSHIP_STATES_TERMINAL,
 )
 from organisations.models import (
     Organisation,
@@ -2029,7 +2030,7 @@ def compose_email_recipients_member_search_htmx(request, club, batch):
     if not first_name_search and not last_name_search and not system_number_search:
         return HttpResponse("")
 
-    member_details = get_club_members(club, exclude_contacts=False)
+    member_details = get_club_members(club, exclude_contacts=False, active_only=False)
 
     if first_name_search and not last_name_search:
         first_name_search_upper = first_name_search.upper()
@@ -2069,6 +2070,7 @@ def compose_email_recipients_member_search_htmx(request, club, batch):
             "club": club,
             "batch": batch,
             "members": members,
+            "inactive_states": MEMBERSHIP_STATES_TERMINAL,
         },
     )
 
