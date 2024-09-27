@@ -564,7 +564,10 @@ class MemberMembershipType(models.Model):
 
     def __str__(self):
         return (
-            f"{self.system_number}, member of {self.membership_type.organisation.name}"
+            f"{self.system_number}, "
+            + f"{self.membership_type.name} "
+            + f"membership ({self.get_membership_state_display()}) "
+            + f"of {self.membership_type.organisation.name}"
         )
 
 
@@ -696,47 +699,7 @@ class MemberClubDetails(models.Model):
 
     class Meta:
         unique_together = ("club", "system_number")
-
-    # JPG clean-up - not required
-    # @property
-    # def current_type_dates(self):
-    #     """The start and end dates for the current membership type
-    #     aggregated over contiguous memberships surrounding the current,
-    #     including future dated renewals"""
-
-    #     history = MemberMembershipType.objects.filter(
-    #         system_number=self.system_number,
-    #         membership_type__organisation=self.club,
-    #         membership_type=self.latest_membership.membership_type,
-    #     ).order_by("start_date")
-
-    #     #  scan the history looking for the contigous block containin the current
-    #     earliest_start = None
-    #     latest_end = None
-    #     current_found = False
-    #     for mmt in history:
-
-    #         if not earliest_start:
-    #             earliest_start = mmt.start_date
-    #             latest_end = mmt.end_date
-    #             current_found = mmt == self.latest_membership
-    #             continue
-
-    #         if mmt.start_date != latest_end + timedelta(days=1):
-    #             # have found a break
-    #             if current_found:
-    #                 return (earliest_start, latest_end)
-    #             earliest_start = mmt.start_date
-    #             current_found = mmt == self.latest_membership
-
-    #         latest_end = mmt.end_date
-    #         current_found = current_found or mmt == self.latest_membership
-
-    #     if current_found:
-    #         return (earliest_start, latest_end)
-    #     else:
-    #         # should never happen, would indicate an issue with the latest membership pointer
-    #         return (None, None)
+        verbose_name_plural = "Member Club Details"
 
     @property
     def is_active_status(self):
@@ -878,6 +841,12 @@ class MemberClubOptions(models.Model):
         choices=SHARE_DATA_CHOICES,
         default=SHARE_DATA_NEVER,
     )
+
+    class Meta:
+        verbose_name_plural = "Member Club Options"
+
+    def __str__(self):
+        return f"{self.user.full_name} - {self.club.name}"
 
 
 class ClubMemberLog(models.Model):

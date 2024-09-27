@@ -155,7 +155,7 @@ class MemberClubDetailsAdmin(admin.ModelAdmin):
     """Admin class for model MemberClubDetails"""
 
     search_fields = [
-        "club",
+        "club__name",
         "system_number",
         "email",
     ]
@@ -169,8 +169,9 @@ class MemberClubOptionsAdmin(admin.ModelAdmin):
     """Admin class for model MemberClubOptions"""
 
     search_fields = [
-        "club",
-        "user",
+        "club__name",
+        "user__last_name",
+        "user__first_name",
     ]
 
     autocomplete_fields = [
@@ -182,7 +183,7 @@ class ClubMemberLogAdmin(admin.ModelAdmin):
     """Admin class for model ClubMemberLog"""
 
     search_fields = [
-        "club",
+        "club__name",
         "system_number",
     ]
 
