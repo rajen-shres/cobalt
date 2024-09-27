@@ -215,7 +215,11 @@
                                         hx-vars="club_id:{{ club.id }}, system_number:{{ member_details.system_number }}"
                                         hx-target="#id_action_pane"
                                     >
-                                        Change Membership Type
+                                        {% if inactive_member %}
+                                            Add Membership
+                                        {% else %}
+                                            Change Membership Type
+                                        {% endif %}
                                     </button>
                                 {% endif %}
 

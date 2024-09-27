@@ -897,7 +897,7 @@ class ClubMemberLog(models.Model):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.organisation} {self.member_system_number} - {self.actor}"
+        return f"{self.club} {self.system_number} - {self.actor}"
 
 
 # JPG TO DO: Deprecated - delete after club admin release data conversion

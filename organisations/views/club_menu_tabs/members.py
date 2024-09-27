@@ -1782,6 +1782,8 @@ def club_admin_edit_member_htmx(request, club, message=None):
     # which recent activities should be shown?
     permitted_activities = get_valid_activities(member_details)
 
+    inactive_member = member_details.membership_status in MEMBERSHIP_STATES_TERMINAL
+
     member_description = member_details_short_description(member_details)
 
     # Note: member_admin is used in conditioning the member nav area.
@@ -1801,6 +1803,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "smm_form": smm_form,
             "name_form": name_form,
             "valid_actions": valid_actions,
+            "inactive_member": inactive_member,
             "message": message,
             "member_admin": True,
             "user_pending_payments": user_pending_payments,
@@ -1904,8 +1907,16 @@ def club_admin_edit_member_change_htmx(request, club):
             message if message else "Action not permitted",
         )
 
+    inactive_member = member_details.membership_status in MEMBERSHIP_STATES_TERMINAL
+    exclude_id = (
+        None if inactive_member else member_details.latest_membership.membership_type.id
+    )
+
+    # JPG debug
+    print(f"*** exclude {exclude_id}")
+
     membership_choices, fees_and_due_dates = get_membership_details_for_club(
-        club, exclude_id=member_details.latest_membership.membership_type.id
+        club, exclude_id=exclude_id
     )
 
     if len(membership_choices) == 0:
@@ -1923,7 +1934,7 @@ def club_admin_edit_member_change_htmx(request, club):
             request.POST,
             club=club,
             registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
-            exclude_id=member_details.latest_membership.membership_type.id,
+            exclude_id=exclude_id,
         )
         if form.is_valid():
 
@@ -1970,8 +1981,11 @@ def club_admin_edit_member_change_htmx(request, club):
             initial=initial_data,
             club=club,
             registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
-            exclude_id=member_details.latest_membership.membership_type.id,
+            exclude_id=exclude_id,
         )
+
+    # jpg debug
+    print(f"*** inactive = {inactive_member}")
 
     return render(
         request,
@@ -1982,6 +1996,7 @@ def club_admin_edit_member_change_htmx(request, club):
             "form": form,
             "fees_and_dates": f"{fees_and_due_dates}",
             "message": message,
+            "inactive_member": inactive_member,
         },
     )
 

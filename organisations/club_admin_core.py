@@ -3521,6 +3521,7 @@ def _notify_user_of_membership(member_details, user=None):
 
     context = {
         "title": f"Club membership: {member_details.club.name}",
+        "name": user.first_name,
         "email_body": email_body,
         "box_colour": "#007bff",
         "link": reverse("accounts:user_profile"),

@@ -196,7 +196,52 @@ GENERIC_CONTACT_MAPPING = {
 }
 
 # Mapping for PIANOLA CSV member imports
-PIANOLA_MAPPING = {
+# without sessions played column
+PIANOLA_MAPPING_0 = {
+    "system_number": {
+        "title": "National number",
+        "csv_col": 1,
+        "type": "sysnum",
+        "required": True,
+    },
+    "first_name": {"title": "First name", "csv_col": 5, "required": True},
+    "last_name": {"title": "Last name", "csv_col": 6, "required": True},
+    "email": {"title": "Email", "csv_col": 7, "type": "email"},
+    "address1": {
+        "title": "Address line 1",
+        "csv_col": 10,
+        "type": "concat",
+        "other": 11,
+        "other_title": "Address line 2",
+        "len": 100,
+    },
+    "address2": {
+        "title": "Address line 3",
+        "csv_col": 12,
+        "type": "concat",
+        "other": 13,
+        "other_title": "Address city",
+        "len": 100,
+    },
+    "state": {"title": "State", "csv_col": 14, "type": "str", "len": 3},
+    "postcode": {"title": "Postal code", "csv_col": 15, "type": "str", "len": 10},
+    "dob": {"title": "DOB", "csv_col": 20, "type": "date", "no_future": None},
+    "membership_type": {
+        "title": "Member category",
+        "csv_col": 21,
+        "type": "str",
+        "len": 20,
+    },
+    "club_membership_number": {"title": "Local number", "csv_col": 0},
+    "joined_date": {"title": "Joined date", "csv_col": 22, "type": "date"},
+    "left_date": {"title": "Left club date", "csv_col": 26, "type": "date"},
+    "paid_until_date": {"title": "Paid till", "csv_col": 28, "type": "date"},
+    "emergency_contact": {"title": "ICE", "csv_col": 30},
+    "notes": {"title": "Private Notes", "csv_col": 29},
+}
+
+# with sessions played column added
+PIANOLA_MAPPING_1 = {
     "system_number": {
         "title": "National number",
         "csv_col": 1,
@@ -239,8 +284,39 @@ PIANOLA_MAPPING = {
     "notes": {"title": "Private Notes", "csv_col": 30},
 }
 
+PIANOLA_MAPPINGS = [PIANOLA_MAPPING_0, PIANOLA_MAPPING_1]
+
 # Mapping for PIANOLA CSV contacts imports, same as for members, but system number optional
-PIANOLA_CONTACT_MAPPING = {
+PIANOLA_CONTACT_MAPPING_0 = {
+    "system_number": {"title": "National number", "csv_col": 1, "type": "sysnum"},
+    "first_name": {"title": "First name", "csv_col": 5, "required": True},
+    "last_name": {"title": "name", "csv_col": 6, "required": True},
+    "email": {"title": "Email", "csv_col": 7, "type": "email"},
+    "address1": {
+        "title": "Address line 1",
+        "csv_col": 10,
+        "type": "concat",
+        "other": 11,
+        "other_title": "Address line 2",
+        "len": 100,
+    },
+    "address2": {
+        "title": "Address line 3",
+        "csv_col": 12,
+        "type": "concat",
+        "other": 13,
+        "other_title": "Address city",
+        "len": 100,
+    },
+    "state": {"title": "State", "csv_col": 14, "type": "str", "len": 3},
+    "postcode": {"title": "Postal code", "csv_col": 15, "type": "str", "len": 10},
+    "dob": {"title": "DOB", "csv_col": 20, "type": "date", "no_future": None},
+    "emergency_contact": {"title": "ICE", "csv_col": 30},
+    "notes": {"title": "Private Notes", "csv_col": 29},
+}
+
+# with sessions played column added
+PIANOLA_CONTACT_MAPPING_1 = {
     "system_number": {"title": "National number", "csv_col": 1, "type": "sysnum"},
     "first_name": {"title": "First name", "csv_col": 5, "required": True},
     "last_name": {"title": "name", "csv_col": 6, "required": True},
@@ -267,6 +343,9 @@ PIANOLA_CONTACT_MAPPING = {
     "emergency_contact": {"title": "ICE", "csv_col": 31},
     "notes": {"title": "Private Notes", "csv_col": 30},
 }
+
+PIANOLA_CONTACT_MAPPINGS = [PIANOLA_CONTACT_MAPPING_0, PIANOLA_CONTACT_MAPPING_1]
+
 
 # Mapping for Compscore CSV member imports
 COMPSCORE_MEMBER_MAPPING = {
@@ -731,7 +810,7 @@ def _csv_pianola_phone_numbers(club_member, item):
     return (True, None, item)
 
 
-def _csv_pianola(club_member, contacts=False):
+def _csv_pianola(club_member, mapping_version, contacts=False):
     """Pianola specific formatting for CSV files
 
     Args:
@@ -750,7 +829,7 @@ def _csv_pianola(club_member, contacts=False):
 
         if club_member[21].find("Visitor") >= 0:
             success, error, item = _map_csv_to_columns(
-                PIANOLA_CONTACT_MAPPING, club_member
+                PIANOLA_CONTACT_MAPPINGS[mapping_version], club_member
             )
         else:
             return False, f"{club_member[1]} - skipped non-visitor", None
@@ -760,7 +839,9 @@ def _csv_pianola(club_member, contacts=False):
         if club_member[21].find("Visitor") >= 0:
             return False, f"{club_member[1]} - skipped visitor", None
         else:
-            success, error, item = _map_csv_to_columns(PIANOLA_MAPPING, club_member)
+            success, error, item = _map_csv_to_columns(
+                PIANOLA_MAPPINGS[mapping_version], club_member
+            )
 
     if success:
         validate_start_and_end(club_member)
@@ -900,9 +981,14 @@ def upload_csv_htmx(request, club):
     csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
 
     # validate header
+    pianola_version = 0
     header_row = next(csv_data, None)
     if file_type == "Pianola":
-        header_ok, message = validate_header(header_row, PIANOLA_MAPPING)
+        if "Sessions played" in header_row:
+            pianola_version = 1
+        header_ok, message = validate_header(
+            header_row, PIANOLA_MAPPINGS[pianola_version]
+        )
     elif file_type == "CSV":
         # allow for a download header row to allow round-tripping exported csv
         if header_row and header_row[0] == club.name:
@@ -923,7 +1009,7 @@ def upload_csv_htmx(request, club):
 
         # Specific formatting and tests by format
         if file_type == "Pianola":
-            rc, error, item = _csv_pianola(club_member)
+            rc, error, item = _csv_pianola(club_member, pianola_version)
         elif file_type == "CSV":
             rc, error, item = _csv_generic(club_member)
         elif file_type == "CS2":
@@ -1297,9 +1383,14 @@ def contact_upload_csv_htmx(request, club):
     csv_data = csv.reader(codecs.iterdecode(csv_file, "utf-8"))
 
     # validate header
+    pianola_version = 0
     header_row = next(csv_data, None)
     if file_type == "Pianola":
-        header_ok, message = validate_header(header_row, PIANOLA_CONTACT_MAPPING)
+        if "Sessions played" in header_row:
+            pianola_version = 1
+        header_ok, message = validate_header(
+            header_row, PIANOLA_CONTACT_MAPPINGS[pianola_version]
+        )
     elif file_type == "CSV":
         # allow for a download header row to allow round-tripping exported csv
         if header_row and header_row[0] == club.name:
@@ -1320,7 +1411,7 @@ def contact_upload_csv_htmx(request, club):
 
         # Specific formatting and tests by format
         if file_type == "Pianola":
-            rc, error, item = _csv_pianola(club_member, contacts=True)
+            rc, error, item = _csv_pianola(club_member, pianola_version, contacts=True)
         elif file_type == "CSV":
             rc, error, item = _csv_generic(club_member, contacts=True)
         elif file_type == "CS2":

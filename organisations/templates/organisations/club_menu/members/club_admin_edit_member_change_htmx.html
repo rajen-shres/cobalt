@@ -23,7 +23,11 @@
             {% elif converting %}
                 Convert Contact to Member
             {% else %}
-                Change Membership Type
+                {% if inactive_member %}
+                    Add Membership
+                {% else %}
+                    Change Membership Type
+                {% endif %}
             {% endif %}
         </div>
         <div class="container">

@@ -15,6 +15,9 @@ from .models import (
     OrgVenue,
     WelcomePack,
     OrgEmailTemplate,
+    MemberClubDetails,
+    MemberClubOptions,
+    ClubMemberLog,
 )
 
 
@@ -148,10 +151,53 @@ class OrgEmailTemplateAdmin(admin.ModelAdmin):
     ]
 
 
+class MemberClubDetailsAdmin(admin.ModelAdmin):
+    """Admin class for model MemberClubDetails"""
+
+    search_fields = [
+        "club",
+        "system_number",
+        "email",
+    ]
+
+    autocomplete_fields = [
+        "club",
+    ]
+
+
+class MemberClubOptionsAdmin(admin.ModelAdmin):
+    """Admin class for model MemberClubOptions"""
+
+    search_fields = [
+        "club",
+        "user",
+    ]
+
+    autocomplete_fields = [
+        "club",
+    ]
+
+
+class ClubMemberLogAdmin(admin.ModelAdmin):
+    """Admin class for model ClubMemberLog"""
+
+    search_fields = [
+        "club",
+        "system_number",
+    ]
+
+    autocomplete_fields = [
+        "club",
+    ]
+
+
 admin.site.register(Organisation, OrganisationAdmin)
 admin.site.register(OrgEmailTemplate, OrgEmailTemplateAdmin)
 admin.site.register(MembershipType, MembershipTypeAdmin)
 admin.site.register(MemberMembershipType, MemberMembershipTypeAdmin)
+admin.site.register(MemberClubDetails, MemberClubDetailsAdmin)
+admin.site.register(MemberClubOptions, MemberClubOptionsAdmin)
+admin.site.register(ClubMemberLog, ClubMemberLogAdmin)
 admin.site.register(ClubLog, ClubLogAdmin)
 admin.site.register(MemberClubEmail, MemberClubEmailAdmin)
 admin.site.register(ClubTag, ClubTagAdmin)
