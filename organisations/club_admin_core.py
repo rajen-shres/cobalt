@@ -33,6 +33,7 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     GLOBAL_TITLE,
     GLOBAL_ORG,
+    ABF_USER,
 )
 
 from utils.templatetags.cobalt_tags import cobalt_nice_date_short
@@ -129,6 +130,9 @@ def log_member_change(club, system_number, actor, description):
         actor (User): the User making the change or None if a system generated change
         description (string): a description of the change
     """
+    if not actor:
+        actor = User.objects.get(id=ABF_USER)
+
     ClubMemberLog(
         club=club,
         system_number=system_number,
@@ -1542,29 +1546,6 @@ def get_valid_activities(member_details):
 # -------------------------------------------------------------------------------------
 
 
-def refresh_memberships_for_club(club, as_at_date=None):
-    """Ensure that the membership statuses and current memberships are correct
-    for members of a club
-
-    Args:
-        club (Organisation): the club
-        as_at_date (Date or None): the date to use, current if None
-
-    Returns:
-        int: number of members updated
-    """
-
-    member_details = MemberClubDetails.objects.filter(club=club)
-
-    updated_count = 0
-
-    for member_detail in member_details:
-        if member_detail.refresh_status(as_at_date=as_at_date):
-            updated_count += 1
-
-    return updated_count
-
-
 def mark_player_as_deceased(system_number, requester):
     """Mark a user or unregistered user as deceased, and cascade the
     change to any club memberships for that player. Note that this is a
@@ -2026,7 +2007,9 @@ def _check_left_date(member_details):
     """Ensure that the left date is appropriate after a status change"""
     if member_details.membership_status in MEMBERSHIP_STATES_TERMINAL:
         if not member_details.left_date:
-            member_details.left_date = timezone.now().date()
+            # JPG cleanup
+            # member_details.left_date = timezone.now().date()
+            member_details.left_date = timezone.localtime().date()
     else:
         member_details.left_date = None
 
@@ -2104,7 +2087,10 @@ def _update_member_status(club, member_details, new_status, action, requester=No
         CobaltMemberNotFound: if no member found with this system number
     """
 
-    yesterday = timezone.now().date() - timedelta(days=1)
+    # JPG clean-up
+    # yesterday = timezone.now().date() - timedelta(days=1)
+    yesterday = timezone.localtime().date() - timedelta(days=1)
+
     if new_status not in MEMBERSHIP_STATES_TERMINAL:
         member_details.latest_membership.end_date = yesterday
     member_details.latest_membership.membership_state = new_status

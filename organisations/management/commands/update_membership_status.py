@@ -3,6 +3,10 @@ Batch command to update time sensitive membership statuses
 
 Should be run nightly soon after midnight via cron
 Can be run at any time manually with an optional date arguement
+
+WARNING - The data parameter should not be used in production.
+This script will honour that date, but it calls the core lapse
+function which uses the real date.
 """
 
 from datetime import datetime, timedelta
@@ -19,8 +23,11 @@ from organisations.models import (
     Organisation,
 )
 from organisations.club_admin_core import (
+    log_member_change,
     perform_simple_action,
     MEMBERSHIP_STATES_ACTIVE,
+    MEMBERSHIP_STATES_TERMINAL,
+    CobaltMemberNotFound,
 )
 
 logger = logging.getLogger("cobalt")
@@ -44,20 +51,32 @@ class Command(BaseCommand):
             self.club_cache[club_id] = club
         return self.club_cache[club_id]
 
-    def lapse(self, club, system_number):
-        """Lapse a membership"""
+    def lapse(self, club, system_number, scenario_str=None, fatal=True):
+        """Lapse a membership
+        fatal indicates whether failure to lapse is an error or a warning"""
 
         try:
             lapsed_ok, lapse_msg = perform_simple_action("lapsed", club, system_number)
-        except Exception as e:
-            lapsed_ok = False
-            lapse_msg = f"Exception {e}"
+        except CobaltMemberNotFound as e:
+            logger.error(f"Exception while lapsing: {e}")
+            self.errored += 1
+            raise
 
         if lapsed_ok:
             self.processed += 1
         else:
-            logger.warning(f"Error lapsing {system_number}: {lapse_msg}")
-            self.errored += 1
+            if fatal:
+                logger.error(
+                    f"{system_number} {scenario_str if scenario_str else ''} "
+                    + f"Error lapsing : {lapse_msg}"
+                )
+                self.errored += 1
+            else:
+                logger.warning(
+                    f"{system_number} {scenario_str if scenario_str else ''} "
+                    + f"Error lapsing : {lapse_msg}"
+                )
+                self.processed += 1
 
         return lapsed_ok
 
@@ -75,6 +94,16 @@ class Command(BaseCommand):
         member_details.latest_membership = future_membership
         member_details.membership_status = new_state
         member_details.save()
+
+        log_member_change(
+            member_details.club,
+            member_details.system_number,
+            None,
+            (
+                f"Transitioned to {future_membership.membership_type.name} "
+                + f" {future_membership.get_membership_state_display()}"
+            ),
+        )
 
         self.processed += 1
 
@@ -108,16 +137,18 @@ class Command(BaseCommand):
                 membership_type__organisation__full_club_admin=True,
                 due_date=yesterday,
             )
-            .exclude(
-                fee=0,
-                is_paid=True,
-            )
+            .exclude(fee=0)
+            .exclude(is_paid=True)
+            .exclude(membership_state__in=MEMBERSHIP_STATES_TERMINAL)
             .values_list("id", "membership_type__organisation__id", "system_number")
         )
 
-        logger.info(
-            f"Starting due date processing: {len(at_due_membership_list)} found"
-        )
+        if len(at_due_membership_list):
+            logger.info(
+                f"Starting {yesterday} due date processing: {len(at_due_membership_list)} found"
+            )
+        else:
+            logger.info(f"No memberships with due date {yesterday} to process")
 
         for membership_id, club_id, system_number in at_due_membership_list:
             with transaction.atomic():
@@ -139,27 +170,55 @@ class Command(BaseCommand):
 
                 if member_details.latest_membership == this_membership:
                     # the due date is within the current membership
-                    # (scenario 3 - not paid at due date)
+                    # (scenario 3.2.1 - not paid at due date)
 
-                    lapsed_ok = self.lapse(club, system_number)
+                    try:
+                        lapsed_ok = self.lapse(
+                            club,
+                            system_number,
+                            scenario_str="[Scenario 3.2.1]",
+                            fatal=False,
+                        )
+                    except CobaltMemberNotFound:
+                        #  lapse will have logged the exception, but can't keep going
+                        continue
+
+                    # the only error condition preventing lapsing would be already inactive
+                    # in which case we can continue anyway
 
                     # curtail the membership
-                    if lapsed_ok:
-                        this_membership = MemberMembershipType.objects.get(
-                            id=membership_id
-                        )
+                    this_membership = MemberMembershipType.objects.get(id=membership_id)
+                    if (
+                        not this_membership.end_date
+                        or this_membership.end_date > yesterday
+                    ):
                         this_membership.end_date = yesterday
                         this_membership.save()
 
+                    logger.info(
+                        f"{member_details.system_number} [Scenario 3.2.1] lapsed and curtailed"
+                    )
+
                 else:
                     # alternative is that the due date is for a future membership
-                    # (scenario 2) and no action is required.
+                    # (scenario 2.1) and no action is required.
+                    logger.info(
+                        f"{member_details.system_number} [Scenario 2.1] no action required"
+                    )
                     self.skipped += 1
 
-        logger.info(
-            f"Finished due date processing: {self.processed} ok, "
-            + f"{self.errored} errored, {self.skipped} no action required"
-        )
+        if len(at_due_membership_list):
+            logger.info(
+                f"Finished due date processing: {self.processed} ok, "
+                + f"{self.errored} errored, {self.skipped} no action required"
+            )
+
+        self.due_processed = self.processed
+        self.due_errored = self.errored
+        self.due_skipped = self.skipped
+        self.processed = 0
+        self.errored = 0
+        self.skipped = 0
 
         # get memberships at their end date
 
@@ -169,9 +228,12 @@ class Command(BaseCommand):
             membership_state__in=MEMBERSHIP_STATES_ACTIVE,
         ).values_list("id", "membership_type__organisation__id", "system_number")
 
-        logger.info(
-            f"Starting end date processing: {len(at_end_membership_list)} found"
-        )
+        if len(at_end_membership_list):
+            logger.info(
+                f"Starting {yesterday} end date processing: {len(at_end_membership_list)} found"
+            )
+        else:
+            logger.info(f"No memberships with end date {yesterday} to process")
 
         for membership_id, club_id, system_number in at_end_membership_list:
             with transaction.atomic():
@@ -199,7 +261,10 @@ class Command(BaseCommand):
 
                 if future_membership:
 
-                    if future_membership.start_date != today:
+                    if (
+                        not future_membership.start_date
+                        or future_membership.start_date != today
+                    ):
                         # invalid data state
                         logger.error(
                             f"Error on {system_number} at {club}:"
@@ -210,6 +275,18 @@ class Command(BaseCommand):
 
                     if future_membership.is_paid:
                         # just need to transition to the future paid membership
+                        # scenario 2.2.1 or 3.1.1
+
+                        if future_membership.due_date:
+                            if (
+                                future_membership.due_date
+                                >= future_membership.start_date
+                            ):
+                                scenario = "Scenario 3.1.1"
+                            else:
+                                scenario = "Scenario 2.2.1"
+                        else:
+                            scenario = "No due date"
 
                         self.transition_to_future(
                             MemberMembershipType.MEMBERSHIP_STATE_CURRENT,
@@ -218,14 +295,42 @@ class Command(BaseCommand):
                             future_membership,
                         )
 
-                    else:
-                        if future_membership.due_date < today:
-                            # overdue so lapse the ending membership and delete the future
+                        logger.info(
+                            f"{member_details.system_number} [{scenario}] transition to renewal"
+                        )
 
-                            self.lapse(club, system_number)
+                    else:
+                        if (
+                            future_membership.due_date
+                            and future_membership.due_date < today
+                        ):
+                            # overdue so lapse the ending membership and delete the future
+                            # scenario 2.2.2
+
+                            try:
+                                lapsed_ok = self.lapse(
+                                    club,
+                                    system_number,
+                                    scenario_str="[Scenario 2.2.2]",
+                                    fatal=False,
+                                )
+                            except CobaltMemberNotFound:
+                                #  lapse will have logged the exception, but can't keep going
+                                continue
+
+                            # only failure condition is already inactive, in which
+                            # case we still need to delete the future membership
+                            # this would be an anomaly as lapsing etc would have deleted any future
+                            if not lapsed_ok:
+                                future_membership.delete()
+
+                            logger.info(
+                                f"{member_details.system_number} [Scenario 2.2.2] membership lapsed"
+                            )
 
                         else:
-                            # still have time to pay, so make it due
+                            # still have time to pay, so make it due (scenario 3.1.2)
+                            # including no due date case
 
                             self.transition_to_future(
                                 MemberMembershipType.MEMBERSHIP_STATE_DUE,
@@ -233,12 +338,47 @@ class Command(BaseCommand):
                                 this_membership,
                                 future_membership,
                             )
-                else:
-                    # reached end date, no future (secnario 1), lapse
 
-                    self.lapse(club, system_number)
+                            if future_membership.due_date:
+                                logger.info(
+                                    f"{member_details.system_number} "
+                                    + "[Scenario 3.1.2] transition to due renewal"
+                                )
+                            else:
+                                logger.warning(
+                                    f"{member_details.system_number} "
+                                    + "[Scenario 3.1.2] transition to due renewal but NO DUE DATE SET"
+                                )
+
+                else:
+                    # reached end date, no future (scenario 1), lapse
+
+                    try:
+                        lapsed_ok = self.lapse(
+                            club,
+                            system_number,
+                            scenario_str="[Scenario 1]",
+                            fatal=False,
+                        )
+                    except CobaltMemberNotFound:
+                        #  lapse will have logged the exception, but can't keep going
+                        continue
+
+                    if lapsed_ok:
+                        logger.info(
+                            f"{member_details.system_number} "
+                            + "[Scenario 1] membership lapsed"
+                        )
+
+        if len(at_end_membership_list):
+            logger.info(
+                f"Finished end date processing: {self.processed} ok, "
+                + f"{self.errored} errored, {self.skipped} no action required"
+            )
 
         logger.info(
-            f"Membership status update complete. {self.processed} processed, "
-            + f"{self.errored} errored {self.skipped} no action required"
+            "Membership status update complete. "
+            + f"{self.processed + self.due_processed} processed, "
+            + f"{self.errored + self.due_errored} errored "
+            + f"{self.skipped + self.due_skipped} no action required"
         )
