@@ -1,0 +1,6 @@
+organisations,MemberClubDetails,,,,,,,,,,
+id,id.club.organisations.Organisation,system_number,id.latest_membership.organisations.MemberMembershipType,membership_status,d.joined_date,d.left_date,address1,address2,state,postcode,email
+dummy,fbc,100,mmt1,CUR,-100,,1 A Street,Someplace,NSW,2021,private.to.fbc.alan@b.co
+dummy,fbc,620254,mmt2,LAP,-100,-90,,,,,private.to.fbc.julie@b.co
+dummy,rbc,101,mmt3,RES,-100,-90,,,,,private.to.fbc.betty@b.co
+dummy,rbc,289698,mmt4,CUR,-100,,,,,,private.to.fbc.carol@b.co

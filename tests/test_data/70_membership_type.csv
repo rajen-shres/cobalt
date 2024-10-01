@@ -1,3 +1,4 @@
-organisations, MembershipType                            ,         ,            ,           , 
-id           , id.organisation.organisations.Organisation, name    , description, annual_fee, part_year_fee, is_default, does_not_pay_session_fees, does_not_renew, id.last_modified_by.accounts.User, t.created_at, t.updated_at, , , , 
-mt1          , fbc                                       , Standard,            , 50        , 25           , 0         , 0                        , 0             , mark                             , 5           , 5           , , , , 
+organisations, MembershipType                            ,         ,            ,           , ,,,,,,,,,,
+id           , id.organisation.organisations.Organisation, name    , description, annual_fee, grace_period_days, is_default, does_not_pay_session_fees, does_not_renew, id.last_modified_by.accounts.User, t.created_at, t.updated_at, , , , 
+mt1          , fbc                                       , Standard,            ,50,21,0,0,0, mark                             ,5,5, , , , 
+mt2,rbc,Standard,,70,30,1,1,0, mark                             ,5,5,,,,

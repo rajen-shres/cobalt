@@ -124,9 +124,14 @@ class Command(BaseCommand):
         print("Running add_rbac_test_data_forum_posts")
 
         try:
+            # This process is extremely slow (~1 min per post) so don't create 10*anything
+            # print(f"\nCreating {DUMMY_DATA_COUNT *10} dummy forum posts")
+            # for count, _ in enumerate(range(DUMMY_DATA_COUNT * 10), start=1):
+
             # create dummy Posts
-            print(f"\nCreating {DUMMY_DATA_COUNT *10} dummy forum posts")
-            for count, _ in enumerate(range(DUMMY_DATA_COUNT * 10), start=1):
+            post_count = 2
+            print(f"\nCreating {post_count} dummy forum posts")
+            for count, _ in enumerate(range(post_count), start=1):
 
                 user_list = User.objects.exclude(id__in=ALL_SYSTEM_ACCOUNTS)
                 forums = Forum.objects.all()
