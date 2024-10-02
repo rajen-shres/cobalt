@@ -200,6 +200,9 @@ def edit_htmx(request, club, message=None):
             name_form = None
             name_form_ok = True
 
+        # JPG Debug
+        print(f"*** name_form is_valid = {name_form_ok}")
+
         if form.is_valid() and name_form_ok:
             form.save()
             if name_form:
@@ -636,7 +639,7 @@ def add_search_htmx(request):
 
     club = get_object_or_404(Organisation, pk=club_id)
 
-    member_list = get_club_member_list(club)
+    member_list = get_club_member_list(club, active_only=False)
     contact_list = get_club_contact_list(club)
 
     for user in user_list:

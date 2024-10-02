@@ -133,7 +133,7 @@
                                     hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
                                     hx-target="#id_panel_members"
                                 {% endif %}
-                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit:'NO'"
                                 hx-trigger="click"
                             >
                                 Cancel
@@ -166,7 +166,7 @@
                                     hx-post="{% url 'organisations:club_menu_tab_members_add_htmx' %}"
                                     hx-target="#id_panel_members"
                                 {% endif %}
-                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ contact_details.system_number }}, save: 'NO', edit:'NO'"
                                 hx-trigger="click"
                             >
                                 Cancel

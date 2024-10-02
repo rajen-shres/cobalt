@@ -261,7 +261,7 @@
                                     hx-post="{% url 'organisations:club_admin_edit_member_htmx' %}"
                                     hx-target="#id_panel_members"
                                 {% endif %}
-                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, message:'', save:'NO'"
+                                hx-vars="club_id:{{ club.id }}, system_number:{{ system_number }}, message:'', save:'NO', edit:'NO'"
                                 hx-trigger="click"
                             >
                                 Cancel

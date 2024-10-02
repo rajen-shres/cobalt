@@ -55,6 +55,7 @@ from club_sessions.views.core import (
 from club_sessions.views.decorators import user_is_club_director
 from cobalt.settings import (
     ALL_SYSTEM_ACCOUNTS,
+    ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS,
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
 )
@@ -735,9 +736,11 @@ def process_bridge_credits_htmx(request, club, session):
         )
 
         # For each player go through and work out what they owe
+        # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+        # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
         session_entries = SessionEntry.objects.filter(
             session=session, is_paid=False, payment_method=bridge_credits
-        ).exclude(system_number__in=ALL_SYSTEM_ACCOUNTS)
+        ).exclude(system_number__in=ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS)
 
         bc_txn_count = session_entries.count()
         logger.info(

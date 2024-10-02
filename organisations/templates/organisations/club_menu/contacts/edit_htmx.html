@@ -58,7 +58,7 @@
 
                     {% if name_form %}
 
-                        <form id="id-name-form">
+                        <form id="id-name-form" novalidate>
                             {% csrf_token %}
 
                             <div class="row pb-2">
@@ -106,6 +106,7 @@
                         {% if name_form %}
                             hx-include="#id-name-form"
                         {% endif %}
+                        novalidate
                     >
                         {% csrf_token %}
 

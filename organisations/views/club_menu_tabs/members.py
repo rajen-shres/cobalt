@@ -21,6 +21,7 @@ from accounts.models import User, UnregisteredUser, UserAdditionalInfo
 from club_sessions.models import SessionEntry
 from cobalt.settings import (
     ALL_SYSTEM_ACCOUNTS,
+    ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS,
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
     COBALT_HOSTNAME,
@@ -3050,7 +3051,9 @@ def email_unpaid(request, club_id):
 
     # save the recipients
     for candidate in candidates:
-        if candidate[0] not in ALL_SYSTEM_ACCOUNTS:
+        # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+        # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
+        if candidate[0] not in ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS:
             try:
                 recpient = Recipient()
                 recpient.batch = batch

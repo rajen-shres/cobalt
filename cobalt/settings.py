@@ -440,6 +440,7 @@ ABF_USER = 3
 
 # System accounts
 ALL_SYSTEM_ACCOUNTS = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
+ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS = [0, 1, 2]
 
 # ABF Organisation - used for Settlement transactions and other things. Assumed to be the first thing created.
 ABF_ORG = 1

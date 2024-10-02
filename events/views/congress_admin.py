@@ -73,6 +73,7 @@ from cobalt.settings import (
     BLEACH_ALLOWED_ATTRIBUTES,
     BLEACH_ALLOWED_STYLES,
     ALL_SYSTEM_ACCOUNTS,
+    ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS,
 )
 from utils.utils import cobalt_paginator
 import pytz
@@ -1533,7 +1534,9 @@ def _initiate_entrant_batch(request, candidates, description, congress, event=No
 
     # save the recipients
     for candidate in candidates:
-        if candidate[0] not in ALL_SYSTEM_ACCOUNTS:
+        # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+        # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
+        if candidate[0] not in ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS:
             try:
                 recpient = Recipient()
                 recpient.batch = batch

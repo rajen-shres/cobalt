@@ -73,4 +73,21 @@
             }
         }
     });
+
+    // COB-943: To allow edit member to be displayed from contacts add.
+    // After an htmx request targetting the members panel, switch to the
+    // members if contacts is currently active
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        if (event.detail.target.id === 'id_panel_members') {
+            if (document.getElementById('id_tab_contacts').classList.contains('active')) {
+                document.getElementById('id_tab_members').classList.add('active');
+                document.getElementById('members').classList.add('active');
+                document.getElementById('members').classList.add('show');
+                document.getElementById('id_tab_contacts').classList.remove('active');
+                document.getElementById('contacts').classList.remove('active');
+                document.getElementById('contacts').classList.remove('show');
+            }
+        }
+    });
+
 </script>

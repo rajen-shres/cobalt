@@ -19,6 +19,7 @@ from club_sessions.models import (
 from cobalt.settings import (
     GLOBAL_ORG,
     ALL_SYSTEM_ACCOUNTS,
+    ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS,
     BRIDGE_CREDITS,
     GLOBAL_CURRENCY_SYMBOL,
     SUPPORT_EMAIL,
@@ -467,8 +468,10 @@ def calculate_payment_method_and_balance(session_entries, session_fees, club):
     # First build list of users who are bridge credit eligible
     bridge_credit_users = []
     for session_entry in session_entries:
+        # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+        # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
         if session_entry.player_type == "User" and session_entry.system_number not in [
-            ALL_SYSTEM_ACCOUNTS
+            ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS
         ]:
             bridge_credit_users.append(session_entry.system_number)
 

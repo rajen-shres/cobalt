@@ -51,6 +51,7 @@ from cobalt.settings import (
     AWS_REGION_NAME,
     TBA_PLAYER,
     ALL_SYSTEM_ACCOUNTS,
+    ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS,
     apply_large_email_batch_config,
 )
 from events.models import (
@@ -1101,7 +1102,9 @@ def _add_user_to_recipients(club, batch, user, initial=True):
 
     If the user is already a recipient, set as included"""
 
-    if user.system_number in ALL_SYSTEM_ACCOUNTS:
+    # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+    # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
+    if user.system_number in ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS:
         return (0, f"{user.full_name} is a system account")
 
     if not user.is_active or user.deceased:
@@ -1149,7 +1152,9 @@ def _add_to_recipient_with_system_number(
         A user message
     """
 
-    if system_number in ALL_SYSTEM_ACCOUNTS:
+    # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+    # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
+    if system_number in ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS:
         return (_ADD_RECIPIENT_RESULT_SYSTEM_AC, "A system account")
 
     #  is the system number already a recipient?
@@ -1474,7 +1479,12 @@ def compose_email_multi_select(request, club, batch):
             )
 
             for entered_player in entered_players:
-                if entered_player.player.system_number not in ALL_SYSTEM_ACCOUNTS:
+                # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
+                # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
+                if (
+                    entered_player.player.system_number
+                    not in ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS
+                ):
                     recipient = Recipient()
                     recipient.create_from_user(batch, entered_player.player)
                     try:
