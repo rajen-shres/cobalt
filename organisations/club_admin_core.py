@@ -425,6 +425,28 @@ def is_player_allowing_club_membership(club, system_number):
     return club_options.allow_membership if club_options else True
 
 
+def is_member_allowing_auto_pay(club, system_number=None, user=None):
+    """Check whether the member is allowing auto payment by this club
+    One of system_number or user must be supplied"""
+
+    if user:
+        this_user = user
+    elif system_number:
+        this_user = User.objects.get(system_number=system_number)
+    else:
+        this_user = None
+
+    if not this_user:
+        return False
+
+    club_options = MemberClubOptions.objects.filter(
+        club=club,
+        user=this_user,
+    ).last()
+
+    return club_options.allow_auto_pay if club_options else True
+
+
 def get_membership_type(club, system_number):
     """Get the current membership type for a member in a club
 
@@ -759,6 +781,7 @@ def _augment_member_details(member_qs, sort_option="last_desc"):
             member.last_name = "Unknown"
             member.user_type = "Unknown Type"
             member.user_or_unreg_id = None
+            member.user_or_unreg = None
             member.club_email = None
             member.internal = True
 

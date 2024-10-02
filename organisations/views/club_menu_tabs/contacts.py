@@ -22,6 +22,7 @@ from organisations.club_admin_core import (
     club_email_for_member,
     convert_contact_to_member,
     delete_contact,
+    is_member_allowing_auto_pay,
     get_club_contacts,
     get_club_contact_list,
     get_club_member_list,
@@ -382,6 +383,14 @@ def convert_htmx(request, club):
 
     contact_details = get_contact_details(club, system_number)
 
+    if contact_details.user_type == f"{GLOBAL_TITLE} User":
+        allowing_auto_pay = is_member_allowing_auto_pay(
+            club=club,
+            system_number=system_number,
+        )
+    else:
+        allowing_auto_pay = False
+
     membership_choices, fees_and_due_dates = get_membership_details_for_club(club)
 
     if len(membership_choices) == 0:
@@ -398,7 +407,10 @@ def convert_htmx(request, club):
         form = MembershipChangeTypeForm(
             request.POST,
             club=club,
-            registered=(contact_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (contact_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
         )
         if form.is_valid():
 
@@ -484,7 +496,10 @@ def convert_htmx(request, club):
         form = MembershipChangeTypeForm(
             initial=initial_data,
             club=club,
-            registered=(contact_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (contact_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
         )
 
     return render(
@@ -500,6 +515,10 @@ def convert_htmx(request, club):
             "internal": contact_details.internal,
             "welcome_pack": welcome_pack,
             "caller": caller,
+            "show_auto_pay_warning": (
+                (contact_details.user_type == f"{GLOBAL_TITLE} User")
+                and not allowing_auto_pay
+            ),
         },
     )
 

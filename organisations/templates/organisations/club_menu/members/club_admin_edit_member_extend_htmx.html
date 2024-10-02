@@ -29,6 +29,14 @@ This will be rendered in the action pane of the club admin edit member window
                         </div>
                     {% endif %}
 
+                    {% if show_auto_pay_warning %}
+                        <p class="text-danger">
+                            This member is not allowing the club to charge their membership fee to {{ BRIDGE_CREDITS }}.
+                            If an auto pay date is set the payment will not be made unless the user changes their settings
+                            before that date.
+                        </p>
+                    {% endif %}
+
                     <div class="row pb-2">
 
                         <div class="col-2 justify-content-center align-self-center pt-3">

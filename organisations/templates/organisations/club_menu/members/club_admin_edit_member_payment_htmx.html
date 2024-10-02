@@ -38,6 +38,14 @@ This will be rendered in the action pane of the club admin edit member window
                         {% endif %}
                     </p>
 
+                    {% if show_auto_pay_warning %}
+
+                        <p class="text-danger">
+                            This member is not allowing the club to charge their membership fee to {{ BRIDGE_CREDITS }}
+                        </p>
+
+                    {% endif %}
+
                     <div class="row pb-2">
 
                         <div class="col-2 justify-content-center align-self-center pt-3">

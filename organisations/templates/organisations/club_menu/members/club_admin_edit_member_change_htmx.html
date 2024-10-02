@@ -59,6 +59,12 @@
                         </div>
                     {% endif %}
 
+                    {% if show_auto_pay_warning %}
+                        <p class="text-danger">
+                            This member is not allowing the club to charge their membership fee to {{ BRIDGE_CREDITS }}
+                        </p>
+                    {% endif %}
+
                     {% if converting %}
 
                         <div class="row pb-2">

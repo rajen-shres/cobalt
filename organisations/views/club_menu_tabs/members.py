@@ -51,6 +51,7 @@ from organisations.club_admin_core import (
     change_membership,
     club_email_for_member,
     club_has_unregistered_members,
+    is_member_allowing_auto_pay,
     get_club_members,
     get_club_member_list,
     get_club_member_list_email_match,
@@ -1908,6 +1909,14 @@ def club_admin_edit_member_change_htmx(request, club):
             message if message else "Action not permitted",
         )
 
+    if member_details.user_type == f"{GLOBAL_TITLE} User":
+        allowing_auto_pay = is_member_allowing_auto_pay(
+            club=club,
+            system_number=system_number,
+        )
+    else:
+        allowing_auto_pay = False
+
     inactive_member = member_details.membership_status in MEMBERSHIP_STATES_TERMINAL
     exclude_id = (
         None if inactive_member else member_details.latest_membership.membership_type.id
@@ -1934,7 +1943,10 @@ def club_admin_edit_member_change_htmx(request, club):
         form = MembershipChangeTypeForm(
             request.POST,
             club=club,
-            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
             exclude_id=exclude_id,
         )
         if form.is_valid():
@@ -1981,7 +1993,10 @@ def club_admin_edit_member_change_htmx(request, club):
         form = MembershipChangeTypeForm(
             initial=initial_data,
             club=club,
-            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
             exclude_id=exclude_id,
         )
 
@@ -1998,6 +2013,10 @@ def club_admin_edit_member_change_htmx(request, club):
             "fees_and_dates": f"{fees_and_due_dates}",
             "message": message,
             "inactive_member": inactive_member,
+            "show_auto_pay_warning": (
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and not allowing_auto_pay
+            ),
         },
     )
 
@@ -2038,10 +2057,25 @@ def club_admin_edit_member_membership_action_htmx(request, club):
 def club_admin_edit_member_payment_htmx(request, club):
     """
     Get payment details
+
+    Note: COB-946: if a member is not allowing auto pay, Bridge Credits
+    should not be presented as a payment option. This is controlled via
+    the 'registered' arguement to the form initialiser.
     """
 
     system_number = request.POST.get("system_number", None)
     member_details = get_member_details(club, system_number)
+
+    if member_details.user_type == f"{GLOBAL_TITLE} User":
+        allowing_auto_pay = is_member_allowing_auto_pay(
+            club=club,
+            system_number=system_number,
+        )
+    else:
+        allowing_auto_pay = False
+
+    # JPG debug
+    print(f"*** allowing auto pay = {allowing_auto_pay}")
 
     membership_to_pay = get_outstanding_memberships_for_member(
         club,
@@ -2065,7 +2099,10 @@ def club_admin_edit_member_payment_htmx(request, club):
         form = MembershipPaymentForm(
             request.POST,
             club=club,
-            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
         )
 
         form.is_valid()
@@ -2091,7 +2128,10 @@ def club_admin_edit_member_payment_htmx(request, club):
 
         form = MembershipPaymentForm(
             club=club,
-            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
         )
 
     return render(
@@ -2102,6 +2142,10 @@ def club_admin_edit_member_payment_htmx(request, club):
             "system_number": system_number,
             "membership": membership_to_pay,
             "form": form,
+            "show_auto_pay_warning": (
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and not allowing_auto_pay
+            ),
             "message": message,
         },
     )
@@ -2111,6 +2155,13 @@ def club_admin_edit_member_payment_htmx(request, club):
 def club_admin_edit_member_extend_htmx(request, club):
     """
     Handle the extend membership sub-view
+
+    Note: COB-946: if a member is not allowing auto pay, Bridge Credits
+    should not be presented as a payment option. This is controlled via
+    the 'registered' arguement to the form initialiser.
+
+    User can still set an auto pay date, and permissions will be checked
+    at that time.
     """
 
     system_number = request.POST.get("system_number", None)
@@ -2134,12 +2185,23 @@ def club_admin_edit_member_extend_htmx(request, club):
             message,
         )
 
+    if member_details.user_type == f"{GLOBAL_TITLE} User":
+        allowing_auto_pay = is_member_allowing_auto_pay(
+            club=club,
+            system_number=system_number,
+        )
+    else:
+        allowing_auto_pay = False
+
     if "save" in request.POST:
 
         form = MembershipExtendForm(
             request.POST,
             club=club,
-            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
         )
         if form.is_valid():
 
@@ -2199,7 +2261,10 @@ def club_admin_edit_member_extend_htmx(request, club):
         form = MembershipExtendForm(
             initial=initial_data,
             club=club,
-            registered=(member_details.user_type == f"{GLOBAL_TITLE} User"),
+            registered=(
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and allowing_auto_pay
+            ),
         )
 
     return render(
@@ -2209,6 +2274,10 @@ def club_admin_edit_member_extend_htmx(request, club):
             "club": club,
             "system_number": system_number,
             "form": form,
+            "show_auto_pay_warning": (
+                (member_details.user_type == f"{GLOBAL_TITLE} User")
+                and not allowing_auto_pay
+            ),
             "message": message,
         },
     )
@@ -2272,6 +2341,7 @@ def club_admin_add_member_detail_htmx(request, club):
     """End point for handling the shared club_admin_edit_member_change_htmx.html
     when adding a new club member"""
 
+    # JPG debug
     print("club_admin_add_member_detail_htmx")
 
     system_number = request.POST.get("system_number")
@@ -2296,6 +2366,17 @@ def club_admin_add_member_detail_htmx(request, club):
     message = None
     today = timezone.now().date()
 
+    if user_type == "REG":
+        allowing_auto_pay = is_member_allowing_auto_pay(
+            club=club,
+            user=user,
+        )
+    else:
+        allowing_auto_pay = False
+
+    # JPG debug
+    print(f"allowing auto pay = {allowing_auto_pay}")
+
     membership_choices, fees_and_due_dates = get_membership_details_for_club(club)
 
     if len(membership_choices) == 0:
@@ -2310,7 +2391,7 @@ def club_admin_add_member_detail_htmx(request, club):
         form = MembershipChangeTypeForm(
             request.POST,
             club=club,
-            registered=(user_type == "REG"),
+            registered=((user_type == "REG") and allowing_auto_pay),
         )
         if form.is_valid():
 
@@ -2382,7 +2463,7 @@ def club_admin_add_member_detail_htmx(request, club):
         form = MembershipChangeTypeForm(
             initial=initial_data,
             club=club,
-            registered=(user_type == "REG"),
+            registered=((user_type == "REG") and allowing_auto_pay),
         )
 
     return render(
@@ -2398,6 +2479,7 @@ def club_admin_add_member_detail_htmx(request, club):
             "user": user,
             "welcome_pack": welcome_pack,
             "mpc_details": mpc_details,
+            "show_auto_pay_warning": ((user_type == "REG") and not allowing_auto_pay),
         },
     )
 

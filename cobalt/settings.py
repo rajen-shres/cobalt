@@ -429,14 +429,16 @@ SUMMERNOTE_CONFIG = {
     "attachment_filesize_limit": 20000000,
 }
 
+# COB-947: Removing hard coding of system account ids
+
 # Default user to be the everyone user for RBAC
-RBAC_EVERYONE = 1
+RBAC_EVERYONE = int(set_value("RBAC_EVERYONE_ID", 1))
 
 # TBA User for Event entries
-TBA_PLAYER = 2
+TBA_PLAYER = int(set_value("TBA_PLAYER_ID", 2))
 
 # ABF User for Announcements
-ABF_USER = 3
+ABF_USER = int(set_value("ABF_USER_ID", 3))
 
 # System accounts
 ALL_SYSTEM_ACCOUNTS = [RBAC_EVERYONE, TBA_PLAYER, ABF_USER]
