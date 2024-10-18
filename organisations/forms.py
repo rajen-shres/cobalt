@@ -519,8 +519,6 @@ class MembershipChangeTypeForm(forms.Form):
         # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
-    # JPG clean up
-    # is_paid = forms.BooleanField(label="Mark as paid", required=False)
     payment_method = forms.ChoiceField(label="Payment method", required=False)
 
     send_welcome_pack = forms.BooleanField(initial=True, required=False)
@@ -543,11 +541,6 @@ class MembershipChangeTypeForm(forms.Form):
         self.fields["payment_method"].choices = membership_payment_method_choices(
             self.club, registered
         )
-
-        # JPG clean up
-        # If this club doesn't have a membership pack then don't show on form
-        # if not WelcomePack.objects.filter(organisation=self.club).exists():
-        #     del self.fields["send_welcome_email"]
 
     def clean_start_date(self):
         start_date = self.cleaned_data.get("start_date")
@@ -1110,13 +1103,6 @@ class BulkRenewalLineForm(forms.Form):
         # widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
-
-    # jpg cleanup - moved to form level
-    # def clean_fee(self):
-    #     fee = self.cleaned_data.get("fee")
-    #     if fee is not None and fee < 0:
-    #         self.add_error("fee", "Fee cannot be negative.")
-    #     return fee
 
     def clean(self):
         """custom validation"""

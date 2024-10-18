@@ -97,9 +97,11 @@ def search_for_user_in_cobalt_and_mpc(
 
     # Masterpoints Centre
     if last_name_only:
-        mpc_users = search_mpc_users_by_name(None, last_name_search)
+        mpc_users = search_mpc_users_by_name(None, last_name_search.replace("'", "''"))
     else:
-        mpc_users = search_mpc_users_by_name(first_name_search, last_name_search)
+        mpc_users = search_mpc_users_by_name(
+            first_name_search.replace("'", "''"), last_name_search.replace("'", "''")
+        )
 
     # Combine the lists
     user_list = []

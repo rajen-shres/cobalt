@@ -201,9 +201,6 @@ def edit_htmx(request, club, message=None):
             name_form = None
             name_form_ok = True
 
-        # JPG Debug
-        print(f"*** name_form is_valid = {name_form_ok}")
-
         if form.is_valid() and name_form_ok:
             form.save()
             if name_form:

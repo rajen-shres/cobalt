@@ -479,15 +479,6 @@ class MemberMembershipType(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # JPG clean up
-    # @property
-    # def is_paid(self):
-    #     """Has the membership been paid?"""
-    #     if not self.end_date:
-    #         # A perpetual membership type
-    #         return True
-    #     return self.paid_until_date == self.end_date
-
     @property
     def is_active_state(self):
         """Is this one of the active states (current or due)"""

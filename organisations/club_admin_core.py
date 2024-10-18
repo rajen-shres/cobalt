@@ -209,83 +209,6 @@ def member_details_short_description(member_details):
     return desc
 
 
-# JPG clean-up - not used
-# def member_details_description(member_details):
-#     """A comprehensive descriptive string of the type, status and relevant dates"""
-
-#     contiguous_start, contiguous_end = member_details.current_type_dates
-
-#     period = f"from {contiguous_start:%d %b %Y}"
-#     if contiguous_end:
-#         period += f" to {contiguous_end:%d %b %Y}"
-
-#     joined_and_left = (
-#         f"Joined {member_details.joined_date:%d %b %Y}"
-#         if member_details.joined_date
-#         else None
-#     )
-#     if member_details.left_date:
-#         if joined_and_left:
-#             joined_and_left += f", left {member_details.left_date:%d %b %Y}. "
-#         else:
-#             joined_and_left += f"Left {member_details.left_date:%d %b %Y}. "
-#     elif joined_and_left:
-#         joined_and_left += ". "
-
-#     #  get the furthest future future membership (if any)
-#     future_membership = (
-#         MemberMembershipType.objects.filter(
-#             membership_type__organisation=member_details.club,
-#             system_number=member_details.system_number,
-#             membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
-#         )
-#         .order_by("end_date")
-#         .last()
-#     )
-
-#     paid_until = None
-#     if future_membership and future_membership.is_paid and future_membership.end_date:
-#         paid_until = (
-#             f"paid until {member_details.future_membership.paid_until_date:%d %b %Y}"
-#         )
-
-#     elif (
-#         member_details.latest_membership.is_paid
-#         and member_details.latest_membership.end_date
-#     ):
-#         paid_until = (
-#             f"paid until {member_details.latest_membership.paid_until_date:%d %b %Y}"
-#         )
-
-#     if member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_CURRENT:
-#         desc = (
-#             f"{member_details.latest_membership.membership_type.name} member, {period}"
-#         )
-#         if paid_until:
-#             desc += f", {paid_until}"
-
-#         if not member_details.latest_membership.is_paid:
-#             desc += f", {member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
-#         desc += f". {joined_and_left}"
-#     elif member_details.membership_status == MemberClubDetails.MEMBERSHIP_STATUS_DUE:
-#         desc = f"{member_details.latest_membership.membership_type.name} member, {period}, "
-#         if paid_until:
-#             desc += f"{paid_until}, "
-#         desc += (
-#             f"{member_details.latest_membership.fee} due {member_details.latest_membership.due_date:%d %b %Y}"
-#             f". {joined_and_left}"
-#         )
-#     else:
-#         desc = (
-#             f"{member_details.get_membership_status_display()}. {joined_and_left}"
-#             f"{member_details.latest_membership.membership_type.name} membership {period}"
-#         )
-#         if paid_until:
-#             desc += f", {paid_until}"
-
-#     return desc
-
-
 def get_membership_details_for_club(club, exclude_id=None):
     """Return a membership type details for this club, for use by JavaScript in
     defaulting fields driven by membership type.
@@ -413,14 +336,6 @@ def is_player_allowing_club_membership(club, system_number):
         club=club,
         user=user,
     ).last()
-
-    # JPG cleanup - moved to notify user
-    # if not club_options:
-    #     club_options = MemberClubOptions(
-    #         club=club,
-    #         user=user,
-    #     )
-    #     club_options.save()
 
     return club_options.allow_membership if club_options else True
 
@@ -1114,6 +1029,13 @@ def _augment_contact_details(club, contact_qs, sort_option="last_desc"):
         contacts.sort(key=lambda x: x.system_number)
     elif sort_option == "system_number_asc":
         contacts.sort(key=lambda x: x.system_number, reverse=True)
+    elif sort_option == "type_desc":
+        contacts.sort(
+            key=lambda x: (x.user_type, x.last_name.lower(), x.first_name.lower())
+        )
+    elif sort_option == "type_asc":
+        contacts.sort(key=lambda x: (x.last_name.lower(), x.first_name.lower()))
+        contacts.sort(key=lambda x: x.user_type, reverse=True)
 
     return contacts
 
@@ -1551,9 +1473,6 @@ def get_valid_activities(member_details):
     This should be the only place where this business logic is represented."""
 
     activities = ["TAGS", "EMAILS"]
-
-    # JPG clean-up
-    # if member_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
 
     if member_details.user_type == f"{GLOBAL_TITLE} User":
         activities += ["ENTRIES", "SESSIONS", "TRANSACTIONS"]
@@ -2030,8 +1949,6 @@ def _check_left_date(member_details):
     """Ensure that the left date is appropriate after a status change"""
     if member_details.membership_status in MEMBERSHIP_STATES_TERMINAL:
         if not member_details.left_date:
-            # JPG cleanup
-            # member_details.left_date = timezone.now().date()
             member_details.left_date = timezone.localtime().date()
     else:
         member_details.left_date = None
@@ -2110,8 +2027,6 @@ def _update_member_status(club, member_details, new_status, action, requester=No
         CobaltMemberNotFound: if no member found with this system number
     """
 
-    # JPG clean-up
-    # yesterday = timezone.now().date() - timedelta(days=1)
     yesterday = timezone.localtime().date() - timedelta(days=1)
 
     if new_status not in MEMBERSHIP_STATES_TERMINAL:
@@ -3279,7 +3194,7 @@ def delete_contact(club, system_number):
     )
 
     if contact_details.membership_status != MemberClubDetails.MEMBERSHIP_STATUS_CONTACT:
-        return (False, "This person is notr a contact of the club")
+        return (False, "This person is not a contact of the club")
 
     contact_unreg_user = UnregisteredUser.all_objects.filter(
         system_number=system_number
@@ -3427,11 +3342,6 @@ def _notify_club_of_block(club, user):
 
     from notifications.views.core import send_cobalt_email_with_template
 
-    # JPG clean-up
-    # rule = "members_edit"
-    # group = rbac_get_group_by_name(f"{club.rbac_name_qualifier}.{rule}")
-    # member_editors = rbac_get_users_in_group(group)
-
     member_editors = rbac_get_users_with_role(f"orgs.members.{club.id}.edit")
 
     email_body = f"""
@@ -3485,9 +3395,6 @@ def _notify_user_of_membership(member_details, user=None):
 
     from notifications.views.core import send_cobalt_email_with_template
 
-    # jpg debug
-    print("****** _notify_user_of_membership ******")
-
     # check for registered user
     if not user:
         try:
@@ -3503,8 +3410,6 @@ def _notify_user_of_membership(member_details, user=None):
 
     if options_exist:
         # don't notify them again
-        # jpg debug
-        print("    ****** NOT _notify_user_of_membership ******")
         return
 
     MemberClubOptions(
@@ -3947,9 +3852,6 @@ def get_auto_pay_memberships_for_club(club, date=None):
 
     system_numbers = membership_qs.values_list("system_number", flat=True)
 
-    # JPG debug
-    print(f"{len(system_numbers)} candidates found")
-
     if len(system_numbers) == 0:
         return None
 
@@ -3958,9 +3860,6 @@ def get_auto_pay_memberships_for_club(club, date=None):
         user__system_number__in=system_numbers,
         allow_auto_pay=False,
     ).values_list("user__system_number", flat=True)
-
-    # JPG debug
-    print(f"{len(disallowing)} disallowing found")
 
     # augment with user, unregistered user and membership details
 

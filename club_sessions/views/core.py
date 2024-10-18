@@ -249,9 +249,6 @@ def get_session_fee_for_player(session_entry: SessionEntry, club: Organisation):
     # Get membership for this player. None for Guests
     membership = get_membership_type(club, session_entry.system_number)
 
-    # JPG debug
-    print(f"*** membership = '{membership}' of type {type(membership)}")
-
     # Check if we have a payment method
     if not session_entry.payment_method:
         session_entry.payment_method = session.default_secondary_payment_method

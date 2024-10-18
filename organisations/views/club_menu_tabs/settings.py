@@ -371,9 +371,6 @@ def general_htmx(request, club):
 def _refresh_membership_settings(request, club):
     """Show the settings | static data | membership view"""
 
-    # JPG debug
-    print("*** _refresh_membership_settings")
-
     return render(
         request,
         "organisations/club_menu/settings/refresh_settings_static_membership_htmx.html",
@@ -386,9 +383,6 @@ def _refresh_membership_settings(request, club):
 @check_club_menu_access()
 def membership_htmx(request, club):
     """build the settings tab in club menu for editing membership types"""
-
-    # JPG debug
-    print("*** membership_htmx")
 
     membership_types = MembershipType.objects.filter(organisation=club).order_by("pk")
 

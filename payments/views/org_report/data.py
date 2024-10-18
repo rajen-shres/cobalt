@@ -514,9 +514,6 @@ def combined_view_events_sessions_other(club, start_date, end_date):
         data["formatted_date"] = format_date_helper(transactions[index].created_date)
         transaction_list.append((transactions[index].created_date, data))
 
-    # JPG debug
-    print(f"start_date = '{start_date}' or type {type(start_date)}")
-
     # get the club summary
     club_membership_total = club_membership_summary_by_date_range(
         club, start_date, end_date

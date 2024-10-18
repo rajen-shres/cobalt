@@ -102,11 +102,6 @@ class Command(BaseCommand):
                 },
             )
 
-        # JPG Debug
-        # print("--------------- notify_club: --------------")
-        # print(email_body)
-        # print("-------------------------------------------")
-
         context = {
             "title": f"Membership auto pay transactions for {club.name}",
             "email_body": email_body,
@@ -146,11 +141,6 @@ class Command(BaseCommand):
                 "GLOBAL_ORG": GLOBAL_ORG,
             },
         )
-
-        # JPG Debug
-        # print("--------------- notify_member: --------------")
-        # print(email_body)
-        # print("---------------------------------------------")
 
         context = {
             "title": f"Membership fee payment for {club.name}",

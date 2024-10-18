@@ -165,9 +165,6 @@ class Command(BaseCommand):
                     .last()
                 )
 
-                # JPG debug
-                # print(f"due: {system_number}, {club}")
-
                 if member_details.latest_membership == this_membership:
                     # the due date is within the current membership
                     # (scenario 3.2.1 - not paid at due date)
@@ -255,9 +252,6 @@ class Command(BaseCommand):
                     system_number=system_number,
                     membership_state=MemberMembershipType.MEMBERSHIP_STATE_FUTURE,
                 ).last()
-
-                # JPG debug
-                # print(f"end: {system_number}, {club}, {'FUT' if future_membership else '-'}")
 
                 if future_membership:
 

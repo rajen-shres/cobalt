@@ -24,7 +24,7 @@ Club Admin - Edit member - Entries activity sub-view
 
                 <table class="table table-condensed table-hover">
                     <thead>
-                        <tr class="text-primary" style="font-size: larger">
+                        <tr class="font-weight-bold" style="font-size: larger">
                             <td class="text-left">Date</td>
                             <td class="text-left">Congress</td>
                             <td class="text-left">Event</td>
@@ -46,13 +46,14 @@ Club Admin - Edit member - Entries activity sub-view
                                 </td>
 
                                 <td class="text-left">
-                                    <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
+                                    <a class="card-link" href="{% url 'events:view_congress' congress_id=event.event_entry.event.congress.id %}">
                                         {{ event.event_entry.event.congress }}</a>
                                 </td>
 
                                 <td class="text-left">
-                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
-                                        {{ event.event_entry.event.event_name }}</a>
+                                    <a href="{% url 'events:view_event_entries' congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                        {{ event.event_entry.event.event_name }}
+                                    </a>
 
                                     {% if event.in_cart %}
                                         (in cart)
@@ -69,9 +70,11 @@ Club Admin - Edit member - Entries activity sub-view
                                 </td>
 
                                 <td>
-                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
-                                        <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
-                                    </a>
+                                    {% if event.editable %}
+                                        <a href="{% url 'events:edit_event_entry' event_entry_id=event.event_entry.id %}">
+                                            <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
+                                        </a>
+                                    {% endif %}
                                 </td>
 
                             </tr>
@@ -100,7 +103,7 @@ Club Admin - Edit member - Entries activity sub-view
 
         <div class="card-body table-responsive">
 
-            {% if events %}
+            {% if past_events %}
 
                 <h4>
                     {% if total__past_events == 1 %}
@@ -115,7 +118,7 @@ Club Admin - Edit member - Entries activity sub-view
 
                 <table class="table table-condensed table-hover">
                     <thead>
-                        <tr class="text-primary" style="font-size: larger">
+                        <tr class="font-weight-bold" style="font-size: larger">
                             <td class="text-left">Date</td>
                             <td class="text-left">Congress</td>
                             <td class="text-left">Event</td>
@@ -137,19 +140,22 @@ Club Admin - Edit member - Entries activity sub-view
                                 </td>
 
                                 <td class="text-left">
-                                    <a class="card-link" href="{% url "events:view_congress" congress_id=event.event_entry.event.congress.id %}">
+                                    <a class="card-link" href="{% url 'events:view_congress' congress_id=event.event_entry.event.congress.id %}">
                                         {{ event.event_entry.event.congress }}</a>
                                 </td>
 
                                 <td class="text-left">
-                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
-                                        {{ event.event_entry.event.event_name }}</a>
+                                    <a href="{% url 'events:view_event_entries' congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
+                                        {{ event.event_entry.event.event_name }}
+                                    </a>
                                 </td>
 
                                 <td>
-                                    <a href="{% url "events:edit_event_entry" congress_id=event.event_entry.event.congress.id event_id=event.event_entry.event.id %}">
-                                        <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
-                                    </a>
+                                    {% if event.editable %}
+                                        <a href="{% url 'events:edit_event_entry' event_entry_id=event.event_entry.id %}">
+                                            <i class="material-icons" data-toggle="tooltip" title="Edit Entry">edit</i>
+                                        </a>
+                                    {% endif %}
                                 </td>
                             </tr>
 

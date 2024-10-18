@@ -492,11 +492,13 @@
         $(document).ready(function() {
 
             if ($('.datepicker').length) {
+                console.log('*** datepicker magic ***')
                 $('.datepicker').datetimepicker({
                     format: 'DD/MM/YYYY',
                     showTodayButton: true,
                     showClear: true,
                     showClose: true,
+                    useCurrent: false,
                     icons: {
                         previous: 'fa fa-chevron-left',
                         next: 'fa fa-chevron-right',
@@ -514,11 +516,15 @@
             console.log("htmx:afterSettle "+event.detail.target.id+" - "+event.detail.elt.id)
 
             if ($('.datepicker').length) {
+
+                console.log('*** datepicker magic ***')
+
                 $('.datepicker').datetimepicker({
                     format: 'DD/MM/YYYY',
                     showTodayButton: true,
                     showClear: true,
                     showClose: true,
+                    useCurrent: false,
                     icons: {
                         previous: 'fa fa-chevron-left',
                         next: 'fa fa-chevron-right',

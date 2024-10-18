@@ -290,7 +290,7 @@ PIANOLA_MAPPINGS = [PIANOLA_MAPPING_0, PIANOLA_MAPPING_1]
 PIANOLA_CONTACT_MAPPING_0 = {
     "system_number": {"title": "National number", "csv_col": 1, "type": "sysnum"},
     "first_name": {"title": "First name", "csv_col": 5, "required": True},
-    "last_name": {"title": "name", "csv_col": 6, "required": True},
+    "last_name": {"title": "Last name", "csv_col": 6, "required": True},
     "email": {"title": "Email", "csv_col": 7, "type": "email"},
     "address1": {
         "title": "Address line 1",
@@ -319,7 +319,7 @@ PIANOLA_CONTACT_MAPPING_0 = {
 PIANOLA_CONTACT_MAPPING_1 = {
     "system_number": {"title": "National number", "csv_col": 1, "type": "sysnum"},
     "first_name": {"title": "First name", "csv_col": 5, "required": True},
-    "last_name": {"title": "name", "csv_col": 6, "required": True},
+    "last_name": {"title": "Last name", "csv_col": 6, "required": True},
     "email": {"title": "Email", "csv_col": 7, "type": "email"},
     "address1": {
         "title": "Address line 1",
@@ -1061,6 +1061,8 @@ def import_mpc_htmx(request, club):
     Members can be home members or alternate members (members of the club but this
     isn't their home club so ABF and State fees are not charged for them).
 
+    NOTE: The comment above is incorrect. The MPC query only returns home club members.
+
     There is no visitor information in the MPC, that happens at the club level.
 
     """
@@ -1104,6 +1106,21 @@ def import_mpc_htmx(request, club):
                 "system_number": system_no_as_int,
                 "first_name": club_member["GivenNames"],
                 "last_name": club_member["Surname"],
+                "address1": club_member["Address1"]
+                if "Address1" in club_member
+                else None,
+                "address2": club_member["Address2"]
+                if "Address2" in club_member
+                else None,
+                "state": club_member["AddressState"][:3]
+                if "AddressState" in club_member
+                else None,
+                "postcode": club_member["AddressPostcode"]
+                if "AddressPostcode" in club_member
+                else None,
+                "preferred_phone": club_member["PhoneNumber"]
+                if "PhoneNumber" in club_member
+                else None,
                 "email": email_address,
                 "membership_type": None,
             }

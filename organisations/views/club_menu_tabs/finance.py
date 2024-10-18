@@ -348,9 +348,6 @@ def pay_member_htmx(request, club):
     session_id = int(request.POST.get("session_id", -1))
     is_membership_fee = request.POST.get("membership_fee", False)
 
-    # JPG debug
-    print(f"*** is_membership_fee = {is_membership_fee} ***")
-
     _, message = pay_member_from_organisation(
         request,
         club,
@@ -681,9 +678,6 @@ def transaction_filter_htmx(request, club):
     description_search = request.POST.get("description_search")
     view_type_selector = request.POST.get("view_type_selector")
     transaction_type = request.POST.get("transaction_type_selector")
-
-    # jpg debug
-    print(f"**** transaction_filter_htmx {transaction_type}")
 
     if not view_type_selector:
         # first call - show blank form

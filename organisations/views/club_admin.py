@@ -158,8 +158,23 @@ def activity_entries_htmx(request, club):
     member_details = get_member_details(club, system_number)
     user = get_object_or_404(User, system_number=system_number)
 
+    # Note: events below are actually EventEntryPlayer objects
     events, _, more_events, total_events = get_events(user)
     past_events, more_past_events, total_past_events = _get_past_events(user)
+
+    # COB-949
+    # the linked edit view (edit_event_entry) only allows editing by a player in the entry
+    # or the primary entrant, so need to not include links accordingly
+    # this check is going to be very inefficient, so assume not editable for past entries
+
+    for event_entry_player in events:
+        event_entry_player.editable = (
+            event_entry_player.event_entry.primary_entrant == request.user
+            or EventEntryPlayer.objects.filter(
+                event_entry=event_entry_player.event_entry,
+                player=request.user,
+            ).exists()
+        )
 
     return render(
         request,
@@ -579,7 +594,7 @@ def search_tab_name_htmx(request, club):
         users = users.filter(last_name__istartswith=last_name_search)
 
     # Unregistered
-    un_regs = UnregisteredUser.objects.filter(system_number__in=system_number_list)
+    un_regs = UnregisteredUser.all_objects.filter(system_number__in=system_number_list)
 
     if first_name_search:
         un_regs = un_regs.filter(first_name__istartswith=first_name_search)
@@ -612,7 +627,10 @@ def search_tab_email_htmx(request, club):
         return HttpResponse()
 
     if mode == "members":
-        system_number_list = get_club_member_list_email_match(club, email_search)
+        system_number_list = get_club_member_list_email_match(
+            club, email_search, active_only=False
+        )
+        active_member_list = get_club_member_list(club)
     else:
         system_number_list = get_club_contact_list_email_match(club, email_search)
 
@@ -621,6 +639,10 @@ def search_tab_email_htmx(request, club):
     un_regs = UnregisteredUser.objects.filter(system_number__in=system_number_list)
 
     user_list = list(chain(users, un_regs))
+
+    if mode == "members":
+        for user in user_list:
+            user.active = user.system_number in active_member_list
 
     return render(
         request,

@@ -1671,8 +1671,6 @@ def club_admin_edit_member_htmx(request, club, message=None):
         form = MemberClubDetailsForm(request.POST, instance=member_details)
         forms_ok = form.is_valid()
         forms_changed = form.has_changed()
-        # JPG debug
-        print(f"=== form.has_changed() = {form.has_changed()}")
 
         if not club.full_club_admin:
             smm_form = MembershipRawEditForm(
@@ -1684,8 +1682,6 @@ def club_admin_edit_member_htmx(request, club, message=None):
             )
             forms_ok = forms_ok and smm_form.is_valid()
             forms_changed = forms_changed or smm_form.has_changed()
-            # JPG debug
-            print(f"=== smm_form.has_changed() = {smm_form.has_changed()}")
 
         else:
             smm_form = None
@@ -1694,16 +1690,11 @@ def club_admin_edit_member_htmx(request, club, message=None):
             name_form = ContactNameForm(request.POST)
             forms_ok = forms_ok and name_form.is_valid()
             forms_changed = forms_changed or name_form.has_changed()
-            # JPG debug
-            print(f"=== name_form.has_changed() = {name_form.has_changed()}")
         else:
             name_form = None
 
         if forms_ok:
             # post the changes (if any)
-
-            # JPG debug
-            print(f"=== forms_changed = {forms_changed}")
 
             if forms_changed:
                 if smm_form and (smm_form.has_changed() or form.has_changed()):
@@ -1922,12 +1913,13 @@ def club_admin_edit_member_change_htmx(request, club):
         None if inactive_member else member_details.latest_membership.membership_type.id
     )
 
-    # JPG debug
-    print(f"*** exclude {exclude_id}")
-
     membership_choices, fees_and_due_dates = get_membership_details_for_club(
         club, exclude_id=exclude_id
     )
+
+    # Defaul all fees to zero when changing
+    for key in fees_and_due_dates:
+        fees_and_due_dates[key]["annual_fee"] = "0"
 
     if len(membership_choices) == 0:
         # no choices so go back to the main view
@@ -2000,9 +1992,6 @@ def club_admin_edit_member_change_htmx(request, club):
             exclude_id=exclude_id,
         )
 
-    # jpg debug
-    print(f"*** inactive = {inactive_member}")
-
     return render(
         request,
         "organisations/club_menu/members/club_admin_edit_member_change_htmx.html",
@@ -2073,9 +2062,6 @@ def club_admin_edit_member_payment_htmx(request, club):
         )
     else:
         allowing_auto_pay = False
-
-    # JPG debug
-    print(f"*** allowing auto pay = {allowing_auto_pay}")
 
     membership_to_pay = get_outstanding_memberships_for_member(
         club,
@@ -2341,9 +2327,6 @@ def club_admin_add_member_detail_htmx(request, club):
     """End point for handling the shared club_admin_edit_member_change_htmx.html
     when adding a new club member"""
 
-    # JPG debug
-    print("club_admin_add_member_detail_htmx")
-
     system_number = request.POST.get("system_number")
 
     user = User.objects.filter(
@@ -2373,9 +2356,6 @@ def club_admin_add_member_detail_htmx(request, club):
         )
     else:
         allowing_auto_pay = False
-
-    # JPG debug
-    print(f"allowing auto pay = {allowing_auto_pay}")
 
     membership_choices, fees_and_due_dates = get_membership_details_for_club(club)
 
@@ -2555,15 +2535,6 @@ def club_admin_edit_member_edit_mmt_htmx(request, club):
             ):
                 error = True
                 message = "End date cannot be before start date"
-
-            # JPG debug
-            # if (
-            #     not error
-            #     and form.cleaned_data["auto_pay_date"]
-            #     and form.cleaned_data["auto_pay_date"] < timezone.now().date()
-            # ):
-            #     error = True
-            #     message = "Auto pay date must be in the future"
 
             if (
                 not error

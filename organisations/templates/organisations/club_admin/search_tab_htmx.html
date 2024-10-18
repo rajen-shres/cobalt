@@ -55,7 +55,7 @@
                             class="form-control"
                             hx-post="{% url "organisations:search_tab_name_htmx" %}"
                             hx-trigger="keyup changed delay:100ms"
-                            hx-target="search-results"
+                            hx-target="#search-results"
                             hx-include="[id='id_last_name_search']"
                             hx-vars="club_id: {{ club.id }}, mode: '{{ mode }}'"
                         >
