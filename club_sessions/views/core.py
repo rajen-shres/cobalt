@@ -6,6 +6,7 @@ import logging
 # JPG TESTING - for COB-804 race condition testing
 # import os
 
+from django.db import transaction
 from django.db.models import Sum, Max
 
 from accounts.models import User, UnregisteredUser
@@ -1442,46 +1443,55 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
     # loop through and try to make payments
     for session_entry in session_entries:
 
-        # JPG TESTING - for COB-804 race condition testing
-        # print(f"{os.getpid()} process_bridge_credits processing SessionEntry {session_entry}")
-
         amount_paid = float(session_entry.fee) if session_entry.is_paid else 0
         fee = float(session_entry.fee) if session_entry.fee else 0
         amount = fee - amount_paid + extras.get(session_entry.id, 0)
 
         # Try payment
-        member = users_by_system_number[session_entry.system_number]
-        if payment_api_batch(
-            member=member,
-            description=f"{session}",
-            amount=amount,
-            organisation=club,
-            payment_type="Club Payment",
-            session=session,
-        ):
-            # Success
-            success += 1
-            session_entry.is_paid = True
-            session_entry.save()
+        # COB_966 - may not be a registered user
+        is_user = False
+        if session_entry.system_number in users_by_system_number:
+            member = users_by_system_number[session_entry.system_number]
+            is_user = True
 
-            # mark any misc payments for this session as paid
-            SessionMiscPayment.objects.filter(
-                session_entry__session=session,
-                session_entry__system_number=session_entry.system_number,
-                payment_method=bridge_credits,
-            ).update(payment_made=True)
+        # COB_965 - transaction around Stripe payment
+        with transaction.atomic():
 
-        else:
-            # Payment failed - change payment method and fees
-            failures.append(member)
-            session_entry.payment_method = session.default_secondary_payment_method
-            session_entry.fee = get_session_fee_for_player(session_entry, club)
-            session_entry.save()
+            if is_user and payment_api_batch(
+                member=member,
+                description=f"{session}",
+                amount=amount,
+                organisation=club,
+                payment_type="Club Payment",
+                session=session,
+            ):
+                # Success
+                success += 1
+                session_entry.is_paid = True
+                session_entry.save()
 
-            # Also change extras payment method
-            SessionMiscPayment.objects.filter(session_entry=session_entry).update(
-                payment_method=session.default_secondary_payment_method
-            )
+                # mark any misc payments for this session as paid
+                SessionMiscPayment.objects.filter(
+                    session_entry__session=session,
+                    session_entry__system_number=session_entry.system_number,
+                    payment_method=bridge_credits,
+                ).update(payment_made=True)
+
+            else:
+                # Not a user or payment failed - change payment method and fees
+                failures.append(
+                    member
+                    if is_user
+                    else f"{session_entry.player_name_from_file} ({GLOBAL_ORG}: {session_entry.system_number})"
+                )
+                session_entry.payment_method = session.default_secondary_payment_method
+                session_entry.fee = get_session_fee_for_player(session_entry, club)
+                session_entry.save()
+
+                # Also change extras payment method
+                SessionMiscPayment.objects.filter(session_entry=session_entry).update(
+                    payment_method=session.default_secondary_payment_method
+                )
 
         # Remove extras so we know they are handled
         extras.pop(session_entry.id, None)
@@ -1494,6 +1504,7 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
         member = User.objects.filter(
             system_number=this_session_entry.system_number
         ).first()
+
         this_extras = SessionMiscPayment.objects.filter(
             payment_made=False,
             payment_method__payment_method=BRIDGE_CREDITS,
@@ -1502,25 +1513,29 @@ def process_bridge_credits(session_entries, session, club, bridge_credits, extra
         for this_extra in this_extras:
 
             # Try payment
-            if payment_api_batch(
-                member=member,
-                description=f"{session}",
-                amount=this_extra.amount,
-                organisation=club,
-                payment_type="Club Payment",
-                session=session,
-            ):
-                # Success
-                success += 1
-                this_extra.payment_made = True
-                this_extra.save()
+            # COB_965 - transaction around Stripe payment
+            with transaction.atomic():
 
-            else:
-                failures.append(
-                    f"Could not pay extras - for {member} - {this_extra.description}"
-                )
-                this_extra.payment_method = session.default_secondary_payment_method
-                this_extra.save()
+                # COB_966 - may not be a registered user
+                if member and payment_api_batch(
+                    member=member,
+                    description=f"{session}",
+                    amount=this_extra.amount,
+                    organisation=club,
+                    payment_type="Club Payment",
+                    session=session,
+                ):
+                    # Success
+                    success += 1
+                    this_extra.payment_made = True
+                    this_extra.save()
+
+                else:
+                    failures.append(
+                        f"Could not pay extras - for {member} - {this_extra.description}"
+                    )
+                    this_extra.payment_method = session.default_secondary_payment_method
+                    this_extra.save()
 
     # Update status of session - see if there are any payments left
     recalculate_session_status(session)

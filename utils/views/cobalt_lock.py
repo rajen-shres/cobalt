@@ -51,7 +51,7 @@ class CobaltLock:
 
     @transaction.atomic
     def free_lock(self):
-        """release lock"""
+        """Release lock"""
 
         if not self._locked:
             return
@@ -61,3 +61,19 @@ class CobaltLock:
             return
         lock.lock_open_time = None
         lock.save()
+        self._locked = False
+
+    @transaction.atomic
+    def delete_lock(self):
+        """Delete the lock record, returning success. Will only delete an expired or freed lock. COB_965"""
+
+        lock = Lock.objects.select_for_update().filter(topic=self.topic).first()
+        if not lock:
+            return True
+
+        if lock.lock_open_time and lock.lock_open_time > timezone.now():
+            return False
+
+        lock.delete()
+        self._locked = False
+        return True

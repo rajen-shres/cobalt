@@ -971,29 +971,29 @@ def add_member_search_htmx(request):
         first_name_search, last_name_search
     )
 
-    # Now highlight players who are already club members
-    user_list_system_numbers = [user["system_number"] for user in user_list]
-
-    club = get_object_or_404(Organisation, pk=club_id)
-
-    member_list = get_member_system_numbers(
-        club,
-        target_list=user_list_system_numbers,
-        get_all=True,
-    )
-    contact_list = get_contact_system_numbers(
-        club, target_list=user_list_system_numbers
-    )
-
-    for user in user_list:
-        if user["system_number"] in member_list:
-            user["source"] = "member"
-        elif user["system_number"] in contact_list:
-            user["source"] = "contact"
-
     if edit_session_entry:
         template = "club_sessions/manage/edit_entry/member_search_results_htmx.html"
     else:
+        # Now highlight players who are already club members
+        user_list_system_numbers = [user["system_number"] for user in user_list]
+
+        club = get_object_or_404(Organisation, pk=club_id)
+
+        member_list = get_member_system_numbers(
+            club,
+            target_list=user_list_system_numbers,
+            get_all=True,
+        )
+        contact_list = get_contact_system_numbers(
+            club, target_list=user_list_system_numbers
+        )
+
+        for user in user_list:
+            if user["system_number"] in member_list:
+                user["source"] = "member"
+            elif user["system_number"] in contact_list:
+                user["source"] = "contact"
+
         template = "organisations/club_menu/members/member_search_results_htmx.html"
 
     return render(

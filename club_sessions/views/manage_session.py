@@ -70,6 +70,7 @@ from payments.views.core import get_balance
 from payments.views.payments_api import payment_api_batch
 from rbac.core import rbac_user_has_role
 from rbac.views import rbac_forbidden
+from utils.views.cobalt_lock import CobaltLock
 
 logger = logging.getLogger("cobalt")
 
@@ -700,76 +701,85 @@ def add_misc_payment_htmx(request, club, session, session_entry):
 def process_bridge_credits_htmx(request, club, session):
     """handle bridge credits for the session - called from a big button"""
 
+    failures = None
+
+    # Get bridge credits for this org
+    bridge_credits = bridge_credits_for_club(club)
+
+    if not bridge_credits:
+        return tab_session_htmx(
+            request,
+            message="Bridge Credits are not set up for this organisation. Add through Settings if you wish to use Bridge Credits",
+        )
+
+    # COB-965 use logical lock of session. Locks for 48 hours if the process fails as we really
+    # do not want users repeatedly retrying failing sessions.
+
+    session_lock = CobaltLock(f"club_session_{session.id}", expiry=2880)
+    if not session_lock.get_lock():
+        logger.warning(
+            f"process_bridge_credits_htmx {os.getpid()}: Session locked {session.id}"
+        )
+        return tab_session_htmx(
+            request,
+            message=(
+                "Session locked. If this persists for more than 5 mins please contact Support "
+                + "before proceeding"
+            ),
+        )
+
     logger.info(
         f"process_bridge_credits_htmx {os.getpid()}: Starting session {session.id}"
     )
 
-    failures = None
+    # Get any extras
+    extras = get_extras_as_total_for_session_entries(
+        session, payment_method_string=BRIDGE_CREDITS, unpaid_only=True
+    )
 
-    with transaction.atomic():
+    # For each player go through and work out what they owe
 
-        # JPG TESTING - for COB-804 race condition testing
-        # print(f"{os.getpid()} process_bridge_credits_htmx acquiring lock ...")
+    # NOTE: this query set may include players who are not Users, despite
+    # having Bridge Credits as a payment method.
+    session_entries = SessionEntry.objects.filter(
+        session=session, is_paid=False, payment_method=bridge_credits
+    ).exclude(system_number__in=ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS)
 
-        session = Session.objects.select_for_update().get(pk=session.id)
+    bc_txn_count = session_entries.count()
+    logger.info(
+        f"process_bridge_credits_htmx {os.getpid()}: {bc_txn_count} to process, session {session.id}"
+    )
 
-        # JPG TESTING - for COB-804 race condition testing
-        # print(f"{os.getpid()} process_bridge_credits_htmx acquired lock")
-
-        # Get bridge credits for this org
-        bridge_credits = bridge_credits_for_club(club)
-
-        if not bridge_credits:
-            return tab_session_htmx(
-                request,
-                message="Bridge Credits are not set up for this organisation. Add through Settings if you wish to use Bridge Credits",
-            )
-
-        # Get any extras
-        extras = get_extras_as_total_for_session_entries(
-            session, payment_method_string=BRIDGE_CREDITS, unpaid_only=True
+    # Process payments if we have any to make
+    if session_entries or extras:
+        success, failures = process_bridge_credits(
+            session_entries, session, club, bridge_credits, extras
         )
 
-        # For each player go through and work out what they owe
-        # COB-940 ALL_SYSTEM_ACCOUNTS contains ids not system numbers
-        # so use ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS instead
-        session_entries = SessionEntry.objects.filter(
-            session=session, is_paid=False, payment_method=bridge_credits
-        ).exclude(system_number__in=ALL_SYSTEM_ACCOUNT_SYSTEM_NUMBERS)
-
-        bc_txn_count = session_entries.count()
-        logger.info(
-            f"process_bridge_credits_htmx {os.getpid()}: {bc_txn_count} to process, session {session.id}"
+        message = session_health_check(
+            club, session, bridge_credits, request.user, send_emails=True
         )
 
-        # Process payments if we have any to make
-        if session_entries or extras:
-            success, failures = process_bridge_credits(
-                session_entries, session, club, bridge_credits, extras
-            )
-
-            message = session_health_check(
-                club, session, bridge_credits, request.user, send_emails=True
-            )
-
-            if message is None:
-                message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
-            else:
-                # add the message to the start of the director's notes, this will trigger a
-                # warning icon next to the session in the listm with the message as a tool tip
-                if session.director_notes:
-                    if not session.director_notes.startswith("ERROR:"):
-                        session.director_notes = (
-                            f"{message}\n\n{session.director_notes}"
-                        )
-                else:
-                    session.director_notes = message
-                session.save()
-
+        if message is None:
+            message = f"{BRIDGE_CREDITS} processed. Success: {success}. Failure {len(failures)}."
         else:
-            session.status = Session.SessionStatus.CREDITS_PROCESSED
+            # add the message to the start of the director's notes, this will trigger a
+            # warning icon next to the session in the listm with the message as a tool tip
+            if session.director_notes:
+                if not session.director_notes.startswith("ERROR:"):
+                    session.director_notes = f"{message}\n\n{session.director_notes}"
+            else:
+                session.director_notes = message
             session.save()
-            message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
+
+    else:
+        session.status = Session.SessionStatus.CREDITS_PROCESSED
+        session.save()
+        message = f"No {BRIDGE_CREDITS} to process. Moving to Off-System Payments."
+
+    # release the lock
+    session_lock.free_lock()
+    session_lock.delete_lock()
 
     logger.info(
         f"process_bridge_credits_htmx {os.getpid()}: Finished session {session.id}"
@@ -969,7 +979,8 @@ def process_off_system_payments_htmx(request, club, session):
         session=session, payment_method=ious, is_paid=False
     )
     for session_entry_iou in session_entry_ious:
-        handle_iou_changes_on(club, session_entry_iou, request.user)
+        if User.objects.filter(system_number=session_entry_iou.system_number).exists():
+            handle_iou_changes_on(club, session_entry_iou, request.user)
 
     # handle IOUs for extras
     extras_ious = SessionMiscPayment.objects.filter(

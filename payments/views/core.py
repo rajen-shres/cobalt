@@ -965,7 +965,15 @@ def _auto_topup_member_stripe_transaction(amount, member, pay_method_id, payment
     )
 
     # It worked so create a stripe record
-    payload = stripe_return.charges.data[0]
+
+    # In the dev environment at least it is possible to get a valid return without
+    # a 'charges' attribute so the following crashes with a key error:
+    # payload = stripe_return.charges.data[0]
+
+    if "charges" in stripe_return:
+        payload = stripe_return.charges.data[0]
+    else:
+        payload = stripe.Charge.retrieve(stripe_return["latest_charge"])
 
     stripe_tran = StripeTransaction()
     stripe_tran.description = "Auto Top Up"
