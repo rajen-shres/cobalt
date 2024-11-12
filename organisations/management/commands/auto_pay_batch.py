@@ -174,7 +174,7 @@ class Command(BaseCommand):
                 logger.warning(f"No auto pay candiates for {club.name}")
                 continue
 
-            # get the bridge credit paymnet method for the club (if any)
+            # get the bridge credit payment method for the club (if any)
             club_bc_payment_method = OrgPaymentMethod.objects.filter(
                 organisation=club,
                 payment_method="Bridge Credits",

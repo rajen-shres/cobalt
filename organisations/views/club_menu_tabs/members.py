@@ -1700,9 +1700,17 @@ def club_admin_edit_member_htmx(request, club, message=None):
                 if smm_form and (smm_form.has_changed() or form.has_changed()):
                     smm_form.save()
                     form.save()
-                    member_details.membership_status = smm_form.cleaned_data[
-                        "membership_state"
-                    ]
+                    new_status = smm_form.cleaned_data["membership_state"]
+
+                    # JPG Debug
+                    print(
+                        f"Saving status {new_status}, current = {member_details.membership_status}"
+                    )
+                    if member_details.membership_status != new_status:
+                        member_details.previous_membership_status = (
+                            member_details.membership_status
+                        )
+                        member_details.membership_status = new_status
                     member_details.save()
                 elif form.has_changed():
                     form.save()

@@ -1,15 +1,10 @@
 """
-Bulk upload of club membership year start dates from a CSV file
-
-This is to be run once as part of the Release 6.0 deployment
+Bulk update of deceased players from a CSV file
 
 The command takes a csv filename as an input
 
-Row 1 is the system number of the person to be tagged as having updated the clubs
-Subsequent rows contain:
-    club org_id
-    day
-    month
+Row 1 is the system number of the person to be tagged as having updated the players
+Subsequent rows each contain the system number of a deceased player (other columns ignored)
 """
 
 from django.core.management.base import BaseCommand
@@ -17,11 +12,11 @@ from django.db import transaction
 from os import path
 import sys
 from accounts.models import User
-from organisations.models import Organisation
+from organisations.club_admin_core import mark_player_as_deceased
 
 
 class Command(BaseCommand):
-    help = "Bulk upload of club membership year start dates"
+    help = "Bulk update of deceased players"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -29,7 +24,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        self.stdout.write("Executing upload_club_membership_year")
+        self.stdout.write("Executing bulk_update_of_deceased")
+        self.stdout.write("=================================\n")
 
         in_path = path.abspath(path.expandvars(path.expanduser(options["filename"][0])))
         self.stdout.write(f"Processing: {in_path}")
@@ -40,6 +36,7 @@ class Command(BaseCommand):
             first = True
             errors = 0
             successes = 0
+            not_found = 0
 
             for row in in_file:
                 clean_row = row.strip().replace("\ufeff", "")
@@ -76,51 +73,31 @@ class Command(BaseCommand):
                         sys.exit(1)
                     first = False
 
-                    self.stdout.write(f"Updates by {user}")
+                    self.stdout.write(f"Updates by {user}/n")
 
                 else:
-                    # process a club row
-                    if len(csv_fields) < 3:
+                    # process a member row
+
+                    try:
+                        deceased_system_number = int(csv_fields[0])
+                    except ValueError:
                         self.stdout.write(
-                            f"Error: invalid row, 3 values required '{clean_row}'"
+                            f"Error: first value must be an integer system number, '{clean_row}'"
                         )
                         errors += 1
                         continue
 
-                    club_org_id = csv_fields[0]
-                    try:
-                        start_day = int(csv_fields[1])
-                        start_month = int(csv_fields[2])
-                    except ValueError:
-                        self.stdout.write(f"Error: invalid numeric value '{clean_row}'")
-                        errors += 1
-                        continue
-                    if start_day < 1 or start_day > 31:
-                        self.stdout.write(f"Error: invalid start day '{start_day}'")
-                        errors += 1
-                        continue
-                    if start_month < 1 or start_month > 12:
-                        self.stdout.write(f"Error: invalid start month '{start_month}'")
-                        errors += 1
-                        continue
+                    with transaction.atomic():
+                        success = mark_player_as_deceased(deceased_system_number, user)
 
-                    try:
-                        club = Organisation.objects.get(org_id=club_org_id)
-                    except Organisation.DoesNotExist:
-                        self.stdout.write(f"Error: invalid club org_id '{club_org_id}'")
-                        errors += 1
-                        continue
+                        if success:
+                            successes += 1
+                            self.stdout.write(f"Done, {clean_row}")
 
-                    club.membership_renewal_date_day = start_day
-                    club.membership_renewal_date_month = start_month
-                    club.last_updated_by = user
-                    club.save()
-
-                    self.stdout.write(
-                        f"{club_org_id} {club.name} updated: {start_day}/{start_month}"
-                    )
-                    successes += 1
+                        else:
+                            not_found += 1
+                            self.stdout.write(f"Not found, {clean_row}")
 
         self.stdout.write(
-            f"Finished: {errors} errors, {successes} updated successfully."
+            f"\nFinished: {errors} errors, {successes} updated successfully, {not_found} not found.\n"
         )

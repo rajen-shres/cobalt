@@ -1511,6 +1511,8 @@ def mark_player_as_deceased(system_number, requester):
         if unreg_user:
             unreg_user.deceased = True
             unreg_user.save()
+        else:
+            return False
 
     # update any club memberships
     member_details = MemberClubDetails.objects.filter(system_number=system_number)

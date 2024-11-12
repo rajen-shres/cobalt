@@ -433,9 +433,6 @@ def get_email_address_and_name_from_system_number(
 
     """
 
-    # JPG debug
-    print(f"get_email_address_and_name_from_system_number : {system_number}, {club}")
-
     # Try user
     user = (
         User.objects.filter(system_number=system_number)
