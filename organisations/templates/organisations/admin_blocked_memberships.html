@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+{% block title %} - Blocked Memberships{% endblock %}
+{% block content %}
+
+    {% include "accounts/search/user_search_include_htmx.html" with search_id=1 callback='cobaltMemberSearchOk' include_me=1 %}
+
+    <!-- BREADCRUMBS -->
+
+    <nav aria-label="breadcrumb" role="navigation">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{% url "rbac:admin_menu" %}#orgs">Organisations</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Blocked Memberships</li>
+        </ol>
+    </nav>
+
+    <div class="card col-md-12 align-content-center">
+        <div class="card-header card-header-primary">
+            <h2>Blocked Memberships</h2>
+            <h3>Members who are preventing clubs from adding them as members</h3>
+        </div>
+        <div class="card-body" style="font-size: 18px;" >
+
+            <ul class="mt-3">
+                {% for club, users in blocked_clubs %}
+                    <li class="mt-3">
+                        <b>{{ club.name }} ( {{ users|length }})</b>
+                        <ul>
+                            {% for user in users %}
+                                <li>
+                                    {{ user }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </div>
+        </div>
+
+{% endblock content %}

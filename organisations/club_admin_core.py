@@ -3393,9 +3393,6 @@ def _notify_club_of_block(club, user):
 
     for user in member_editors:
 
-        # JPG Debug
-        print(f"_notify_club_of_block => {user}")
-
         context["name"] = user.first_name
 
         send_cobalt_email_with_template(

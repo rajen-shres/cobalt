@@ -285,6 +285,14 @@
                                                         Add a club to {{ GLOBAL_TITLE }}
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <td>
+                                                        <a class="btn btn-sm btn-info btn-block" href="{% url "organisations:admin_blocked_memberships" %}">Blocked Memberships</a>
+                                                    </td>
+                                                    <td class="text-left pl-5">
+                                                        List members blocking club memberships
+                                                    </td>
+                                                </tr>
                                             {% endif %}
                                         </tbody>
                                     </table>

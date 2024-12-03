@@ -2457,9 +2457,6 @@ def club_admin_add_member_detail_htmx(request, club):
             registered=((user_type == "REG") and allowing_auto_pay),
         )
 
-    # jpg debug
-    print(fees_and_due_dates)
-
     return render(
         request,
         "organisations/club_menu/members/club_admin_edit_member_change_htmx.html",

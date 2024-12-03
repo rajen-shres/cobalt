@@ -42,6 +42,11 @@ urlpatterns = [
         name="admin_add_club",
     ),
     path(
+        "admin/blocked-memberships",
+        admin.admin_blocked_memberships,
+        name="admin_blocked_memberships",
+    ),
+    path(
         "admin/list-clubs",
         admin.admin_list_clubs,
         name="admin_list_clubs",

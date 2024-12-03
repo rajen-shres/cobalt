@@ -17,6 +17,7 @@ from organisations.models import (
     MembershipType,
     ClubLog,
     OrganisationFrontPage,
+    MemberClubOptions,
 )
 from organisations.views import general
 from rbac.core import (
@@ -176,6 +177,34 @@ def admin_add_club(request):
         request,
         "organisations/admin_add_club.html",
         {"form": form, "secretary_id": secretary_id, "secretary_name": secretary_name},
+    )
+
+
+@login_required()
+def admin_blocked_memberships(request):
+
+    blocks = (
+        MemberClubOptions.objects.filter(allow_membership=False)
+        .select_related("club", "user")
+        .order_by("club__name", "user__last_name", "user__first_name")
+    )
+
+    # build a list of tuples (club, [users])
+
+    blocked_clubs = []
+
+    for block in blocks:
+        if len(blocked_clubs) == 0 or blocked_clubs[-1][0] != block.club:
+            blocked_clubs.append((block.club, [block.user]))
+        else:
+            blocked_clubs[-1][1].append(block.user)
+
+    return render(
+        request,
+        "organisations/admin_blocked_memberships.html",
+        {
+            "blocked_clubs": blocked_clubs,
+        },
     )
 
 
