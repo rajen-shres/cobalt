@@ -34,6 +34,7 @@ from cobalt.settings import (
     GLOBAL_TITLE,
     GLOBAL_ORG,
     ABF_USER,
+    COBALT_HOSTNAME,
 )
 
 from utils.templatetags.cobalt_tags import cobalt_nice_date_short
@@ -49,7 +50,7 @@ from notifications.models import (
 from payments.models import OrgPaymentMethod
 
 from rbac.core import (
-    rbac_get_users_with_role,
+    rbac_get_users_with_exact_role,
 )
 
 from .models import (
@@ -2375,8 +2376,11 @@ def _format_renewal_notice_email(
         return (None, {})
 
     # generate a summary of the renewal details and payment options to append to the user provided content
-    # NOTE: normally the global settings are added to the context by gloabl_settings context processor
+    # NOTE: normally the global settings are added to the context by global_settings context processor
     # but this does not happen here
+
+    base_url = f"https://{COBALT_HOSTNAME}"
+
     auto_content = render_to_string(
         "organisations/club_menu/members/renewal_notice_content.html",
         {
@@ -2384,6 +2388,7 @@ def _format_renewal_notice_email(
             "renewal_parameters": renewal_parameters,
             "GLOBAL_TITLE": GLOBAL_TITLE,
             "BRIDGE_CREDITS": BRIDGE_CREDITS,
+            "base_url": base_url,
         },
     )
 
@@ -3344,26 +3349,17 @@ def _notify_club_of_block(club, user):
 
     from notifications.views.core import send_cobalt_email_with_template
 
-    member_editors = rbac_get_users_with_role(f"orgs.members.{club.id}.edit")
+    member_editors = rbac_get_users_with_exact_role(f"orgs.members.{club.id}.edit")
 
-    email_body = f"""
-        <h1>A user has blocked their membership of your club</h1>
-        <p>{user.full_name} ({GLOBAL_ORG} {user.system_number}) was added as a
-        member of your club in {GLOBAL_TITLE}, but they have elected to block
-        the membership. Typically this should mean that they do not believe that
-        they are a member of your club.</p>
-        <p>Their membership has been deleted and your club will not be able to
-        add them as member while this block is in place.
-        <p>If you believe that this person has blocked your club in error,
-        please contact them and ask them to allow membership of your club by
-        logging in to {GLOBAL_TITLE} and clicking the 'Allow' button on their
-        user profile page. This would remove the block and allow a new membership
-        to be created for this person.</p>
-        <p>The member information your club entered into {GLOBAL_TITLE} about
-        this person has been saved as a club contact (see the Club Menu,
-        Contacts page). This contact could be converted back into a member if
-        the block is removed.</p>
-    """
+    email_body = render_to_string(
+        "organisations/club_menu/members/club_admin_email_content_notify_club_of_block.html",
+        {
+            "club": club,
+            "user": user,
+            "GLOBAL_TITLE": GLOBAL_TITLE,
+            "GLOBAL_ORG": GLOBAL_ORG,
+        },
+    )
 
     context = {
         "title": f"Membership blocked by {user.full_name}",
@@ -3372,6 +3368,9 @@ def _notify_club_of_block(club, user):
     }
 
     for user in member_editors:
+
+        # JPG Debug
+        print(f"_notify_club_of_block => {user}")
 
         context["name"] = user.first_name
 

@@ -14,6 +14,7 @@ from cobalt.settings import (
     BRIDGE_CREDITS,
     GLOBAL_TITLE,
     GLOBAL_ORG,
+    COBALT_HOSTNAME,
 )
 from organisations.club_admin_core import (
     get_auto_pay_memberships_for_club,
@@ -132,6 +133,8 @@ class Command(BaseCommand):
 
     def notify_member(self, club, membership, batch_id):
 
+        base_url = f"https://{COBALT_HOSTNAME}"
+
         email_body = render_to_string(
             "organisations/club_menu/members/auto_pay_member_email_content.html",
             {
@@ -141,6 +144,7 @@ class Command(BaseCommand):
                 "GLOBAL_TITLE": GLOBAL_TITLE,
                 "BRIDGE_CREDITS": BRIDGE_CREDITS,
                 "GLOBAL_ORG": GLOBAL_ORG,
+                "base_url": base_url,
             },
         )
 

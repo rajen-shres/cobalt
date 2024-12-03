@@ -99,7 +99,7 @@
     <br>
     <p style="font-size: 90%;">
         You can pay your membership fee using {{ BRIDGE_CREDITS }} by going to your
-        <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
+        <a href="{{ base_url }}{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
         and clicking the &apos;Pay Now&apos; button for this renewal in the Club Memberships section.
     </p>
 
@@ -115,7 +115,7 @@
             <p style="font-size: 90%;">
                 You can prevent automatic payment with {{ BRIDGE_CREDITS }} by changing your permissions
                 for this club on your
-                <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
+                <a href="{{ base_url }}{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
                 before {{ renewal_parameters.auto_pay_date }}.
             </p>
 
@@ -124,7 +124,7 @@
             <p style="font-size: 90%;">
                 You have disabled automatic payment of membership fees by {{ BRIDGE_CREDITS }}
                 for this club. This can be re-enabled by changing your permissions for this club on your
-                <a href="{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
+                <a href="{{ base_url }}{% url 'accounts:user_profile' %}">{{ GLOBAL_TITLE }} profile page</a>
             </p>
             <p style="font-size: 90%;">
                 If you re-enable auto payment before {{ renewal_parameters.auto_pay_date }}, the club will

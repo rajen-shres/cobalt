@@ -1091,6 +1091,31 @@ def rbac_get_users_with_role(role):
     return User.objects.filter(id__in=user_ids).order_by("first_name")
 
 
+def rbac_get_users_with_exact_role(role):
+    """returns a list of all users who have a role specifically,
+    NOT from having the equivalent generic role. E.g. forums.forum.5.view would
+    not also return users with forums.forum.view or forums.forum.all"""
+
+    (app, model, model_instance, action) = role_to_parts(role)
+
+    group_roles_specific = RBACGroupRole.objects.filter(
+        app=app,
+        model=model,
+        model_id=model_instance,
+        action=action,
+    )
+
+    groups = group_roles_specific.distinct("group").values("group")
+
+    user_ids = (
+        RBACUserGroup.objects.filter(group__in=groups)
+        .distinct("member")
+        .values("member")
+    )
+
+    return User.objects.filter(id__in=user_ids).order_by("first_name")
+
+
 def rbac_admin_tree_access(user):
     """returns a list of where in the tree a user had admin access.
 

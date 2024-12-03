@@ -1,0 +1,28 @@
+{% load cobalt_tags %}
+{% load static %}
+
+<h1>A user has blocked their membership of your club</h1>
+
+<p>
+    {{ user.full_name }} ({{ GLOBAL_ORG }} {{ user.system_number }}) was added as a
+    member of {{ club.name }} in {{ GLOBAL_TITLE }}, but they have elected to block
+    the membership. Typically this should mean that they do not believe that
+    they are a member of your club.
+</p>
+<p>
+    Their membership has been deleted and your club will not be able to
+    add them as member while this block is in place.
+</p>
+<p>
+    If you believe that this person has blocked your club in error,
+    please contact them and ask them to allow membership of your club by
+    logging in to {{ GLOBAL_TITLE }} and clicking the 'Allow' button on their
+    user profile page. This would remove the block and allow a new membership
+    to be created for this person.
+</p>
+<p>
+    The member information your club entered into {{ GLOBAL_TITLE }} about
+    this person has been saved as a club contact (see the Club Menu,
+    Contacts page). This contact could be converted back into a member if
+    the block is removed.
+</p>
