@@ -16,6 +16,7 @@ Key functions are:
     perform_simple_action   : perform an action on a member
 """
 
+import bleach
 from datetime import date, timedelta
 from itertools import chain
 import logging
@@ -30,6 +31,9 @@ from accounts.models import (
     UserAdditionalInfo,
 )
 from cobalt.settings import (
+    BLEACH_ALLOWED_TAGS,
+    BLEACH_ALLOWED_ATTRIBUTES,
+    BLEACH_ALLOWED_STYLES,
     BRIDGE_CREDITS,
     GLOBAL_TITLE,
     GLOBAL_ORG,
@@ -2392,11 +2396,19 @@ def _format_renewal_notice_email(
         },
     )
 
+    cleaned_email_content = bleach.clean(
+        renewal_parameters.email_content,
+        strip=True,
+        tags=BLEACH_ALLOWED_TAGS,
+        attributes=BLEACH_ALLOWED_ATTRIBUTES,
+        styles=BLEACH_ALLOWED_STYLES,
+    )
+
     context = {
         "title": renewal_parameters.email_subject,
         "subject": renewal_parameters.email_subject,
         "name": member_details.first_name,
-        "email_body": renewal_parameters.email_content + auto_content,
+        "email_body": cleaned_email_content + auto_content,
     }
 
     if renewal_parameters.club_template:
