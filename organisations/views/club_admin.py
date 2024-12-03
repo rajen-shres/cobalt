@@ -24,6 +24,7 @@ from accounts.models import (
     UnregisteredUser,
 )
 from club_sessions.models import SessionEntry
+from club_sessions.views.core import bridge_credits_for_club
 from cobalt.settings import (
     GLOBAL_ORG,
     GLOBAL_TITLE,
@@ -734,11 +735,15 @@ def user_initiated_fee_payment_callback(status, payload):
             .last()
         )
 
+        # get the club's Bridge Credit payment method
+        bc_payment_method = bridge_credits_for_club(mmt.membership_type.organisation)
+
         # mark membership as paid
         mmt.is_paid = True
         mmt.paid_until_date = mmt.end_date
         mmt.paid_date = timezone.now().date()
         mmt.auto_pay_date = None
+        mmt.payment_method = bc_payment_method
         if mmt.membership_state == MemberMembershipType.MEMBERSHIP_STATE_DUE:
             mmt.membership_state = MemberMembershipType.MEMBERSHIP_STATE_CURRENT
 
