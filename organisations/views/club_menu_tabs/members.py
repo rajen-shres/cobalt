@@ -950,8 +950,6 @@ def add_member_search_htmx(request):
 
     """
 
-    # JPG to do - review use by club_sessions. Note addition of 'contact' user source
-
     first_name_search = request.POST.get("member_first_name_search")
     last_name_search = request.POST.get("member_last_name_search")
     club_id = request.POST.get("club_id")
@@ -2458,6 +2456,9 @@ def club_admin_add_member_detail_htmx(request, club):
             club=club,
             registered=((user_type == "REG") and allowing_auto_pay),
         )
+
+    # jpg debug
+    print(fees_and_due_dates)
 
     return render(
         request,

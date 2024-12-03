@@ -17,7 +17,7 @@ Key functions are:
 """
 
 import bleach
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 from itertools import chain
 import logging
 
@@ -249,6 +249,18 @@ def get_membership_details_for_club(club, exclude_id=None):
         }
         for mt in membership_types
     }
+
+    # check that due dates are not after end dates (perhaps better to turn comprehension above into a loop)
+    for mt_id in fees_and_due_dates:
+        if fees_and_due_dates[mt_id]["end_date"]:
+            due_date = datetime.strptime(
+                fees_and_due_dates[mt_id]["due_date"], "%d/%m/%Y"
+            ).date()
+            end_date = datetime.strptime(
+                fees_and_due_dates[mt_id]["end_date"], "%d/%m/%Y"
+            ).date()
+            if due_date > end_date:
+                fees_and_due_dates[mt_id]["due_date"] = end_date.strftime("%d/%m/%Y")
 
     return (membership_choices, fees_and_due_dates)
 
