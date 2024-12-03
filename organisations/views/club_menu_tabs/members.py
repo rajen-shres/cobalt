@@ -1649,6 +1649,9 @@ def club_admin_edit_member_htmx(request, club, message=None):
             system_number=system_number
         )
 
+        # get balance
+        member_balance = get_balance(member_details.user_or_unreg)
+
         # augment data
         for user_pending_payment in user_pending_payments:
 
@@ -1662,6 +1665,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
 
     else:
         user_pending_payments = None
+        member_balance = None
 
     if saving:
 
@@ -1797,6 +1801,7 @@ def club_admin_edit_member_htmx(request, club, message=None):
             "club": club,
             "member_details": member_details,
             "member_history": member_history,
+            "member_balance": member_balance,
             "current_index": current_index,
             "is_past_history": is_past_history,
             "log_history": log_history,

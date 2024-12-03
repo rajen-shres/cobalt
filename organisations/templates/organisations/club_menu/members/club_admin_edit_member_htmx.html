@@ -22,7 +22,12 @@
     <div class="card-body" id="id_member_edit_tab">
 
         <div class="text-center">
-            <h2>{{ member_details.first_name }} {{ member_details.last_name }} - {{ GLOBAL_ORG }}:{{ member_details.system_number }}</h2>
+            <h2>
+                {{ member_details.first_name }} {{ member_details.last_name }} - {{ GLOBAL_ORG }}:{{ member_details.system_number }}
+                {% if member_balance %}
+                    (Balance {{ GLOBAL_CURRENCY_SYMBOL}}{{ member_balance|floatformat:2 }})
+                {% endif %}
+            </h2>
 
             {% if message %}
                 <h3
