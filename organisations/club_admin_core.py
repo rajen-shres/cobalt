@@ -3857,9 +3857,17 @@ def get_auto_pay_memberships_for_club(club, date=None):
     if len(system_numbers) == 0:
         return None
 
+    # get all disallowing members of club, not just those selected
+    # more robust solution in case of race condition
+
+    # disallowing = MemberClubOptions.objects.filter(
+    #     club=club,
+    #     user__system_number__in=system_numbers,
+    #     allow_auto_pay=False,
+    # ).values_list("user__system_number", flat=True)
+
     disallowing = MemberClubOptions.objects.filter(
         club=club,
-        user__system_number__in=system_numbers,
         allow_auto_pay=False,
     ).values_list("user__system_number", flat=True)
 

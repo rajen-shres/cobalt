@@ -3,6 +3,7 @@ Batch command to auto pay membership fees as at today's date
 """
 
 import logging
+import sys
 
 from django.db import transaction
 from django.core.management.base import BaseCommand
@@ -36,6 +37,7 @@ from rbac.core import (
     rbac_get_users_with_role,
     rbac_user_has_role_exact,
 )
+from utils.views.cobalt_lock import CobaltLock
 
 
 logger = logging.getLogger("cobalt")
@@ -159,6 +161,13 @@ class Command(BaseCommand):
 
         logger.info("Batch auto pay starting")
 
+        # Use a logical lock to ensure that processes are not running on
+        # multiple servers. If another job is running simply exit
+        auto_pay_lock = CobaltLock("auto_pay", expiry=60)
+        if not auto_pay_lock.get_lock():
+            logger.info("Batch auto pay already running (locked), exiting")
+            sys.exit(0)
+
         # process club by club
         clubs = get_clubs_with_auto_pay_memberships()
 
@@ -250,6 +259,10 @@ class Command(BaseCommand):
                     elif membership.action_type in ["disallowed", "unreg"]:
                         # remove the auto pay date from the membership
 
+                        logger.info(
+                            f"Clearing auto pay for {membership.user_or_unreg.system_number} {membership.action_type}"
+                        )
+
                         membership.auto_pay_date = None
                         membership.save()
 
@@ -258,10 +271,13 @@ class Command(BaseCommand):
                         else:
                             unreg_memberships.append(membership)
 
-            # update the members batch
-            member_batch_id.batch_size = len(paid_memberships)
-            member_batch_id.state = BatchID.BATCH_STATE_COMPLETE
-            member_batch_id.save()
+            # update the members batch, or delete if no emails sent
+            if member_batch_id.batch_size == 0:
+                member_batch_id.delete()
+            else:
+                member_batch_id.batch_size = len(paid_memberships)
+                member_batch_id.state = BatchID.BATCH_STATE_COMPLETE
+                member_batch_id.save()
 
             self.notify_club(
                 club,
@@ -278,5 +294,9 @@ class Command(BaseCommand):
                     + f"{len(paid_memberships)} succeeded, {len(failed_memberships)} failed"
                 )
             )
+
+        # release the lock
+        auto_pay_lock.free_lock()
+        auto_pay_lock.delete_lock()
 
         logger.info("Batch auto pay finished")
