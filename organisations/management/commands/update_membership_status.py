@@ -29,6 +29,8 @@ from organisations.club_admin_core import (
     MEMBERSHIP_STATES_TERMINAL,
     CobaltMemberNotFound,
 )
+from utils.views.cobalt_lock import CobaltLock
+
 
 logger = logging.getLogger("cobalt")
 
@@ -124,6 +126,15 @@ class Command(BaseCommand):
         yesterday = today - timedelta(days=1)
 
         logger.info(f"Membership status update starting for {today}")
+
+        # Use a logical lock to ensure that processes are not running on
+        # multiple servers. If another job is running simply exit
+        ums_lock = CobaltLock("update_membership_status", expiry=10)
+        if not ums_lock.get_lock():
+            logger.info(
+                "Update membership status already ran or running (locked), exiting"
+            )
+            sys.exit(0)
 
         self.processed = 0
         self.errored = 0
@@ -369,6 +380,10 @@ class Command(BaseCommand):
                 f"Finished end date processing: {self.processed} ok, "
                 + f"{self.errored} errored, {self.skipped} no action required"
             )
+
+        # release the lock
+        # ums_lock.free_lock()
+        # ums_lock.delete_lock()
 
         logger.info(
             "Membership status update complete. "

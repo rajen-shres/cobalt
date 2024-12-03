@@ -167,9 +167,9 @@ class Command(BaseCommand):
 
         # Use a logical lock to ensure that processes are not running on
         # multiple servers. If another job is running simply exit
-        auto_pay_lock = CobaltLock("auto_pay", expiry=60)
+        auto_pay_lock = CobaltLock("auto_pay", expiry=10)
         if not auto_pay_lock.get_lock():
-            logger.info("Batch auto pay already running (locked), exiting")
+            logger.info("Batch auto pay already ran or running (locked), exiting")
             sys.exit(0)
 
         # process club by club
@@ -300,7 +300,7 @@ class Command(BaseCommand):
             )
 
         # release the lock
-        auto_pay_lock.free_lock()
-        auto_pay_lock.delete_lock()
+        # auto_pay_lock.free_lock()
+        # auto_pay_lock.delete_lock()
 
         logger.info("Batch auto pay finished")
