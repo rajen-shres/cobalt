@@ -72,10 +72,10 @@ class NotificationsConfig(AppConfig):
             """Utility to record a permanent bounce, could be a bounce or a complaint. Either way we shouldn't send
             any more emails to this address
             """
-
+            
             # Mark user as bounced, could be multiple users with this email address. Could be a user or un_reg user
             users = User.objects.filter(email=email_address)
-
+            
             for user in users:
                 user_additional_info, _ = UserAdditionalInfo.objects.get_or_create(
                     user=user
@@ -84,8 +84,13 @@ class NotificationsConfig(AppConfig):
                 user_additional_info.email_hard_bounce_reason = message
                 user_additional_info.email_hard_bounce_date = timezone.now()
                 user_additional_info.save()
-
-            set_club_email_bounced(email_address)
+            
+            # Pass all required parameters to set_club_email_bounced
+            set_club_email_bounced(
+                email=email_address,
+                email_hard_bounce_reason=message,
+                email_hard_bounce_date=timezone.now()
+            )
 
         @receiver(send_received)
         def send_handler(sender, mail_obj, send_obj, raw_message, *args, **kwargs):
