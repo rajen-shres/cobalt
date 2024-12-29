@@ -3003,23 +3003,26 @@ def _process_bulk_renewals(
                 form_index,
             )
 
-            this_batch_id = create_rbac_batch_id(
-                rbac_role=f"notifications.orgcomms.{club.id}.edit",
-                organisation=club,
-                batch_type=BatchID.BATCH_TYPE_COMMS,
-                batch_size=len(members),
-                description=(
-                    this_renewal_parameters.email_subject
-                    + f" ({this_renewal_parameters.membership_type.name})"
-                ),
-                complete=False,
-            )
+            # Only create batch_id if we're sending notices
+            this_batch_id = None
+            if this_renewal_parameters.send_notice:
+                this_batch_id = create_rbac_batch_id(
+                    rbac_role=f"notifications.orgcomms.{club.id}.edit",
+                    organisation=club,
+                    batch_type=BatchID.BATCH_TYPE_COMMS,
+                    batch_size=len(members),
+                    description=(
+                        this_renewal_parameters.email_subject
+                        + f" ({this_renewal_parameters.membership_type.name})"
+                    ),
+                    complete=False,
+                )
 
             for member in members:
                 success, _ = renew_membership(
                     member,
                     this_renewal_parameters,
-                    batch_id=this_batch_id,
+                    batch_id=this_batch_id,  # Will be None if send_notice is False
                     requester=requester,
                 )
                 if success:
@@ -3027,8 +3030,10 @@ def _process_bulk_renewals(
                 else:
                     error_count += 1
 
-            this_batch_id.state = BatchID.BATCH_STATE_COMPLETE
-            this_batch_id.save()
+            # Only mark batch complete if we created one
+            if this_batch_id:
+                this_batch_id.state = BatchID.BATCH_STATE_COMPLETE
+                this_batch_id.save()
 
     return (ok_count, error_count)
 
