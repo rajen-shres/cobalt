@@ -8,64 +8,78 @@
     <h4>Sent by: {% if email_batch.meta_organisation %}{{ email_batch.meta_organisation }}{% else %}{{ club }}{% endif %}</h4>
 {% endif %}
 
-<a
-    onclick='window.open("{% url "notifications:admin_view_email_by_batch" batch_id=email_batch.id %}", "email","width=1000,height=1500");'
-    href="javascript:void(0)"
->View first email</a>
+{% if details.number_sent > 0 %}
+    <a
+        onclick='window.open("{% url "notifications:admin_view_email_by_batch" batch_id=email_batch.id %}", "email","width=1000,height=1500");'
+        href="javascript:void(0)"
+    >View first email</a>
+{% endif %}
 
-<div id="email_info" style="display: none;">
-    <div id="piechart_3d" style="width: 400px; height: 400px">
-    </div>
-
-    <script>
-        google.charts.load("current", {packages: ["corechart","bar"]});
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart() {
-            const data = google.visualization.arrayToDataTable([
-                ['Task', 'Hours per Day'],
-                ['Queued', {{ details.po_counts.queued }}],
-                ['Sent', {{ details.po_counts.sent }}],
-                ['Failed', {{ details.po_counts.failed }}],
-                ['Requeued', {{ details.po_counts.requeued }}],
-            ]);
-
-            const options = {
-                title: 'Email Sending Status',
-                is3D: true,
-                width: '400',
-                height: '400',
-                {#legend: {'position': 'top'},#}
-                'labels': 'value',
-                'colors': ['#2196f3', '#4caf50', '#00bcd4', '#ffeb3b', '#f44336', '#e91e63']
-            };
-
-            const chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
-            google.visualization.events.addListener(chart, 'ready', afterDraw);
-            chart.draw(data, options);
-        }
-
-        function afterDraw() {
-            // we hide the side panel and fade it in as the chart won't be ready straight away and jumps
-            $("#email_info").fadeIn("slow", "swing");
-        }
-    </script>
-
-    <!-- COB-793 -->
-    <h3>Post-Send Activities</h3>
-    {% if large_batch %}
-        <p>Due to the size of this batch, email delivery and tracking statistics are not available.</p>
-    {% else %}
-        <div class="table-responsive">
-            <table class="table table-hover table-condensed">
-                <tbody>
-                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.sent help_text="Sent means that we sent the email on to an email server to handle" %}
-                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.delivered help_text="Delivered means that the person's email server (gmail, hotmail etc), has confirmed they have received the message" %}
-                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.opened help_text="Opened means that something (usually the person we sent it to) has opened this message" %}
-                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.clicked help_text="Clicked only applies if there are links in the email and means that the person clicked on a link that we sent" %}
-                    {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.bounced help_text="Bounced means that the email was not able to be delivered. You can find out why by looking at the email itself." %}
-                </tbody>
-            </table>
+<div id="email_info" {% if details.number_sent > 0 %}style="display: none;"{% endif %}>
+    {% if details.number_sent == 0 %}
+        <div class="alert alert-info">
+            This email batch is empty. No emails were sent.
         </div>
+    {% else %}
+        <div id="piechart_3d" style="width: 400px; height: 400px">
+        </div>
+
+        <script>
+            google.charts.load("current", {packages: ["corechart","bar"]});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                const data = google.visualization.arrayToDataTable([
+                    ['Task', 'Hours per Day'],
+                    ['Queued', {{ details.po_counts.queued }}],
+                    ['Sent', {{ details.po_counts.sent }}],
+                    ['Failed', {{ details.po_counts.failed }}],
+                    ['Requeued', {{ details.po_counts.requeued }}],
+                ]);
+
+                const options = {
+                    title: 'Email Sending Status',
+                    is3D: true,
+                    width: '400',
+                    height: '400',
+                    {#legend: {'position': 'top'},#}
+                    'labels': 'value',
+                    'colors': ['#2196f3', '#4caf50', '#00bcd4', '#ffeb3b', '#f44336', '#e91e63']
+                };
+
+                const chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
+                google.visualization.events.addListener(chart, 'ready', afterDraw);
+                chart.draw(data, options);
+            }
+
+            function afterDraw() {
+                // we hide the side panel and fade it in as the chart won't be ready straight away and jumps
+                $("#email_info").fadeIn("slow", "swing");
+            }
+        </script>
+
+        <!-- COB-793 -->
+        <h3>Post-Send Activities</h3>
+        {% if large_batch %}
+            <p>Due to the size of this batch, email delivery and tracking statistics are not available.</p>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover table-condensed">
+                    <tbody>
+                        {% if details.totals %}
+                            {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.sent help_text="Sent means that we sent the email on to an email server to handle" %}
+                            {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.delivered help_text="Delivered means that the person's email server (gmail, hotmail etc), has confirmed they have received the message" %}
+                            {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.opened help_text="Opened means that something (usually the person we sent it to) has opened this message" %}
+                            {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.clicked help_text="Clicked only applies if there are links in the email and means that the person clicked on a link that we sent" %}
+                            {% include "organisations/club_menu/comms/email_view_stats.html" with item=details.totals.bounced help_text="Bounced means that the email was not able to be delivered. You can find out why by looking at the email itself." %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">No statistics available</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
     {% endif %}
 </div>

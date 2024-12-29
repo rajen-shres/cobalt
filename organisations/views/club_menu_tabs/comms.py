@@ -522,6 +522,30 @@ def email_view_htmx(request, club):
     # Total count
     count = snoopers.count()
 
+    # Handle empty batch case
+    if count == 0:
+        return render(
+            request,
+            "organisations/club_menu/comms/email_view_htmx.html",
+            {
+                "club": club,
+                "email_batch": email_batch,
+                "details": {
+                    "number_sent": 0,
+                    "created": None,
+                    "subject": "No emails in batch",
+                    "totals": {},
+                    "po_counts": {
+                        "sent": 0,
+                        "failed": 0,
+                        "queued": 0,
+                        "requeued": 0,
+                    },
+                },
+                "large_batch": False,
+            },
+        )
+
     # We only show the first email
     snooper = snoopers.first()
 
