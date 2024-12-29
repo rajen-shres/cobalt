@@ -159,6 +159,7 @@ class Command(BaseCommand):
             to_address=membership.user_or_unreg.email,
             batch_id=batch_id,
             context=context,
+            batch_size=batch_id.batch_size,  # Added batch_size parameter
         )
 
     def handle(self, *args, **options):
@@ -212,6 +213,7 @@ class Command(BaseCommand):
                 rbac_role=f"notifications.orgcomms.{club.id}.edit",
                 organisation=club,
                 batch_type=BatchID.BATCH_TYPE_COMMS,
+                batch_size=len(memberships),  # Changed to use len(memberships) for initial size
                 description=f"Membership fee payment for {club.name}",
                 complete=False,
             )
@@ -276,7 +278,7 @@ class Command(BaseCommand):
                             unreg_memberships.append(membership)
 
             # update the members batch, or delete if no emails sent
-            if member_batch_id.batch_size == 0:
+            if len(paid_memberships) == 0:  # Changed condition
                 member_batch_id.delete()
             else:
                 member_batch_id.batch_size = len(paid_memberships)
