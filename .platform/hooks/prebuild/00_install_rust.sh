@@ -15,4 +15,4 @@ echo 'source $HOME/.cargo/env' >> /root/.bashrc
 echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> /home/webapp/.bashrc
 echo 'source $HOME/.cargo/env' >> /home/webapp/.bashrc
 
-echo "Rust installation complete" >> /var/log/cobalt.log 
+echo "Rust installation complete" >> /var/log/cobalt.log
