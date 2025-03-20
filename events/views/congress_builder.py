@@ -549,9 +549,25 @@ def _congress_builder_populate_member_entry_fee(congress):
     # update any existing events
     events = Event.objects.filter(congress=congress)
     for event in events:
+        # FIX: Check for potentially corrupted fee values when toggling members_only flag
+        players_per_entry = EVENT_PLAYER_FORMAT_SIZE[event.player_format]
+        if event.player_format == "Teams":
+            players_per_entry = 4
+            
+        # If entry_fee is unreasonably high, normalize it
+        if event.entry_fee > 1000:  # Heuristic for detecting multiplied fees
+            event.entry_fee = event.entry_fee / players_per_entry
+            if event.entry_early_payment_discount > 0:
+                event.entry_early_payment_discount = event.entry_early_payment_discount / players_per_entry
+                
+        # If member_entry_fee is unreasonably high, normalize it  
+        if event.member_entry_fee > 1000:
+            event.member_entry_fee = event.member_entry_fee / players_per_entry
+            
         if event.member_entry_fee == Decimal(0.00) and event.entry_fee != Decimal(0.00):
             event.member_entry_fee = event.entry_fee
-            event.save()
+            
+        event.save()
 
 
 def create_congress_wizard_6(request, step_list, congress):
@@ -782,9 +798,21 @@ def edit_event(request, congress_id, event_id):
         if event.player_format == "Teams":
             players_per_entry = 4
 
-        initial["member_entry_fee"] = cobalt_round(
-            event.member_entry_fee / players_per_entry
-        )
+        # FIX: Check if the member_entry_fee is already at a reasonable level compared to entry_fee
+        # If member_entry_fee is already within a reasonable range, don't divide again
+        if congress.members_only and event.member_entry_fee > 0:
+            # Check if member_entry_fee is already per player (much smaller than what we'd expect for per-entry)
+            if event.member_entry_fee <= (event.entry_fee / players_per_entry) * 2:
+                initial["member_entry_fee"] = event.member_entry_fee
+            else:
+                initial["member_entry_fee"] = cobalt_round(
+                    event.member_entry_fee / players_per_entry
+                )
+        else:
+            initial["member_entry_fee"] = cobalt_round(
+                event.member_entry_fee / players_per_entry
+            )
+            
         initial["entry_fee"] = cobalt_round(event.entry_fee / players_per_entry)
         initial["entry_early_payment_discount"] = cobalt_round(
             event.entry_early_payment_discount / players_per_entry
