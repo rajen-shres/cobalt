@@ -109,38 +109,22 @@ def admin_summary(request, congress_id, message=""):
             entry_status="Cancelled"
         )
         event.entries = event_entries.count()
-        
-        # Calculate players per entry for display purposes
-        players_per_entry = EVENT_PLAYER_FORMAT_SIZE[event.player_format]
-        if event.player_format == "Teams":
-            players_per_entry = 4
-            
-        # FIX: Use correct display values for members-only congresses
-        # For display in admin view, we want to show the full entry fee (per entry)
-        if congress.members_only:
-            display_entry_fee = event.member_entry_fee
-            if event.entry_early_payment_discount:
-                display_early_fee = display_entry_fee - event.entry_early_payment_discount
-            else:
-                display_early_fee = display_entry_fee
-                
-            # Ensure we're not displaying already-multiplied values
-            # This helps fix existing corrupted displays
-            if display_entry_fee > 1000:  # Heuristic for detecting multiplied fees
-                display_entry_fee = display_entry_fee / players_per_entry
-                display_early_fee = display_early_fee / players_per_entry
-                
-            event.entry_fee_display = display_entry_fee
-            event.early_fee_display = display_early_fee
+        if event.entry_early_payment_discount:
+            event.early_fee = event.entry_fee - event.entry_early_payment_discount
         else:
-            if event.entry_early_payment_discount:
-                event.early_fee = event.entry_fee - event.entry_early_payment_discount
-            else:
-                event.early_fee = event.entry_fee
-            event.entry_fee_display = event.entry_fee
-            event.early_fee_display = event.early_fee
+            event.early_fee = event.entry_fee
 
         # calculate tables
+        players_per_entry = EVENT_PLAYER_FORMAT_SIZE[event.player_format]
+
+        # Teams of 3 - only need 3 to make a table
+        if players_per_entry == 3:
+            players_per_entry = 4
+
+        # For teams we only have 4 per table
+        if event.player_format == "Teams":
+            players_per_entry = 4
+
         event.tables = event.entries * players_per_entry / 4.0
 
         # remove decimal if not required
