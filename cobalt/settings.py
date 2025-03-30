@@ -76,7 +76,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # basics
 SECRET_KEY = set_value("SECRET_KEY")
 # DEBUG = set_value("DEBUG", False)
-DEBUG = os.environ.get("DEBUG") == "ON"
+DEBUG = True
 API_KEY_PREFIX = set_value("API_KEY_PREFIX", "API_")
 
 # Set up ADMINS list from string
@@ -143,11 +143,11 @@ NEW_RELIC_APP_ID = set_value("NEW_RELIC_APP_ID", "601323710")
 MP_USE_FILE = set_value("MP_USE_FILE", None)
 
 # database
-RDS_DB_NAME = set_value("RDS_DB_NAME")
-RDS_USERNAME = set_value("RDS_USERNAME")
-RDS_PASSWORD = set_value("RDS_PASSWORD")
-RDS_HOSTNAME = set_value("RDS_HOSTNAME")
-RDS_PORT = set_value("RDS_PORT")
+RDS_DB_NAME = set_value("RDS_DB_NAME", "ebdb")
+RDS_USERNAME = set_value("RDS_USERNAME", "cobalt")
+RDS_PASSWORD = set_value("RDS_PASSWORD", "F1shcake")
+RDS_HOSTNAME = set_value("RDS_HOSTNAME", "127.0.0.1")
+RDS_PORT = set_value("RDS_PORT", 5432)
 USE_SQLITE = set_value("USE_SQLITE", 0)
 
 # xero
