@@ -143,11 +143,11 @@ NEW_RELIC_APP_ID = set_value("NEW_RELIC_APP_ID", "601323710")
 MP_USE_FILE = set_value("MP_USE_FILE", None)
 
 # database
-RDS_DB_NAME = set_value("RDS_DB_NAME")
-RDS_USERNAME = set_value("RDS_USERNAME")
-RDS_PASSWORD = set_value("RDS_PASSWORD")
-RDS_HOSTNAME = set_value("RDS_HOSTNAME")
-RDS_PORT = set_value("RDS_PORT")
+RDS_DB_NAME = set_value("RDS_DB_NAME", "cobalt")
+RDS_USERNAME = set_value("RDS_USERNAME", "postgres")
+RDS_PASSWORD = set_value("RDS_PASSWORD", "postgres")
+RDS_HOSTNAME = set_value("RDS_HOSTNAME", "localhost")
+RDS_PORT = set_value("RDS_PORT", "5432")
 USE_SQLITE = set_value("USE_SQLITE", 0)
 
 # xero

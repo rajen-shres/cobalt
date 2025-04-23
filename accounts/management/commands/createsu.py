@@ -89,3 +89,11 @@ class Command(BaseCommand):
             "John",
             "Grosvenor",
         )
+        
+        self.create_initial_user(
+            "335544",
+            "rajen@simulator.amazonses.com",
+            "335544",
+            "rajen",
+            "shrestha",
+        )

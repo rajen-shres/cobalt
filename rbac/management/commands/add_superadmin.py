@@ -21,6 +21,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print("Running add_superadmin")
         su_list = super_user_list(self)
+        for user in su_list:
+            print(user.username)
+            print(user.email)
+            
         super_group = create_RBAC_admin_group(self, "admin", "", "Super admin group")
         create_RBAC_admin_tree(self, super_group, "rbac")
         for user in su_list:

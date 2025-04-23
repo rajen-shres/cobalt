@@ -20,7 +20,8 @@ def super_user_list(self):
     """We use the same users for everything. Build list in one place"""
 
     # Currently Mark and Julian
-    return User.objects.filter(username__in=["Mark", "518891"])
+    # added rajen. Note: must run python manage.py createsus.py & accounts_core
+    return User.objects.filter(username__in=["Mark", "518891", "rajen"])
 
 
 def create_RBAC_default(self, app, model, default_behaviour="Block"):

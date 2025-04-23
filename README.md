@@ -14,3 +14,10 @@ Documentation at [docs.myabf.com.au](http://docs.myabf.com.au).
 ## License
 
 See the [LICENSE](LICENSE) file for license rights and limitations (GPL).
+
+
+## setup for dev.
+run the docker-compose up -d 
+
+please check docker-compose.yml
+And might need to add_model_default.sql
