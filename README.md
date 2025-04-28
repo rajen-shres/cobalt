@@ -19,9 +19,9 @@ See the [LICENSE](LICENSE) file for license rights and limitations (GPL).
 ## setup for dev.
 run the docker-compose up -d 
 
-this apps uses python 3.10. 
+this apps uses python 3.9. 
 Create environment for:
->> pythorn -3.10 -m venv venv310
+>> pythorn -3.9 -m venv venv39
 
 please check docker-compose.yml
 And might need to add_model_default.sql
